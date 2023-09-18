@@ -2,6 +2,7 @@ version: '3.8'  # Use the latest version of Docker Compose
 
 services:
   database:
+    container_name: database
     image: postgres:latest  # Specify the PostgreSQL image version explicitly
     env_file:
       - ./backend-nest/.env  # Load environment variables from a file
@@ -13,6 +14,7 @@ services:
       - app_network  # Use a user-defined network for better isolation
 
   backend:
+    container_name: backend
     build:
       context: ./backend-nest
       dockerfile: Dockerfile  # You don't need quotes around the Dockerfile path
