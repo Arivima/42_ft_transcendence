@@ -28,8 +28,9 @@ services:
       - app_network
 
 #   frontend:
+#     container_name: frontend
 #     build:
-#       context: ./src/frontend
+#       context: ./frontend-vue
 #       dockerfile: Dockerfile
 #     depends_on:
 #       - backend
