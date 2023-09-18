@@ -1,0 +1,41 @@
+version: '3.8'  # Use the latest version of Docker Compose
+
+services:
+  database:
+    image: postgres:latest  # Specify the PostgreSQL image version explicitly
+    env_file:
+      - ./backend-nest/.env  # Load environment variables from a file
+    ports:
+      - "5432:5432"
+    volumes:
+      - database_data:/home/ripa/postgresql/data
+    networks:
+      - app_network  # Use a user-defined network for better isolation
+
+  backend:
+    build:
+      context: ./backend-nest
+      dockerfile: Dockerfile  # You don't need quotes around the Dockerfile path
+    ports:
+      - "3000:3000"
+    env_file:
+      ./backend-nest/.env # Load environment variables from a file
+    depends_on:
+      - database  # Ensure the backend service starts after the database
+    networks:
+      - app_network
+
+#   frontend:
+#     build:
+#       context: ./src/frontend
+#       dockerfile: Dockerfile
+#     depends_on:
+#       - backend
+#     networks:
+#       - app_network
+
+volumes:
+  database_data: {}
+
+networks:
+  app_network: {}
