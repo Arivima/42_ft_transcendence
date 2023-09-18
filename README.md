@@ -4,6 +4,9 @@ Run on docker:
 ``` docker-compose up --build ```
 
 For let it running in local:
+change file .env POSTGRES_HOST
+
+
 ``` docker-compose up --build -d ```
 ``` docker stop backend```
 ``` cd backend-nest```
