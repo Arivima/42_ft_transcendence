@@ -1,9 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
-import * as passport from 'passport';
-import * as session from 'express-session';
-import * as cookieParser from 'cookie-parser';
+// import { CorsOptions } from '@nestjs/platform-express/interfaces/cors-options.interface';
+
 
 dotenv.config();
 
@@ -13,8 +12,16 @@ async function bootstrap() {
   //  print type of BACKEND_PORT
   console.log(process.env.POSTGRES_DB);
   
+  const corsOptions = {
+    origin: process.env.FRONTEND_URL, // Replace with your frontend URL
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  };
   const app = await NestFactory.create(AppModule);
-  // app.use(cookieParser());
+  
+  app.enableCors(corsOptions);
+
+    // app.use(cookieParser());
   // app.use(
   //   session({
   //     secret: '!terceS',

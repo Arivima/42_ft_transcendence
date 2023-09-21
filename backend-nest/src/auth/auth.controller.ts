@@ -45,10 +45,7 @@ export class AuthController {
 
   @Get('42')
   @UseGuards(AuthGuard('42'))
-  async login42() {
-    // This route is handled by Passport and the FortyTwoStrategy.
-    // You don't need to do anything here.
-  }
+  async login42() {}
 
   @Get('42/callback')
   @UseGuards(AuthGuard('42'))

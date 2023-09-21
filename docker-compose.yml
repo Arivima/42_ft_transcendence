@@ -24,18 +24,26 @@ services:
       ./backend-nest/.env # Load environment variables from a file
     depends_on:
       - database  # Ensure the backend service starts after the database
+    # volumes:
+    #   - ./backend-nest:/home/ripa/app
     networks:
       - app_network
 
-#   frontend:
-#     container_name: frontend
-#     build:
-#       context: ./frontend-vue
-#       dockerfile: Dockerfile
-#     depends_on:
-#       - backend
-#     networks:
-#       - app_network
+  frontend:
+    container_name: frontend
+    build:
+      context: ./frontend-vue
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    env_file:
+      ./frontend-vue/.env
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend-vue:/home/ripa/app
+    networks:
+      - app_network
 
 volumes:
   database_data: {}
