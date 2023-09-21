@@ -7,7 +7,7 @@ services:
     env_file:
       - ./backend-nest/.env  # Load environment variables from a file
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - database_data:/home/ripa/postgresql/data
     networks:
@@ -26,6 +26,8 @@ services:
       - database  # Ensure the backend service starts after the database
     networks:
       - app_network
+    volumes:
+      - backend-code:/app # Volume for sharing the backend's code from host to container
 
 #   frontend:
 #     container_name: frontend
@@ -38,6 +40,13 @@ services:
 #       - app_network
 
 volumes:
+  backend-code:
+    driver: local
+    name: backend-code
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/backend-nest
   database_data: {}
 
 networks:

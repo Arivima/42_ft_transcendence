@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:lts-bullseye
 
 WORKDIR /app
 
@@ -11,4 +11,4 @@ COPY . .
 # RUN npm run build
 
 
-CMD [ "npm", "run", "start:dev" ]
+ENTRYPOINT [ "npm", "run", "start:dev" ]
