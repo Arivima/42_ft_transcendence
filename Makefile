@@ -1,4 +1,5 @@
 push:
-	git push origin arielle
+	git push origin
+	git push arielle
 
 .PHONY: push
