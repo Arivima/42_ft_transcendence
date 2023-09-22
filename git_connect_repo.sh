@@ -2,10 +2,10 @@
 
 # TODO before this script
 # add other users to your repo as collaborators
-git remote set-url --delete --push origin mmarinel/42RomaLuiss__ft_transcendence.git
-git remote set-url --delete --push origin Arivima/42_ft_transcendence.git
-git remote set-url --delete --push origin ripa001/ft_transcendence.git
-git remote set-url --delete --push origin CCantale/ft_Transcendence.git
+# git remote set-url --delete --push origin mmarinel/42RomaLuiss__ft_transcendence.git
+# git remote set-url --delete --push origin Arivima/42_ft_transcendence.git
+# git remote set-url --delete --push origin ripa001/ft_transcendence.git
+# git remote set-url --delete --push origin CCantale/ft_Transcendence.git
 # persistency of setting
 
 
@@ -142,9 +142,9 @@ ok=""
 echo -e "\n"
 read -p "Testing the settings? (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
-    touch test_repo_$name
+    touch test_repo
     git add .
-    git commit -m "Test repository creation from $name"
+    git commit -m "Test repository creation"
     git push
 else
     exit 1
