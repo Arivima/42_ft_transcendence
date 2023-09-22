@@ -2,7 +2,7 @@
 
 # TODO before this script
 # add other users to your repo as collaborators
-
+# git remote set-url --delete --push origin mmarinel/42RomaLuiss__ft_transcendence.git
 
 # Save current changes
 ok=""
@@ -38,24 +38,33 @@ else
 fi
 
 # Check if the remotes already exist, and if not, add it
-REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
-for element in "${REPO_ARRAY[@]}"
-do
-    echo -e "\n"
-    echo "Checking if element is present: $element"
-    if ! git remote | grep -q "Push  URL: $element"; then
-        echo "Adding element: $element"
-        git remote set-url --add --push origin $element
-        echo "Remote repository added : $element"
-    else
-        echo "element already present: $element"
-    fi
-done
+ok=""
+echo -e "\n"
+read -p "Now adding the team repos (Type 'ok' to continue): " ok
+if [ "$ok" == "ok" ]; then
+    REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
+    for element in "${REPO_ARRAY[@]}"
+    do
+        echo -e "\n"
+        echo "Checking if element is present: $element"
+        if ! git remote show origin | grep -q "Push  URL: $element"; then
+            echo "Adding element: $element"
+            git remote set-url --add --push origin $element
+            echo "Remote repository added : $element"
+        else
+            echo "element already present: $element"
+        fi
+    done
+else
+    exit 1
+fi
+
 
 # Check if user repo is indeed in the list (can be replaced sometimes)
 response=""
 while [ "$name" != "Arielle" ] && [ "$name" != "Matteo" ] && [ "$name" != "Claudio" ] && [ "$name" != "Davide" ]
 do
+    echo -e "\n"
     echo "Please enter your name: Arielle | Matteo | Claudio | Davide"
     read name
 
@@ -88,10 +97,13 @@ esac
 if ! git remote | grep -q "Push  URL: $REMOTE_REPO_USER"; then
     git remote set-url --add --push origin "$REMOTE_REPO_USER"
     echo "Remote repository added : $REMOTE_REPO_USER"
+else 
+    echo "Remote repository already present : $REMOTE_REPO_USER"
 fi
 
 # Test the final settings
 ok=""
+echo -e "\n"
 read -p "Testing the result? (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     git remote show origin
@@ -101,6 +113,7 @@ fi
 
 # Test the installation
 ok=""
+echo -e "\n"
 read -p "Testing the settings? (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     touch test_repo
