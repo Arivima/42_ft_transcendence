@@ -6,7 +6,8 @@
 
 # Save current changes
 ok=""
-read -p "\nSave current changes (Type 'ok' to continue): " ok
+echo -e "\n"
+read -p "Save current changes (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     git add .
     git commit -m "auto save"
@@ -14,7 +15,8 @@ fi
 
 # Pull latest master
 ok=""
-read -p "\nPull latest master (Type 'ok' to continue): " ok
+echo -e "\n"
+read -p "Pull latest master (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     git pull git@github.com:Arivima/42_ft_transcendence.git master
 fi
@@ -27,7 +29,8 @@ REMOTE_REPO_CLAUDIO="git@github.com:ripa001/ft_transcendence.git"
 
 # check current settings
 ok=""
-read -p "\nThese are the original settings for origin (Type 'ok' to continue): " ok
+echo -e "\n"
+read -p "These are the original settings for origin (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     git remote show origin
 else
@@ -38,7 +41,8 @@ fi
 REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
 for element in "${REPO_ARRAY[@]}"
 do
-    echo "\nChecking if element is present: $element"
+    echo -e "\n"
+    echo "Checking if element is present: $element"
     if ! git remote | grep -q "Push  URL: $element"; then
         echo "Adding element: $element"
         git remote set-url --add --push origin $element
