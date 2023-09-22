@@ -2,21 +2,23 @@
 
 # TODO before this script
 # add other users to your repo as collaborators
-ok=""
-read -p "These are the original settings for origin (Type 'ok' to continue): " ok
-if [ "$ok" == "ok" ]; then
-    git remote show origin
-else
-    exit 1
-fi
+
 
 # Save current changes
-git add .
-git commit -m "auto save"
-git push
+ok=""
+read -p \n"Save current changes (Type 'ok' to continue): " ok
+if [ "$ok" == "ok" ]; then
+    git add .
+    git commit -m "auto save"
+    git push
+fi
 
 # Pull latest master
-git pull git@github.com:Arivima/42_ft_transcendence.git master
+ok=""
+read -p "\nPull latest master (Type 'ok' to continue): " ok
+if [ "$ok" == "ok" ]; then
+    git pull git@github.com:Arivima/42_ft_transcendence.git master
+fi
 
 # Define the remote repository URL
 REMOTE_REPO_ARIELLE="git@github.com:Arivima/42_ft_transcendence.git"
@@ -24,14 +26,26 @@ REMOTE_REPO_MATTEO="git@github.com:mmarinel/42RomaLuiss__ft_transcendence.git"
 REMOTE_REPO_DAVIDE="git@github.com:ripa001/ft_transcendence.git"
 REMOTE_REPO_CLAUDIO="git@github.com:ripa001/ft_transcendence.git"
 
+# check current settings
+ok=""
+read -p "\nThese are the original settings for origin (Type 'ok' to continue): " ok
+if [ "$ok" == "ok" ]; then
+    git remote show origin
+else
+    exit 1
+fi
+
 # Check if the remotes already exist, and if not, add it
 REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
 for element in "${REPO_ARRAY[@]}"
 do
-    echo "Element: $element"
+    echo "\nChecking if element is present: $element"
     if ! git remote | grep -q "Push  URL: $element"; then
-    git remote set-url --add --push origin $element
-    echo "Remote repository added : $element"
+        echo "Adding element: $element"
+        git remote set-url --add --push origin $element
+        echo "Remote repository added : $element"
+    else
+        echo "element already present: $element"
     fi
 done
 
