@@ -2,6 +2,13 @@
 
 # TODO before this script
 # add other users to your repo as collaborators
+ok=""
+read -p "These are the original settings for origin (Type 'ok' to continue): " ok
+if [ "$ok" == "ok" ]; then
+    git remote show origin
+else
+    exit 1
+fi
 
 # Save current changes
 git add .
@@ -71,6 +78,8 @@ ok=""
 read -p "Testing the result? (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     git remote show origin
+else
+    exit 1
 fi
 
 # Test the installation
@@ -81,4 +90,6 @@ if [ "$ok" == "ok" ]; then
     git add .
     git commit -m "Test repository creation"
     git push
+else
+    exit 1
 fi
