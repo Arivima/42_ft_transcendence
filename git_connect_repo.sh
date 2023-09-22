@@ -2,13 +2,20 @@
 
 # TODO before this script
 # add other users to your repo as collaborators
-# git remote set-url --delete --push origin mmarinel/42RomaLuiss__ft_transcendence.git
+git remote set-url --delete --push origin mmarinel/42RomaLuiss__ft_transcendence.git
+git remote set-url --delete --push origin Arivima/42_ft_transcendence.git
+git remote set-url --delete --push origin ripa001/ft_transcendence.git
+git remote set-url --delete --push origin CCantale/ft_Transcendence.git
+# persistency of setting
+
 
 # Save current changes
 ok=""
 echo -e "\n"
 read -p "Save current changes (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
+    bit branch
+    echo "checking out to branch master" && git checkout master
     git add .
     git commit -m "auto save"
 fi
@@ -25,7 +32,7 @@ fi
 REMOTE_REPO_ARIELLE="git@github.com:Arivima/42_ft_transcendence.git"
 REMOTE_REPO_MATTEO="git@github.com:mmarinel/42RomaLuiss__ft_transcendence.git"
 REMOTE_REPO_DAVIDE="git@github.com:ripa001/ft_transcendence.git"
-REMOTE_REPO_CLAUDIO="git@github.com:ripa001/ft_transcendence.git"
+REMOTE_REPO_CLAUDIO="git@github.com:CCantale/ft_Transcendence.git"
 
 # check current settings
 ok=""
@@ -48,7 +55,6 @@ if [ "$ok" == "ok" ]; then
         echo -e "\n"
         echo "Checking if element is present: $element"
         if ! git remote show origin | grep -q "Push  URL: $element"; then
-            echo "Adding element: $element"
             git remote set-url --add --push origin $element
             echo "Remote repository added : $element"
         else
