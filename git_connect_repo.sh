@@ -142,9 +142,9 @@ ok=""
 echo -e "\n"
 read -p "Testing the settings? (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
-    touch test_repo
+    touch test_repo_$name
     git add .
-    git commit -m "Test repository creation"
+    git commit -m "Test repository creation from $name"
     git push
 else
     exit 1
