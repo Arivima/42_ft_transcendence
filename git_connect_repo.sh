@@ -6,11 +6,10 @@
 
 # Save current changes
 ok=""
-read -p \n"Save current changes (Type 'ok' to continue): " ok
+read -p "\nSave current changes (Type 'ok' to continue): " ok
 if [ "$ok" == "ok" ]; then
     git add .
     git commit -m "auto save"
-    git push
 fi
 
 # Pull latest master
