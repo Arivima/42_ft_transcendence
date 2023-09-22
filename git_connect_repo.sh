@@ -65,47 +65,67 @@ else
     exit 1
 fi
 
+# Check if user repo is indeed in the list (can be replaced sometimes)
+ok=""
+echo -e "\n"
+read -p "Now checking all the team repos have been added (Type 'ok' to continue): " ok
+if [ "$ok" == "ok" ]; then
+    REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
+    for element in "${REPO_ARRAY[@]}"
+    do
+        echo -e "\n"
+        echo "Checking if element is present: $element"
+        if ! git remote show origin | grep -q "Push  URL: $element"; then
+            git remote set-url --add --push origin $element
+            echo "Remote repository added : $element"
+        else
+            echo "element already present: $element"
+        fi
+    done
+else
+    exit 1
+fi
 
 # Check if user repo is indeed in the list (can be replaced sometimes)
-response=""
-while [ "$name" != "Arielle" ] && [ "$name" != "Matteo" ] && [ "$name" != "Claudio" ] && [ "$name" != "Davide" ]
-do
-    echo -e "\n"
-    echo "Please enter your name: Arielle | Matteo | Claudio | Davide"
-    read name
+# response=""
+# while [ "$name" != "Arielle" ] && [ "$name" != "Matteo" ] && [ "$name" != "Claudio" ] && [ "$name" != "Davide" ]
+# do
+#     echo -e "\n"
+#     echo "Please enter your name: Arielle | Matteo | Claudio | Davide"
+#     read name
 
-    if [ "$name" != "Arielle" ] && [ "$name" != "Matteo" ] && [ "$name" != "Claudio" ] && [ "$name" != "Davide" ]
-    then
-        echo "Wrong input..."
-    fi
-done
+#     if [ "$name" != "Arielle" ] && [ "$name" != "Matteo" ] && [ "$name" != "Claudio" ] && [ "$name" != "Davide" ]
+#     then
+#         echo "Wrong input..."
+#     fi
+# done
 
-REMOTE_REPO_USER=""
-case $name in
-    "Arielle")
-        REMOTE_REPO_USER="$REMOTE_REPO_ARIELLE"
-        ;;
-    "Matteo")
-        REMOTE_REPO_USER="$REMOTE_REPO_MATTEO"
-        ;;
-    "Claudio")
-        REMOTE_REPO_USER="$REMOTE_REPO_CLAUDIO"
-        ;;
-    "Davide")
-        REMOTE_REPO_USER="$REMOTE_REPO_DAVIDE"
-        ;;
-    *)
-        echo "Error: Invalid name."
-        exit 1
-        ;;
-esac
+# REMOTE_REPO_USER=""
+# case $name in
+#     "Arielle")
+#         REMOTE_REPO_USER="$REMOTE_REPO_ARIELLE"
+#         ;;
+#     "Matteo")
+#         REMOTE_REPO_USER="$REMOTE_REPO_MATTEO"
+#         ;;
+#     "Claudio")
+#         REMOTE_REPO_USER="$REMOTE_REPO_CLAUDIO"
+#         ;;
+#     "Davide")
+#         REMOTE_REPO_USER="$REMOTE_REPO_DAVIDE"
+#         ;;
+#     *)
+#         echo "Error: Invalid name."
+#         exit 1
+#         ;;
+# esac
 
-if ! git remote | grep -q "Push  URL: $REMOTE_REPO_USER"; then
-    git remote set-url --add --push origin "$REMOTE_REPO_USER"
-    echo "Remote repository added : $REMOTE_REPO_USER"
-else 
-    echo "Remote repository already present : $REMOTE_REPO_USER"
-fi
+# if ! git remote | grep -q "Push  URL: $REMOTE_REPO_USER"; then
+#     git remote set-url --add --push origin "$REMOTE_REPO_USER"
+#     echo "Remote repository added : $REMOTE_REPO_USER"
+# else 
+#     echo "Remote repository already present : $REMOTE_REPO_USER"
+# fi
 
 # Test the final settings
 ok=""
