@@ -7,9 +7,9 @@ services:
     env_file:
       - ./backend-nest/.env  # Load environment variables from a file
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - database_data:/home/ripa/postgresql/data
+      - database_data:/${HOME}/${USER}/postgresql/data
     networks:
       - app_network  # Use a user-defined network for better isolation
 
@@ -25,7 +25,7 @@ services:
     depends_on:
       - database  # Ensure the backend service starts after the database
     # volumes:
-    #   - ./backend-nest:/home/ripa/app
+    #   - ./backend-nest:/${HOME}/${USER}/app
     networks:
       - app_network
 
@@ -35,13 +35,13 @@ services:
       context: ./frontend-vue
       dockerfile: Dockerfile
     ports:
-      - "80:80"
+      - "8080:80"
     env_file:
       ./frontend-vue/.env
     depends_on:
       - backend
     volumes:
-      - ./frontend-vue:/home/ripa/app
+      - ./frontend-vue:/${HOME}/${USER}/app
     networks:
       - app_network
 
