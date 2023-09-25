@@ -24,8 +24,8 @@ services:
       ./backend-nest/.env # Load environment variables from a file
     depends_on:
       - database  # Ensure the backend service starts after the database
-    # volumes:
-    #   - ./backend-nest:/${HOME}/${USER}/app
+    volumes:
+      - backend-code:/app
     networks:
       - app_network
 
@@ -47,6 +47,13 @@ services:
 
 volumes:
   database_data: {}
+  backend-code:
+    driver: local
+    name: backend-code
+    driver_opts:
+      type: none
+      o: bind
+      device: /${PWD}/backend-nest
 
 networks:
   app_network: {}
