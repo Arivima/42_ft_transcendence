@@ -5,16 +5,20 @@
 	
 		<!-- Cool Button -->
 		<CoolButton buttonText="Login 42!" />
+		<ChatTest />
+
 	</div>
 </template>
 	
 <script>
 import CoolButton from '@/components/CoolButton.vue';
+import ChatTest from '@/components/ChatTest.vue';
 
 export default {
 	name: 'LoginPage',
 	components: {
-		CoolButton,
-	},
+    CoolButton,
+    ChatTest
+},
 }
 </script>
