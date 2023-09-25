@@ -4,6 +4,31 @@ import { FortyTwoAuthGuard } from './fortytwo-auth.guard';
 import { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 
+@Controller('auth')
+export class AuthController {
+	constructor(private readonly authService: AuthService) {}
+
+	@Get('42')
+	@UseGuards(AuthGuard('42'))
+	async login42() {}
+
+	@Get('42/callback')
+	@UseGuards(AuthGuard('42'))
+	async login42Callback(@Req() req: Request, @Res() res: Response) {
+		// This route is also handled by Passport and the FortyTwoStrategy.
+		// If authentication is successful, it will redirect to the specified callback URL.
+		console.log('login42Callback');
+		res.redirect('/');
+	}
+
+	@Get('logout')
+	logout(@Req() req: Request) {
+	// req.logout(); // Log the user out
+	return { auth: false };
+	// Redirect to the home page or any other appropriate URL
+	}
+}
+
 // @Controller()
 // export class AuthController {
 //   constructor(private readonly authService: AuthService) {}
@@ -38,28 +63,3 @@ import { AuthGuard } from '@nestjs/passport';
 // // ```
 // }
 
-
-@Controller('auth')
-export class AuthController {
-  constructor(private readonly authService: AuthService) {}
-
-  @Get('42')
-  @UseGuards(AuthGuard('42'))
-  async login42() {}
-
-  @Get('42/callback')
-  @UseGuards(AuthGuard('42'))
-  async login42Callback(@Req() req: Request, @Res() res: Response) {
-    // This route is also handled by Passport and the FortyTwoStrategy.
-    // If authentication is successful, it will redirect to the specified callback URL.
-    console.log('login42Callback');
-    res.redirect('/');
-  }
-
-  @Get('logout')
-  logout(@Req() req: Request) {
-    // req.logout(); // Log the user out
-    return { auth: false };
-    // Redirect to the home page or any other appropriate URL
-  }
-}

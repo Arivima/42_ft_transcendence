@@ -21,3 +21,35 @@ change file .env POSTGRES_HOST
 ``` npm run start:dev``` (running for development, the server will look for changes in the code and restart automatically)
 ``` npm run start:prod``` (running for production)
 
+How to Run Prisma
+
+Ensure you installed the prisma CLI and prisma client</br>
+(on the cluster machines, install them locally for we do not have global permissions)
+
+````
+npm i -D prisma
+npm i -g @prisma/client
+
+-g = global installation
+-D = local installation
+````
+
+Each Time you make a change to the `.schema` file, run
+
+```
+npx prisma generate
+
+npx prisma migrate dev (only if you are working locally)
+```
+
+Create a `.env` file in your prisma directory
+
+with this environment variable if local execution
+```
+DATABASE_URL="postgresql://dbuser:dbpwd@localhost:5433/database?schema=public&connect_timeout=19000"
+```
+
+with this environment variable if containerized execution
+```
+DATABASE_URL="postgresql://dbuser:dbpwd@database:5432/database?schema=public&connect_timeout=19000"
+```

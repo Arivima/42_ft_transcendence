@@ -6,7 +6,7 @@
 #    By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/24 19:39:26 by mmarinel          #+#    #+#              #
-#    Updated: 2023/09/24 20:21:38 by mmarinel         ###   ########.fr        #
+#    Updated: 2023/09/25 18:48:40 by mmarinel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -34,6 +34,8 @@ fclean: clean
 push:
 	git push origin
 	git push arielle
+
+re: fclean all
 
 # Colors
 RESET					:= "\033[0m"

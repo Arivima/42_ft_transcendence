@@ -1,18 +1,11 @@
 import { Module } from '@nestjs/common';
-// import { AppController } from './app.controller';
-// import { AppService } from './app.service';
 import { PlayersModule } from './players/players.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { typeOrmConfig } from './config/typeorm.config';
 import { AuthModule } from './auth/auth.module';
+import { PrismaModule } from './prisma/prisma.module';
 
 
 @Module({
-  
-  imports: [
-    TypeOrmModule.forRoot(typeOrmConfig), 
-    PlayersModule, AuthModule
-  ],
+  imports: [PlayersModule, AuthModule, PrismaModule],
   // controllers: [AppController],
   // providers: [AppService],
 })

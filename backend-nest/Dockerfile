@@ -10,5 +10,4 @@ COPY . .
 
 # RUN npm run build
 
-
-ENTRYPOINT [ "npm", "run", "start:dev" ]
+ENTRYPOINT [ "sh", "backend-init.sh" ]
