@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as dotenv from 'dotenv';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 // import { CorsOptions } from '@nestjs/platform-express/interfaces/cors-options.interface';
 
@@ -21,7 +22,7 @@ async function bootstrap() {
 	const app = await NestFactory.create(AppModule);
 
 	app.enableCors(corsOptions);
-
+	app.useGlobalPipes(new ValidationPipe({transform : true}));
     // app.use(cookieParser());
   // app.use(
   //   session({
