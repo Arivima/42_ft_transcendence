@@ -1,43 +1,53 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Player } from './entities/player.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Player } from '@prisma/client';
 
 @Injectable()
 export class PlayersService {
-  constructor(
-    @InjectRepository(Player)
-    private readonly playerRepository: Repository<Player>,
-  ) {}
 
-  create(createPlayerDto: CreatePlayerDto) {
-    this.playerRepository.save(createPlayerDto);
-  }
+	constructor(
+	  // @InjectRepository(Player)
+	  private readonly prisma : PrismaService//playerRepository: Repository<Player>,
+	) {}
 
-  async findAll() {
-    return await this.playerRepository.find();
-  }
+	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
+		return this.prisma.player.create({
+		  data: createPlayerDto,
+		});
+	}
 
-  async  findOne(id: number) : Promise<Player | undefined> {
-    return await this.playerRepository.findOne({ where: { id } });
-  }
+	// returns empty
+	async findAll() : Promise<Player[]>{
+		return this.prisma.player.findMany();
+	}
 
+	// returns null
+	async findOne(id: number) : Promise<Player | null> {
+		return this.prisma.player.findUnique({
+			where : {id}
+		});
+	}
 
+	// update(id: number, updatePlayerDto: UpdatePlayerDto) {
+	//   return `This action updates a #${id} player`;
+	// }
+	//! throws exceptions
+	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
+		return this.prisma.player.update({
+			where : {id},
+			data : updatePlayerDto
+		});
+	}
 
-  // update(id: number, updatePlayerDto: UpdatePlayerDto) {
-  //   return `This action updates a #${id} player`;
-  // }
-  async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<void> {
-    await this.playerRepository.update(id, updatePlayerDto);
-  }
-
-  // remove(id: number) {
-  //   return `This action removes a #${id} player`;
-  // }
-  async remove(id: number): Promise<void> {
-    await this.playerRepository.delete(id);
-  }
-
+	// remove(id: number) {
+	//   return `This action removes a #${id} player`;
+	// }
+	//! throws exceptions
+	async remove(id: number): Promise<Player> {
+		return this.prisma.player.delete({
+			where : {id}
+		});
+	}
 }

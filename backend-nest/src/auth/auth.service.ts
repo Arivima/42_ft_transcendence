@@ -3,10 +3,14 @@
 
 // auth.service.ts
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
-  // Your authentication service logic can go here
+	constructor (private prisma : PrismaService) {
+		
+	}
+	// Your authentication service logic can go here
 }
 // import { Injectable } from '@nestjs/common';
 // import { PlayersService } from 'src/players/players.service';
