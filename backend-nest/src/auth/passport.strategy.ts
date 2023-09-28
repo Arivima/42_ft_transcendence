@@ -18,6 +18,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
     // In a production application, you would typically associate the 42 profile
     // with a user in your database and return that user here.
     // For this example, we'll just return the profile.
+    //! console.log(profile);
     return profile;
   }
 }

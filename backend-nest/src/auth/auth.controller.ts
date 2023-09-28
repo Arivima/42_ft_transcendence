@@ -1,4 +1,4 @@
-import { Controller, Get, Req, Res, UseGuards  } from '@nestjs/common';
+import { Controller, ExecutionContext, Get, Req, Res, UseGuards, createParamDecorator  } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { FortyTwoAuthGuard } from './fortytwo-auth.guard';
 import { Request, Response } from 'express';
@@ -10,14 +10,16 @@ export class AuthController {
 
 	@Get('42')
 	@UseGuards(AuthGuard('42'))
-	async login42() {}
+	async login42() {
+		console.log("login42() : called")
+	}
 
-	@Get('42/callback')
+	@Get('42/callback')	
 	@UseGuards(AuthGuard('42'))
 	async login42Callback(@Req() req: Request, @Res() res: Response) {
 		// This route is also handled by Passport and the FortyTwoStrategy.
 		// If authentication is successful, it will redirect to the specified callback URL.
-		console.log('login42Callback');
+		console.log('login42Callback() : called');
 		res.redirect('/');
 	}
 
