@@ -9,7 +9,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - database_data:/${HOME}/${USER}/postgresql/data
+      - database_data:/${HOME}/postgresql/data
     networks:
       - app_network  # Use a user-defined network for better isolation
 
@@ -20,6 +20,7 @@ services:
       dockerfile: Dockerfile  # You don't need quotes around the Dockerfile path
     ports:
       - "3000:3000"
+      - "5555:5555"
     env_file:
       ./backend-nest/.env # Load environment variables from a file
     depends_on:

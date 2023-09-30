@@ -8,17 +8,17 @@ datasource db {
 	url = env("DATABASE_URL")
 }
 
-//! DA CAMBIARE !!!!!
 model Player {
+	createdAt		DateTime	@default(now())
+	updatedAt		DateTime	@updatedAt
 
-	createdAt	DateTime	@default(now())
-	updatedAt	DateTime	@updatedAt
-
-	id			Int		@id @default(autoincrement())
-	firstName	String	?
-	lastName	String	?
-	email		String
-
-	password	String //hashed password
+	id				Int			@id
+	username		String		@unique
+	avatar			String		@unique
+	prova			String
+	prova2			Int
+	firstName		String ?
+	lastName		String ?
+	profileIntra	String ?
 
 }

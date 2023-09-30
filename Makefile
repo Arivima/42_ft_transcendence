@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+         #
+#    By: avilla-m <avilla-m@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/24 19:39:26 by mmarinel          #+#    #+#              #
-#    Updated: 2023/09/25 18:48:40 by mmarinel         ###   ########.fr        #
+#    Updated: 2023/09/30 20:14:14 by avilla-m         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,28 +14,45 @@
 
 SHELL=/bin/bash
 
-all: up
+# DOCKER RULES
+all: 	up
+re: 	fclean all
+reset: 	kill all
 
 up:
+	@printf $(BOLDCYAN)"Building containers"$(RESET)
 	docker-compose up --build
 
 down:
+	@printf $(BOLDCYAN)"Stopping containers"$(RESET)
 	docker-compose down
 
-clean:
+clean: down
+	@printf $(BOLDCYAN)"Cleaning unused objects"$(RESET)
 	@docker container prune -f
 
 fclean: clean
+	@printf $(BOLDCYAN)"Cleaning images"$(RESET)
 	@for image_id in $$(docker images -q); do \
 		docker rmi $$image_id; \
 	done;
 	@docker image prune -f
 
-push:
-	git push origin
-	git push arielle
+kill: fclean
+	@printf $(BOLDCYAN)"Cleaning volumes"$(RESET)
+	@for volume_name in $$(docker volume ls -q); do \
+		docker volume rm $$volume_name; \
+	done;
+	docker system prune -a -f
 
-re: fclean all
+# GIT RULES
+connect:
+	@printf $(BOLDCYAN)"Connecting team git repositories"$(RESET)
+	./git_connect_repo.sh
+
+commit : 
+	@printf $(BOLDCYAN)"Committing changes : "$(RESET)
+	./git_commit.sh
 
 # Colors
 RESET					:= "\033[0m"
@@ -56,4 +73,4 @@ BOLDMAGENTA				:= "\033[1m\033[35m"
 BOLDCYAN				:= "\033[1m\033[36m"
 BOLDWHITE				:= "\033[1m\033[37m"
 
-.PHONY: all clean fclean re push
+.PHONY: all clean fclean re up down kill reset git_init
