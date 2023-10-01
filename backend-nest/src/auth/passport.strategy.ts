@@ -16,17 +16,22 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
   }
 
   async validate(accessToken: string, refreshToken: string, profile: any, done : Function) {
-    // In a production application, you would typically associate the 42 profile
-    // with a user in your database and return that user here.
-    // For this example, we'll just return the profile.
-    console.log(profile);
 
-      try {
-        // implement insert of user in db
-        // check if user is in db using findUnique
-        // add user to db if present
+    try {
+
+        if (await this.pservice.findOne(Number(profile.id)) == null)
+          this.pservice.create({
+            id : Number(profile.id),
+            username : profile.username,
+            avatar : profile._json.image.link,
+            firstName : profile.name.givenName,
+            lastName : profile.name.familyName,
+            profileIntra : profile.profileUrl,
+            })
+
         return done(null, profile);
       }
+
       catch (error) {
         return done(error, null);
       }

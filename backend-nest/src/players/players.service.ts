@@ -11,11 +11,14 @@ export class PlayersService {
 
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
 		return this.prisma.player.create({
-		//   data: {
-		// 	id : createPlayerDto.id,
-		// 	username : createPlayerDto.username,
-		// 	avatar : createPlayerDto.avatar
-		//   },
+		  data: {
+			id : createPlayerDto.id,
+			username : createPlayerDto.username,
+			avatar : createPlayerDto.avatar,
+			firstName : createPlayerDto.firstName,
+			lastName : createPlayerDto.lastName,
+			profileIntra : createPlayerDto.profileIntra
+		  },
 		});
 	}
 
