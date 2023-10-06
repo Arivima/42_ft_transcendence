@@ -10,6 +10,8 @@ export class PlayersService {
 	constructor(private readonly prisma : PrismaService) {}
 
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
+		console.log('DEBUG | PlayersService | create() : called');
+
 		return this.prisma.player.create({
 		  data: {
 			id : createPlayerDto.id,

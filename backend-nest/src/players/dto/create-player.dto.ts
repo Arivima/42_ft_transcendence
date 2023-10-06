@@ -10,4 +10,4 @@ export class CreatePlayerDto {
 	lastName?: string;
 	profileIntra?: string;
 
-}
+};
