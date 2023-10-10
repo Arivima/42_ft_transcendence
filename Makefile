@@ -6,7 +6,7 @@
 #    By: earendil <earendil@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/24 19:39:26 by mmarinel          #+#    #+#              #
-#    Updated: 2023/10/07 17:35:47 by earendil         ###   ########.fr        #
+#    Updated: 2023/10/10 15:41:15 by earendil         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,7 +20,7 @@ re: 	fclean all
 reset: 	kill all
 
 up:
-	@printf $(BOLDCYAN)"Building containers\n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Building containers\n"$(RESET)
 	@$(while [[ ! $$(docker ps --format "table {{.Names}}" | tail -n +2 | grep backend) ]]; do \
 		sleep 30; \
 	done;\
@@ -31,34 +31,43 @@ up:
 
 
 down:
-	@printf $(BOLDCYAN)"Stopping containers\n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Stopping containers\n"$(RESET)
 	docker-compose down
 
 clean: down
-	@printf $(BOLDCYAN)"Cleaning unused objects\n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Cleaning unused objects\n"$(RESET)
 	@docker container prune -f
 
 fclean: clean
-	@printf $(BOLDCYAN)"Cleaning images\n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Cleaning images\n"$(RESET)
 	@for image_id in $$(docker images -q); do \
 		docker rmi $$image_id; \
 	done;
 	@docker image prune -f
 
 kill: fclean
-	@printf $(BOLDCYAN)"Cleaning volumes\n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Cleaning volumes\n"$(RESET)
 	@for volume_name in $$(docker volume ls -q); do \
 		docker volume rm $$volume_name; \
 	done;
 	docker system prune -a -f
 
+env:
+	@printf $(BOLDCYAN)"Makefile: Setting-up env files\n"$(RESET)
+	cp './env/.env_backend-nest' './backend-nest/.env' 
+	cp './env/.env_backend-nest_prisma' './backend-nest/prisma/.env' 
+	cp './env/.env_frontend-vue' './frontend-vue/.env'
+	@printf $(BOLDCYAN)"\n"$(RESET)
+
+start: env connect 
+
 # GIT RULES
 connect:
-	@printf $(BOLDCYAN)"Connecting team git repositories\n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Connecting team git repositories\n"$(RESET)
 	./git_connect_repo.sh
 
 commit : 
-	@printf $(BOLDCYAN)"Committing changes : \n"$(RESET)
+	@printf $(BOLDCYAN)"Makefile: Committing changes : \n"$(RESET)
 	./git_commit.sh
 
 # Colors
