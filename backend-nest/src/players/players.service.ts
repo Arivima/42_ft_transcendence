@@ -6,42 +6,64 @@ import { Player } from '@prisma/client';
 
 @Injectable()
 export class PlayersService {
+	private connections: Set<number>;
 
-	constructor(private readonly prisma : PrismaService) {}
+	constructor(private readonly prisma: PrismaService) {
+		this.connections = new Set<number>();
+	}
+
+	addConnection(userID: number) {
+		console.log(
+			`adding connection for user ${userID} with type ${typeof userID}`,
+		);
+		this.connections.add(userID);
+	}
+
+	removeConnection(userID: number) {
+		this.connections.delete(userID);
+	}
+
+	isLoggedIn(userID: number): boolean {
+		console.log(
+			`checking connection for user ${userID} with type ${typeof userID}`,
+		);
+		return this.connections.has(userID);
+	}
 
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
 		console.log('DEBUG | PlayersService | create() : called');
 
 		return this.prisma.player.create({
-		  data: {
-			id : createPlayerDto.id,
-			username : createPlayerDto.username,
-			avatar : createPlayerDto.avatar,
-			firstName : createPlayerDto.firstName,
-			lastName : createPlayerDto.lastName,
-			profileIntra : createPlayerDto.profileIntra
-		  },
+			data: {
+				id: createPlayerDto.id,
+				username: createPlayerDto.username,
+				avatar: createPlayerDto.avatar,
+				firstName: createPlayerDto.firstName,
+				lastName: createPlayerDto.lastName,
+				profileIntra: createPlayerDto.profileIntra,
+			},
 		});
 	}
 
-	async findAll() : Promise<Player[]>{
+	async findAll(): Promise<Player[]> {
 		return this.prisma.player.findMany();
 	}
 
-	async findOne(id: number) : Promise<Player | null> {
+	async findOne(id: number): Promise<Player | null> {
+		console.log('Calling prisma,findUnique with id : ');
+		console.log(id);
 		return this.prisma.player.findUnique({
-			where : {id}
+			where: { id },
 		});
 	}
 
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
 		try {
 			return await this.prisma.player.update({
-				where : {id},
-				data : updatePlayerDto
+				where: { id },
+				data: updatePlayerDto,
 			});
-		}
-		catch (error : any) {
+		} catch (error: any) {
 			return null;
 		}
 	}
@@ -49,10 +71,9 @@ export class PlayersService {
 	async remove(id: number): Promise<Player> {
 		try {
 			return await this.prisma.player.delete({
-				where : {id},
+				where: { id },
 			});
-		}
-		catch (error : any) {
+		} catch (error: any) {
 			return null;
 		}
 	}

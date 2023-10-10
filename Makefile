@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: avilla-m <avilla-m@student.42.fr>          +#+  +:+       +#+         #
+#    By: earendil <earendil@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/24 19:39:26 by mmarinel          #+#    #+#              #
-#    Updated: 2023/09/30 20:14:14 by avilla-m         ###   ########.fr        #
+#    Updated: 2023/10/07 17:35:47 by earendil         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -20,26 +20,33 @@ re: 	fclean all
 reset: 	kill all
 
 up:
-	@printf $(BOLDCYAN)"Building containers"$(RESET)
-	docker-compose up --build
+	@printf $(BOLDCYAN)"Building containers\n"$(RESET)
+	@$(while [[ ! $$(docker ps --format "table {{.Names}}" | tail -n +2 | grep backend) ]]; do \
+		sleep 30; \
+	done;\
+	docker exec -it backend npx prisma generate; \
+	docker exec -it backend npx prisma migrate dev; \
+	docker exec -d backend npx prisma studio &)
+	@docker-compose up --build
+
 
 down:
-	@printf $(BOLDCYAN)"Stopping containers"$(RESET)
+	@printf $(BOLDCYAN)"Stopping containers\n"$(RESET)
 	docker-compose down
 
 clean: down
-	@printf $(BOLDCYAN)"Cleaning unused objects"$(RESET)
+	@printf $(BOLDCYAN)"Cleaning unused objects\n"$(RESET)
 	@docker container prune -f
 
 fclean: clean
-	@printf $(BOLDCYAN)"Cleaning images"$(RESET)
+	@printf $(BOLDCYAN)"Cleaning images\n"$(RESET)
 	@for image_id in $$(docker images -q); do \
 		docker rmi $$image_id; \
 	done;
 	@docker image prune -f
 
 kill: fclean
-	@printf $(BOLDCYAN)"Cleaning volumes"$(RESET)
+	@printf $(BOLDCYAN)"Cleaning volumes\n"$(RESET)
 	@for volume_name in $$(docker volume ls -q); do \
 		docker volume rm $$volume_name; \
 	done;
@@ -47,11 +54,11 @@ kill: fclean
 
 # GIT RULES
 connect:
-	@printf $(BOLDCYAN)"Connecting team git repositories"$(RESET)
+	@printf $(BOLDCYAN)"Connecting team git repositories\n"$(RESET)
 	./git_connect_repo.sh
 
 commit : 
-	@printf $(BOLDCYAN)"Committing changes : "$(RESET)
+	@printf $(BOLDCYAN)"Committing changes : \n"$(RESET)
 	./git_commit.sh
 
 # Colors

@@ -1,80 +1,67 @@
-import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { PlayersService } from 'src/players/players.service';
 import { Player } from '@prisma/client';
-import { JwtPayload } from './strategies/auth.strategy.jwt'
 import { CreatePlayerDto } from 'src/players/dto/create-player.dto';
+import { TwoFaService } from './auth.2fa.service';
 
 @Injectable()
 export class AuthService {
-	constructor (
-		private prisma : PrismaService,
+	constructor(
+		private prisma: PrismaService,
 		private readonly playerService: PlayersService,
 		private readonly jwtService: JwtService,
-		) {
-	}
+		private readonly twofaService: TwoFaService,
+	) {}
 
-	// takes the full object as argument in case we need 
+	// takes the full object as argument in case we need
 	// to add more info to the token in the future
-	async generateJwt(player : Player) : Promise<string> {
+	async generateJwt(player: Player): Promise<string> {
 		console.log('DEBUG | Service | generateJwt() : called');
 
-		const payload  : JwtPayload = { sub: String(player.id) };
-		const token : string = await this.jwtService.signAsync(payload);
-		return token; 
+		const payload = { sub: String(player.id) };
+		const token: string = await this.jwtService.signAsync(payload);
+		return token;
+	}
 
-	  }
+	async verifyOTP(userID: number, otp: string): Promise<boolean> {
+		return this.twofaService.verifyOTP(userID, otp);
+	}
 
-	async registerPlayer(user : any)  : Promise<Player>  {
+	async generate2FAQRCode(userID: number): Promise<string> {
+		return this.twofaService.generate2FAQRCode(userID);
+	}
+
+	async is2FAset(userID: number): Promise<boolean> {
+		console.log(await this.playerService.findOne(userID));
+		return !!(await this.playerService.findOne(userID))?.twofaSecret;
+	}
+
+	async registerPlayer(user: any): Promise<Player> {
 		console.log('DEBUG | Service | registerPlayer() : called');
 
 		// using the nestjs response object to create a new entry in the database
-		const playerDto : CreatePlayerDto = {
-			id: Number(user.id),
-			username: user.username,
-			avatar: user.avatar,
-			firstName: user.firstName,
-			lastName: user.lastName,
-			profileIntra: user.profileIntra,
-		} as CreatePlayerDto;
+		const playerDto: CreatePlayerDto = user as CreatePlayerDto;
 
 		return await this.playerService.create(playerDto);
 	}
 
-	async signIn(user : any) : Promise<string> {
+	async signIn(user: any): Promise<string> {
 		console.log('DEBUG | Service | signIn() : called');
-	
+
 		// finds the player in the database
-		let player : Player = await this.playerService.findOne(Number(user.id));
+		let player: Player = await this.playerService.findOne(Number(user.id));
 
 		// or register as new player
-		if ( player == null )
-			player = await this.registerPlayer(user);
+		if (player == null) player = await this.registerPlayer(user);
 
 		// creates a 2h session token for this player
-		const token  : string = await this.generateJwt(player);		
+		const token: string = await this.generateJwt(player);
 
 		return token;
-	  }
-
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // import { Injectable } from '@nestjs/common';
 // import { PlayersService } from 'src/players/players.service';

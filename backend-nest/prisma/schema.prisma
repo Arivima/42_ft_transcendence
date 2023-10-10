@@ -20,4 +20,6 @@ model Player {
 	lastName		String ?
 	profileIntra	String ?
 
+	twofaSecret		String ?
+
 }

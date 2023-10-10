@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/mapped-types';
 import { CreatePlayerDto } from './create-player.dto';
 
 export class UpdatePlayerDto extends PartialType(CreatePlayerDto) {
-	username: string;
-	avatar: string;
+	username?: string;
+	avatar?: string;
+	twofaSecret?: string;
 }

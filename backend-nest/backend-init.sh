@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    backend-init.sh                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: avilla-m <avilla-m@student.42.fr>          +#+  +:+       +#+         #
+#    By: earendil <earendil@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/30 18:31:21 by avilla-m          #+#    #+#              #
-#    Updated: 2023/09/30 19:39:38 by avilla-m         ###   ########.fr        #
+#    Updated: 2023/10/07 18:13:42 by earendil         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,6 +14,8 @@
 
 npm i --save @nestjs/passport passport @nestjs/jwt passport-jwt
 npm i --save-dev @types/passport-jwt
+
+npm i --save 2fa-util
 
 npm i --save prisma
 npm i --save @prisma/client

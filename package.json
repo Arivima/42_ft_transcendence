@@ -1,10 +1,13 @@
 {
   "devDependencies": {
     "@prisma/client": "^5.3.1",
-    "prisma": "^5.3.1"
+    "prisma": "^5.4.1"
   },
   "dependencies": {
+    "2fa-util": "^1.2.0",
+    "2fa-utils": "^1.2.5",
     "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.0"
+    "class-validator": "^0.14.0",
+    "passport-local": "^1.0.0"
   }
 }
