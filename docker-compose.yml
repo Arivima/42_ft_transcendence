@@ -33,16 +33,16 @@ services:
   frontend:
     container_name: frontend
     build:
-      context: ./frontend-vue
+      context: ./frontend-vue-vite
       dockerfile: Dockerfile
     ports:
       - "8080:80"
     env_file:
-      ./frontend-vue/.env
+      ./frontend-vue-vite/.env
     depends_on:
       - backend
     volumes:
-      - ./frontend-vue:/${HOME}/${USER}/app
+      - ./frontend-vue-vite:/${HOME}/${USER}/app
     networks:
       - app_network
 
