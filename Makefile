@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: earendil <earendil@student.42.fr>          +#+  +:+       +#+         #
+#    By: avilla-m <avilla-m@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/24 19:39:26 by mmarinel          #+#    #+#              #
-#    Updated: 2023/10/10 15:41:15 by earendil         ###   ########.fr        #
+#    Updated: 2023/10/11 18:48:18 by avilla-m         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -56,7 +56,7 @@ env:
 	@printf $(BOLDCYAN)"Makefile: Setting-up env files\n"$(RESET)
 	cp './env/.env_backend-nest' './backend-nest/.env' 
 	cp './env/.env_backend-nest_prisma' './backend-nest/prisma/.env' 
-	cp './env/.env_frontend-vue' './frontend-vue/.env'
+	cp './env/.env_frontend-vue-vite' './frontend-vue-vite/.env'
 	@printf $(BOLDCYAN)"\n"$(RESET)
 
 start: env connect 
@@ -89,4 +89,4 @@ BOLDMAGENTA				:= "\033[1m\033[35m"
 BOLDCYAN				:= "\033[1m\033[36m"
 BOLDWHITE				:= "\033[1m\033[37m"
 
-.PHONY: all clean fclean re up down kill reset git_init
+.PHONY: all clean fclean re up down kill reset git_init start env connect commit 

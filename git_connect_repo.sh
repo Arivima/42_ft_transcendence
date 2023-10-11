@@ -12,7 +12,7 @@
 
 #! persistency of setting
 #! this script needs to be executed each time you git clone the project
-#! to be changed with git Actions
+# TODO : check if possible to be changed with git Actions
 
 # colors
 RESET='\033[0m'
@@ -37,17 +37,13 @@ if [ "$USER_INPUT" == 'q' ]; then
 fi
 
 # Check if the remotes already exist, and if not, add it
-printf ${CYAN}"\nNow adding the team repos ${RESET}(Type 'Enter' to continue): \n"
-read USER_INPUT
+printf ${CYAN}"\nNow adding the team repos ${RESET}\n"
 REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
 for element in "${REPO_ARRAY[@]}"
 do
-    printf "\nChecking if element is present: $element\n"
     if ! git remote show origin | grep -q "Push  URL: $element"; then
         git remote set-url --add --push origin $element
         printf ${GREEN}"Remote repository added : $element\n"${RESET}
-    else
-        printf "element already present: $element\n"
     fi
 done
 
@@ -55,9 +51,10 @@ done
 REPO_ARRAY=($REMOTE_REPO_ARIELLE $REMOTE_REPO_MATTEO $REMOTE_REPO_CLAUDIO $REMOTE_REPO_DAVIDE)
 for element in "${REPO_ARRAY[@]}"
 do
-    if git remote show origin | grep -q "Fetch URL: $element"; then
+    if (git remote show origin | grep -q "Fetch URL: $element" &&
+        ! git remote show origin | grep -q "Push  URL: $element"); then
         git remote set-url --add --push origin $element
-        printf ${GREEN}"\nRemote repository added : $element\n"${RESET}
+        printf ${GREEN}"Remote repository added : $element\n"${RESET}
     fi
 done
 
