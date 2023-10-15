@@ -42,7 +42,7 @@ services:
     depends_on:
       - backend
     volumes:
-      - ./frontend-vue-vite:/${HOME}/${USER}/app
+      -  frontend-code:/app
     networks:
       - app_network
 
@@ -55,6 +55,13 @@ volumes:
       type: none
       o: bind
       device: /${PWD}/backend-nest
+  frontend-code:
+    driver: local
+    name: frontend-code
+    driver_opts:
+      type: none
+      o: bind
+      device: /${PWD}/frontend-vue-vite
 
 networks:
   app_network: {}
