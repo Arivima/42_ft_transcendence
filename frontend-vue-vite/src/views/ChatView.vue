@@ -4,18 +4,13 @@ import NavSideBar from '../components/NavSideBar.vue'
 </script>
 
 <template>
-    <v-main>
+    <div class="chat">
         <NavSideBar/>
-
-        <v-responsive
-            class="mx-auto"
-            max-width="344"
-        >
-        <nav>
+        <v-header>
             <h1>This is Chat</h1>
-        </nav>
-    </v-responsive>
-
-
-    </v-main>
+        </v-header>
+        
+        <v-main>
+        </v-main>
+    </div>
 </template>

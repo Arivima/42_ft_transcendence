@@ -1,19 +1,21 @@
 <script setup lang="ts">
+import Stats from './Stats.vue'
 
 </script>
 
 <template>
 	<v-card
-		max-width="434"
-		rounded="0"
+		width="780"
+		max-height="200"
+		class="pa-2 ma-2"
 	>
 		<v-img
-		height="80%"
+		height="100%"
 		cover
 		src="https://cdn.vuetifyjs.com/images/cards/server-room.jpg"
 		>
 		<v-avatar
-			size="150"
+			size="130"
 			rounded="1"
 		>
 			<v-img cover src="https://cdn.vuetifyjs.com/images/profiles/marcus.jpg"></v-img>
@@ -23,6 +25,8 @@
 			title="username"
 			subtitle="FirstName + FamilyName"
 		></v-list-item>
+	<Stats/>
 		</v-img>
 	</v-card>
+
 </template>

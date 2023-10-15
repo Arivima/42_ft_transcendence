@@ -1,31 +1,74 @@
 <!-- PROFILE -->
+
+<!-- TODO
+- link with database on all modules
+- responsiveness on screen size
+- position of cards on the page
+-->
+
 <script setup lang="ts">
 import NavSideBar from '../components/NavSideBar.vue'
 import UserCard from '../components/Profile/UserCard.vue'
-import Stats from '../components/Profile/Stats.vue'
-import MatchHistory from '../components/Profile/MatchHistory.vue'
+import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
+import MatchHistoryServer from '../components/WIP/MatchHistoryServer.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-
+import SearchBar from '../components/Utils/SearchBar.vue'
 </script>
 
 <template>
-    <NavSideBar/>
-    <v-main >
-        <UserCard/>
-        <Stats/>
-        <MatchHistory/>
-        <Friends/>
-        <Achievements/>
-    </v-main>
-    </template>
+    <div class="profile">
+        <NavSideBar/>
+		<v-card
+				class="d-flex  flex-column layer-0"
+				tile
+				variant="outlined"
+				min-height="800px"
+				min-width="500"
+			>
+				<v-card
+					class="d-flex  flex-column layer-1"
+					tile
+					variant="outlined"
+				>
+					<UserCard/>
+				</v-card>
 
-<!-- <style>
-.v-main {
-    background-image: url("../assets/saiyanBackground.jpeg"); /* Adjust the path based on your project structure */
-    background-size: cover; /* Ensures the image covers the entire container */
-    background-position: center; /* Centers the background image */
-    height: 100vh; /* Makes sure the background covers the entire viewport height */
-    background-color: rgba(255, 255, 255, 0.3); /* White color with 0.3 opacity */
-  }
-</style> -->
+				<v-spacer></v-spacer>
+
+				<v-card
+					class="d-flex  flex-column  layer-1"
+					tile
+					variant="outlined"
+				>
+
+					<v-card
+						class="d-flex flex-row layer-2"
+						tile
+						variant="outlined"
+					>
+						<v-card
+							class="d-flex  flex-column"
+							tile
+							variant="outlined"
+						>
+							<Achievements/>
+							<MatchHistoryTable/>                
+							<!-- <MatchHistoryServer/>                 -->
+						</v-card>
+
+						<v-card
+							class="d-flex "
+							tile
+							variant="outlined"
+						>
+						<!-- <SearchBar/> -->
+						<Friends/>
+						</v-card>
+				</v-card>
+
+				</v-card>
+		</v-card>
+
+    </div >
+</template>
