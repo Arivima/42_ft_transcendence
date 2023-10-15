@@ -6,10 +6,14 @@ import TmpTab from './components/TmpTab.vue'
 
 <template>
 	<v-app>
-		<v-main>
-			<TmpTab/>
-		</v-main>
-		<RouterView></RouterView>
+    <p>TESSSSSSSSSSSSSSSSSSSSSSSTTTT!!</p>
+	<TmpTab/>
+    <v-main>
+      <v-container>
+        <RouterView></RouterView>
+      </v-container>
+    </v-main>
+
 	</v-app>
 </template>
 

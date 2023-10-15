@@ -25,11 +25,6 @@ const router = createRouter({
       component: ProfileView
     },
     {
-      path: '/profile/:username',
-      name: 'profile',
-      component: ProfileView
-    },
-    {
       path: '/game',
       name: 'game',
       component: GameView
