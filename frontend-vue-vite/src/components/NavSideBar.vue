@@ -4,6 +4,37 @@
 - script link to database to show user info
 -->
 
+<!-- <script lang="ts">
+export default {
+	name: 'NavSideBar',
+	data() {
+		return {
+			user : null,
+			loading: true,
+		};
+
+	},
+	mounted() {
+		this.getUser();
+	},
+	methods: {
+		async getUser() {
+			try{
+				this.axios.get("http://localhost:3000/user").then((response) => {
+					console.log(response.data)
+					this.user = response.data
+				})	
+			} catch (error) {
+				console.error('Error fetching user data:', error);
+				this.loading = false; // Set loading to false in case of error
+			}
+			
+		},
+	}
+}
+</script> -->
+
+
 <template>
 	<v-navigation-drawer
 		expand-on-hover
@@ -14,8 +45,8 @@
 		>	<RouterLink :to="{name:'profile'}">
 				<v-list-item
 					prepend-avatar="https://avatar.iran.liara.run/public/68"
-					title="firstName"
-					subtitle="Username"
+					title="user.firstName"
+					subtitle="user.Username"
 					value="profile"
 				></v-list-item>
 			</RouterLink>

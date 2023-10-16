@@ -20,55 +20,60 @@ import SearchBar from '../components/Utils/SearchBar.vue'
     <div class="profile">
         <NavSideBar/>
 		<v-card
-				class="d-flex  flex-column layer-0"
-				tile
-				variant="outlined"
-				min-height="800px"
-				min-width="500"
+			class="parent"
+		>
+			<v-card
+				class="child1 userCard"
+			>
+				<UserCard/>
+			</v-card>
+			<v-card
+				class="child1"
 			>
 				<v-card
-					class="d-flex  flex-column layer-1"
-					tile
-					variant="outlined"
+					class="child2"
 				>
-					<UserCard/>
+					<Achievements/>
+					<MatchHistoryTable/>                
+					<!-- <MatchHistoryServer/>                 -->
 				</v-card>
-
-				<v-spacer></v-spacer>
-
-				<v-card
-					class="d-flex  flex-column  layer-1"
-					tile
-					variant="outlined"
-				>
-
-					<v-card
-						class="d-flex flex-row layer-2"
-						tile
-						variant="outlined"
-					>
-						<v-card
-							class="d-flex  flex-column"
-							tile
-							variant="outlined"
-						>
-							<Achievements/>
-							<MatchHistoryTable/>                
-							<!-- <MatchHistoryServer/>                 -->
-						</v-card>
-
-						<v-card
-							class="d-flex "
-							tile
-							variant="outlined"
-						>
-						<!-- <SearchBar/> -->
-						<Friends/>
-						</v-card>
-				</v-card>
-
-				</v-card>
+				<!-- <SearchBar/> -->
+				<Friends/>
+			</v-card>
 		</v-card>
-
     </div >
 </template>
+
+
+<style>
+.parent {
+	display:inline-flex;
+	flex-direction: column;  /* x and y axis inverted */
+	align-items: center;  /* y axis */
+	justify-content: start; /* x axis */
+	justify-items: start; /* x axis */
+	background-color: plum;
+
+	padding: 5%;
+	min-height:1500px;
+	min-width:1500px;
+}
+
+.child1 {
+	display:inline-flex;
+	flex-direction: row;
+	padding: 5%;
+	background-color: lightcoral;
+}
+
+.child2 {
+	display:inline-flex;
+	flex-direction: column;
+	padding: 5%;
+	background-color: yellow;
+}
+
+/* .userCard {
+	background-image: url("saiyanBackground.jpeg");
+} */
+</style>
