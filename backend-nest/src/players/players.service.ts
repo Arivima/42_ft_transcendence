@@ -13,9 +13,6 @@ export class PlayersService {
 	}
 
 	addConnection(userID: number) {
-		console.log(
-			`adding connection for user ${userID} with type ${typeof userID}`,
-		);
 		this.connections.add(userID);
 	}
 
@@ -24,9 +21,6 @@ export class PlayersService {
 	}
 
 	isLoggedIn(userID: number): boolean {
-		console.log(
-			`checking connection for user ${userID} with type ${typeof userID}`,
-		);
 		return this.connections.has(userID);
 	}
 
@@ -50,8 +44,6 @@ export class PlayersService {
 	}
 
 	async findOne(id: number): Promise<Player | null> {
-		console.log('Calling prisma,findUnique with id : ');
-		console.log(id);
 		return this.prisma.player.findUnique({
 			where: { id },
 		});

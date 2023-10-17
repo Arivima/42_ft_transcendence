@@ -6,7 +6,7 @@
 /*   By: earendil <earendil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/09 12:12:58 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/10 14:36:41 by earendil         ###   ########.fr       */
+/*   Updated: 2023/10/17 16:58:08 by earendil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,8 +31,6 @@ export class JwtAuthGuard implements CanActivate {
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
-		const request = context.switchToHttp().getRequest();
-		const token = this.extractTokenFromHeader(request);
 		// class-level metadata affects all the methods of that class
 		// So, the metadata bound to a method is the metadata bound to the class
 		// and the specific method metadata
@@ -48,6 +46,8 @@ export class JwtAuthGuard implements CanActivate {
 
 		if (isPublicEndpoint) return true;
 
+		const request = context.switchToHttp().getRequest();
+		const token = this.extractTokenFromHeader(request);
 		if (!token) {
 			return false;
 		}
@@ -59,9 +59,6 @@ export class JwtAuthGuard implements CanActivate {
 			// so that we can access it in our route handlers
 			request['user'] = payload;
 			if (false === this.pservice.isLoggedIn(Number(payload.sub))) {
-				console.log(typeof false);
-				console.log(typeof this.pservice.isLoggedIn(Number(payload.sub)));
-				console.log('user is not logged in');
 				if (isProtectedEndpoint) return true;
 				else return false;
 			}

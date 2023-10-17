@@ -20,7 +20,11 @@ export class AuthService {
 	async generateJwt(player: Player): Promise<string> {
 		console.log('DEBUG | Service | generateJwt() : called');
 
-		const payload = { sub: String(player.id) };
+		const payload = {
+			sub: String(player.id),
+			username: player.username,
+			avatar: player.avatar,
+		};
 		const token: string = await this.jwtService.signAsync(payload);
 		return token;
 	}
@@ -34,7 +38,6 @@ export class AuthService {
 	}
 
 	async is2FAset(userID: number): Promise<boolean> {
-		console.log(await this.playerService.findOne(userID));
 		return !!(await this.playerService.findOne(userID))?.twofaSecret;
 	}
 

@@ -22,7 +22,6 @@ export class PlayersController {
 	// })
 	@Post()
 	create(@Body() createPlayerDto: CreatePlayerDto) {
-		// console.log('ciao');
 		return this.playersService.create(createPlayerDto);
 	}
 

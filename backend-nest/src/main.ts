@@ -9,9 +9,6 @@ import { ValidationPipe } from '@nestjs/common';
 dotenv.config();
 
 async function bootstrap() {
-	console.log(process.env.BACKEND_PORT);
-	console.log(process.env.POSTGRES_DB);
-
 	const corsOptions = {
 		origin: process.env.FRONTEND_URL, // Replace with your frontend URL
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',

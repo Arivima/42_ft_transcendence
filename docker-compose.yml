@@ -40,7 +40,7 @@ services:
     depends_on:
       - backend
     volumes:
-      -  frontend-code:/app
+      - frontend-code:/app
     networks:
       - app_network
 

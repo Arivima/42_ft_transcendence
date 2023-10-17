@@ -6,7 +6,7 @@
 /*   By: earendil <earendil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/08 20:49:41 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/10 15:12:39 by earendil         ###   ########.fr       */
+/*   Updated: 2023/10/17 16:40:59 by earendil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ import {
 	Get,
 	InternalServerErrorException,
 	Post,
+	Redirect,
 	Request,
 	UnauthorizedException,
 	UseGuards,
@@ -40,8 +41,9 @@ export class AuthController {
 	 * @returns
 	 */
 	@Public()
+	@UseGuards(FortyTwoAuthGuard) //OAUTH guard, not jwt
+	@Redirect('', 302)
 	@Get('42')
-	@UseGuards(FortyTwoAuthGuard)
 	async login42(@Request() req) {
 		const userID = Number(req.user.id);
 
@@ -57,7 +59,10 @@ export class AuthController {
 				this.pservice.addConnection(userID);
 
 			// let's share the session token with the user
-			return { token };
+			const redirect_url = new URL(`${req.protocol}:${req.hostname}`);
+			redirect_url.port = process.env.FRONTEND_PORT;
+			redirect_url.searchParams.append('token', `${token.toString()}`);
+			return `${redirect_url.href}`;
 		} catch (error) {
 			throw new InternalServerErrorException(error);
 		}
@@ -81,7 +86,6 @@ export class AuthController {
 			const qrcode = await this.authService.generate2FAQRCode(userID);
 			return { qrcode };
 		} catch (error) {
-			console.log('2fa/qrcode endpoint: Internal Error');
 			throw new InternalServerErrorException(error);
 		}
 	}
@@ -94,7 +98,6 @@ export class AuthController {
 	@Protected()
 	@Post('2fa/login')
 	async login2fa(@Body('otp') otp: string, @Request() req) {
-		console.log(req.user);
 		if (false == (await this.authService.verifyOTP(Number(req.user.sub), otp)))
 			throw new UnauthorizedException('Invalid TOTP');
 		this.pservice.addConnection(Number(req.user.sub));
@@ -110,7 +113,6 @@ export class AuthController {
 		if (
 			false == (await this.authService.verifyOTP(Number(req.user.sub), otp))
 		) {
-			console.log('verify2fa endpoint : UnauthorizedException');
 			throw new UnauthorizedException('Invalid TOTP');
 		}
 	}
