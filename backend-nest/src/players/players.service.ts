@@ -77,4 +77,33 @@ export class PlayersService {
 			return null;
 		}
 	}
+
+	// async getChats(
+	// 	id: number,
+	// 	limit: number,
+	// ): Promise<
+	// 	{
+	// 		name: string;
+	// 		dm: boolean;
+	// 		avatar: string;
+	// 	}[]
+	// > {
+	// 	console.log(id);
+	// 	console.log(limit);
+
+	// 	// this.prisma.
+
+	// 	return [
+	// 		{
+	// 			name: '',
+	// 			dm: false,
+	// 			avatar: '',
+	// 		},
+	// 		{
+	// 			name: '',
+	// 			dm: false,
+	// 			avatar: '',
+	// 		},
+	// 	];
+	// }
 }

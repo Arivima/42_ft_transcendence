@@ -34,8 +34,8 @@ async function bootstrap() {
 	// app.use(passport.initialize());
 	// app.use(passport.session());
 	const config = new DocumentBuilder()
-		.setTitle('Transcedence API')
-		.setDescription('The Transcedence API description')
+		.setTitle('Transcendence API')
+		.setDescription('The Transcendence API description')
 		.setVersion('1.0')
 		.build();
 	const document = SwaggerModule.createDocument(app, config);

@@ -1,30 +1,29 @@
-version: '3.8'  # Use the latest version of Docker Compose
+version: "3.8" # Use the latest version of Docker Compose
 
 services:
   database:
     container_name: database
-    image: postgres:latest  # Specify the PostgreSQL image version explicitly
+    image: postgres:latest # Specify the PostgreSQL image version explicitly
     env_file:
-      - ./backend-nest/.env  # Load environment variables from a file
+      - ./backend-nest/.env # Load environment variables from a file
     ports:
       - "5433:5432"
     volumes:
       - database_data:/${HOME}/postgresql/data
     networks:
-      - app_network  # Use a user-defined network for better isolation
+      - app_network # Use a user-defined network for better isolation
 
   backend:
     container_name: backend
     build:
       context: ./backend-nest
-      dockerfile: Dockerfile  # You don't need quotes around the Dockerfile path
+      dockerfile: Dockerfile # You don't need quotes around the Dockerfile path
     ports:
       - "3000:3000"
       - "5555:5555"
-    env_file:
-      ./backend-nest/.env # Load environment variables from a file
+    env_file: ./backend-nest/.env # Load environment variables from a file
     depends_on:
-      - database  # Ensure the backend service starts after the database
+      - database # Ensure the backend service starts after the database
     volumes:
       - backend-code:/app
     networks:
@@ -37,8 +36,7 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:80"
-    env_file:
-      ./frontend-vue-vite/.env
+    env_file: ./frontend-vue-vite/.env
     depends_on:
       - backend
     volumes:
