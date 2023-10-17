@@ -1,35 +1,47 @@
 <!-- LOGIN -->
+
+<!-- TODO
+- responsiveness on screen size : it's popping out
+- try to center the button
+-->
+
 <script setup lang="ts">
 </script>
 
 <template>
-    <v-main style="height: 250px">
-        <v-container class="d-flex align-center justify-center" fluid>
-            <v-btn
-				href="http://localhost:3000/auth/42"
-            >
-				Login now !
-			</v-btn>
-        </v-container>
-    </v-main>
+	<div class="login">
+		<span class="background"></span>
+		<v-main >
+			<v-container
+				class="d-flex align-center justify-center fill-height pa-0 ma-0"
+				fluid
+			>
+				<v-btn
+					prepend-icon="mdi-login"
+					href="http://localhost:3000/auth/42"
+					color="white"
+				>
+					Login now !
+				</v-btn>
+			</v-container>
+		</v-main>
+	</div>
 </template>
 
 
 <style scoped>
-.align-center {
-  display: flex;
-  align-items: center;
-}
 
-.justify-center {
-  justify-content: center;
-}
 
-/* Add background image */
-.v-main {
-  /* background-image: url("../assets/saiyanBackground.jpeg"); Adjust the path based on your project structure */
-  background-size: cover; /* Ensures the image covers the entire container */
-  background-position: center; /* Centers the background image */
-  height: 100vh; /* Makes sure the background covers the entire viewport height */
-}
+.background {
+    width: 100%;
+    height: 100%; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: url( 'https://images.unsplash.com/photo-1636734909254-ff5c43927e10?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center;
+    background-size: cover;
+    background-color: white;
+    transform: scale(1.1);
+  }
+
 </style>

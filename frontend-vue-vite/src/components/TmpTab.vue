@@ -5,20 +5,9 @@
 	<v-bottom-navigation
       mode="shift"
     >
-		<p>Tmp nav</p>
-
-		<router-link
-			:to="{name:'home'}"
-			custom
-			v-slot="{ navigate }"
-		>
-		<v-btn
-			@click="navigate"
-			role="link">
-			<v-icon>mdi-home</v-icon>
-			<span>Home</span>
-		</v-btn>
-		</router-link>
+		<v-card flat>
+			<v-card-text class="text-overline">Tmp nav</v-card-text>
+		</v-card>
 
 
 		<router-link
@@ -34,6 +23,19 @@
 		</v-btn>
 		</router-link>
 
+
+		<router-link
+			:to="{name:'home'}"
+			custom
+			v-slot="{ navigate }"
+		>
+		<v-btn
+			@click="navigate"
+			role="link">
+			<v-icon>mdi-home</v-icon>
+			<span>Home</span>
+		</v-btn>
+		</router-link>
 
 		<router-link
 			:to="{name:'profile'}"
@@ -73,7 +75,21 @@
 			@click="navigate"
 			role="link">
 			<v-icon>mdi-chat</v-icon>
-			<span>chat</span>
+			<span>Chat</span>
+		</v-btn>
+		</router-link>
+
+
+		<router-link
+			:to="{name:'login'}"
+			custom
+			v-slot="{ navigate }"
+		>
+		<v-btn
+			@click="navigate"
+			role="link">
+			<v-icon>mdi-logout</v-icon>
+			<span>Logout</span>
 		</v-btn>
 		</router-link>
 

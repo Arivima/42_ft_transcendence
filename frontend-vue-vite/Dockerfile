@@ -9,14 +9,14 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+ENTRYPOINT ["npm", "run", "dev"]
 
-# production stage
-FROM nginx:stable-alpine as production-stage
+# # production stage
+# FROM nginx:stable-alpine as production-stage
 
-COPY --from=build-stage /app/dist /usr/share/nginx/html
+# COPY --from=build-stage /app/dist /usr/share/nginx/html
 
-#! useless if we export port in docker file
-EXPOSE 80
+# #! useless if we export port in docker file
+# # EXPOSE 80
 
-CMD ["nginx", "-g", "daemon off;"]
+# CMD ["nginx", "-g", "daemon off;"]
