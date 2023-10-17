@@ -16,10 +16,13 @@
 				<thead>
 					<tr>
 					<th class="text-left">
+						
+					</th>
+					<th class="text-left">
 						Opponent
 					</th>
 					<th class="text-left">
-						{{ data.user.username }}/Opponent
+						{{ data.user.username }}
 					</th>
 					</tr>
 				</thead>
@@ -30,7 +33,8 @@
 					:key="item.username"
 					>
 					<td>{{ item.username }}</td>
-					<td >{{ item.scoreUser }}/{{ item.scoreOpponent }}</td>
+					<td >{{ item.scoreOpponent }}</td>
+					<td >{{ item.scoreUser }}</td>
 					</tr>
 				</tbody>
 			</v-table>

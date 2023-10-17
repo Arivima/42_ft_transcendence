@@ -14,3 +14,10 @@ import NavSideBar from '../components/NavSideBar.vue'
         </v-main>
     </div>
 </template>
+
+<style>
+.chat {
+	background-color: aqua;
+	outline: solid;
+}
+</style>

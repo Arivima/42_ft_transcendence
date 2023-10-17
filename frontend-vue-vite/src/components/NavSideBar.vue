@@ -44,7 +44,7 @@ export default {
 		<v-list
 		>	<RouterLink :to="{name:'profile'}">
 				<v-list-item
-					prepend-avatar="https://avatar.iran.liara.run/public/68"
+					prepend-avatar="https://avatar.iran.liara.run/public/94"
 					title="user.firstName"
 					subtitle="user.Username"
 					value="profile"
@@ -100,5 +100,10 @@ export default {
 <style>
 .v-list-item{
   color: var(--color-text);
+}
+
+.v-navigation-drawer {
+	background-color: green;
+	outline: solid;
 }
 </style>

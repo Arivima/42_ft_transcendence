@@ -38,6 +38,7 @@ export default {
 </script>
 
 <template>
+  <div class="home">
 	<div>
 		<button @click="goToLandingPage">Go to Landing Page</button>
 	</div>
@@ -52,10 +53,18 @@ export default {
 		<p>{{ user.firstName }}</p>
 		</div>
 	</div>
+
+  </div>
+
 </template>
 
 
-
+<style>
+.home {
+	background-color: aqua;
+	outline: solid;
+}
+</style>
 
 
 <!-- export default {

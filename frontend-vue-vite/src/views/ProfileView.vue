@@ -23,9 +23,13 @@ import SearchBar from '../components/Utils/SearchBar.vue'
 			class="parent"
 		>
 			<v-card
-				class="child1 userCard"
+				class="child1"
 			>
-				<UserCard/>
+				<v-card
+						class="child2"
+					>
+					<UserCard/>
+				</v-card>
 			</v-card>
 			<v-card
 				class="child1"
@@ -37,8 +41,12 @@ import SearchBar from '../components/Utils/SearchBar.vue'
 					<MatchHistoryTable/>                
 					<!-- <MatchHistoryServer/>                 -->
 				</v-card>
+				<v-card
+					class="child2"
+				>
 				<!-- <SearchBar/> -->
 				<Friends/>
+			</v-card>
 			</v-card>
 		</v-card>
     </div >
@@ -47,30 +55,47 @@ import SearchBar from '../components/Utils/SearchBar.vue'
 
 <style>
 .parent {
-	display:inline-flex;
+	display:flex;
 	flex-direction: column;  /* x and y axis inverted */
 	align-items: center;  /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: start; /* x axis */
 	background-color: plum;
-
-	padding: 5%;
-	min-height:1500px;
-	min-width:1500px;
+	outline: solid;
+	padding: 1%;
+	margin: 1%;
+	width: 100%;
+	height: 100%;
 }
 
 .child1 {
-	display:inline-flex;
+	display:flex;
 	flex-direction: row;
-	padding: 5%;
+	align-items: start;  /* y axis */
+	align-content: start;  /* y axis */
+	justify-content: start; /* x axis */
+	justify-items: start; /* x axis */
+	padding: 1%;
+	margin: 1%;
 	background-color: lightcoral;
+	width: 100%;
+	height: 100%;
+	outline: solid;
 }
 
 .child2 {
-	display:inline-flex;
-	flex-direction: column;
-	padding: 5%;
+	display:flex;
+	flex-direction: column;  /* x and y axis inverted */
+	align-items: stretch;  /* y axis */
+	align-content: center;  /* y axis */
+	justify-content: start; /* x axis */
+	justify-items: center; /* x axis */
+	padding: 1%;
+	margin: 1%;
 	background-color: yellow;
+	width: 100%;
+	height: 100%;
+	outline: solid;
 }
 
 /* .userCard {
