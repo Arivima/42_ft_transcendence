@@ -3,39 +3,39 @@
 <!-- https://vuetifyjs.com/en/api/v-badge/#props -->
 
 <script lang="ts">
-	export default {
-		data() {
-			return {
-				user: 
-				{
-					username: 'avilla-m',
-					firstName: 'Arielle',
-					familyName: 'Villa-Massone',
-					status: 'online', /* playing | online | offline */
-					avatar: 'https://avatar.iran.liara.run/public/94',
-					my_friend: 1,
-				},
-				badgeColor: 'grey',
-				enabled2fa: true,
-				profile: 'FriendProfile', /* FriendProfile | MyProfile | PublicProfile */
-				stats : {
-					victories : 5,
-					losses : 2,
-					ladder : 2.5,
-				}
-			}
-		},
-		mounted () {
-			if (this.user.status == 'online')
-				this.badgeColor = 'green'
-			else if (this.user.status == 'playing')
-				this.badgeColor = 'blue'
-			else
-				this.badgeColor = 'grey'
-		},
-	}
-</script>
+import jwt_decode from 'jwt-decode'
 
+//TODO
+//1. clean code (maybe use $store ? + create JWT interface)
+export default {
+	data() {
+		return {
+			decoded_jwt: jwt_decode(localStorage.getItem('token') || '') || '',
+			user: {
+				username: jwt_decode(localStorage.getItem('token') || '')?.username || 'NaN',
+				firstName: jwt_decode(localStorage.getItem('token') || '')?.firstName || 'NaN',
+				familyName: jwt_decode(localStorage.getItem('token') || '')?.familyName || 'NaN',
+				status: 'online' /* playing | online | offline */,
+				avatar: jwt_decode(localStorage.getItem('token') || '')?.avatar || 'NaN',
+				my_friend: 1
+			},
+			badgeColor: 'grey',
+			enabled2fa: true,
+			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
+			stats: {
+				victories: 5,
+				losses: 2,
+				ladder: 2.5
+			}
+		}
+	},
+	mounted() {
+		if (this.user.status == 'online') this.badgeColor = 'green'
+		else if (this.user.status == 'playing') this.badgeColor = 'blue'
+		else this.badgeColor = 'grey'
+	},
+}
+</script>
 
 <template>
 	<v-card
@@ -228,8 +228,6 @@
 		</v-card>
 	</v-card>
 </template>
-
-
 
 <style>
 

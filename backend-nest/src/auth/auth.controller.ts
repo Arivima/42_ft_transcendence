@@ -6,7 +6,7 @@
 /*   By: earendil <earendil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/08 20:49:41 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/17 16:40:59 by earendil         ###   ########.fr       */
+/*   Updated: 2023/10/18 12:49:31 by earendil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,7 +62,7 @@ export class AuthController {
 			const redirect_url = new URL(`${req.protocol}:${req.hostname}`);
 			redirect_url.port = process.env.FRONTEND_PORT;
 			redirect_url.searchParams.append('token', `${token.toString()}`);
-			return `${redirect_url.href}`;
+			return { url: `${redirect_url.href}` };
 		} catch (error) {
 			throw new InternalServerErrorException(error);
 		}

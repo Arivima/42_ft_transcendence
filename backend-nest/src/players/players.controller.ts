@@ -6,6 +6,7 @@ import {
 	Patch,
 	Param,
 	Delete,
+	Request,
 } from '@nestjs/common';
 import { PlayersService } from './players.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
@@ -28,6 +29,11 @@ export class PlayersController {
 	@Get()
 	findAll() {
 		return this.playersService.findAll();
+	}
+
+	@Get('me')
+	getMe(@Request() req) {
+		return req.user;
 	}
 
 	@Get(':id')
