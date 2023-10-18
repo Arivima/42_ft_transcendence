@@ -59,19 +59,21 @@ export default {
 					<v-img cover :src="user.avatar"></v-img>
 				</v-avatar>				
 			</v-badge>
+			<div class="backgroundItem ma-3">
+				<v-card-item
+					class="text-black"
+					:title="user.username"
+					:subtitle="user.firstName + ' ' + user.familyName"
+				>
+				</v-card-item>
+			</div>
 
-			<v-card-item
-				class="text-black"
-				:title="user.username"
-				:subtitle="user.firstName + ' ' + user.familyName"
-			>
-			</v-card-item>
 		</v-card>
 
 
 
 		<v-card
-			class="itemStats"
+			class="itemStats backgroundItem"
 			title="Stats"
 			density="compact"
 			variant="flat"
@@ -115,7 +117,6 @@ export default {
 				:text="'Add ' + `${user.firstName}` + 'as friend'"
 				to="/game"
 				prepend-icon="mdi-account-plus"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -135,7 +136,6 @@ export default {
 				:text="'Play with ' + `${user.firstName}`"
 				to="/game"
 				prepend-icon="mdi-controller"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -145,7 +145,6 @@ export default {
 				:text="'Chat with ' + `${user.firstName}`"
 				to="/chat"
 				prepend-icon="mdi-chat"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -155,7 +154,6 @@ export default {
 				:text="'Watch ' + `${user.firstName}` + '\'s game'"
 				to="/game"
 				prepend-icon="mdi-play"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -165,7 +163,6 @@ export default {
 				:text="'Remove ' + `${user.firstName}`"
 				to="/chat"
 				prepend-icon="mdi-account-remove"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -174,7 +171,6 @@ export default {
 				:text="'Block ' + `${user.firstName}`"
 				to="/chat"
 				prepend-icon="mdi-account-cancel"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -192,7 +188,6 @@ export default {
 				text="Edit username"
 				to="/chat"
 				prepend-icon="mdi-pencil"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -201,7 +196,6 @@ export default {
 				text="Edit avatar"
 				to="/chat"
 				prepend-icon="mdi-pencil"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -211,7 +205,6 @@ export default {
 				text="Add 2FA"
 				to="/chat"
 				prepend-icon="mdi-shield-lock-outline"
-				variant="tonal"
 				block
 				>
 			</v-btn>
@@ -221,7 +214,6 @@ export default {
 				text="Remove 2FA"
 				to="/chat"
 				prepend-icon="mdi-shield-lock"
-				variant="tonal"
 				block
 			>
 			</v-btn>
@@ -243,7 +235,6 @@ export default {
 	margin: 1%;
 	padding: 1%;
 	outline: solid;
-	/* background-color: rgb(71, 59, 4); */
 
 }
 
@@ -276,24 +267,26 @@ export default {
 	background-color: transparent;
 }
 
-.v-btn {
+.containerContent .v-btn {
 	margin: 5px;
 	justify-content: start;
 	/* outline: solid; */
 	min-height: fit-content;
 	max-height: 20%;
+	/* color: blue; */
+	/* background-color: white; */
 
-}
-
-.containerContent .v-btn__overlay {
-	color: rgb(137, 4, 4);
-}
-
-.containerContent .v-btn__underlay {
-	color: rgb(137, 4, 4);
 }
 
 .containerContent .v-card__underlay  {
 	color: transparent;
 }
+
+.backgroundItem {
+	background-color: rgba(255, 255, 255, 0.41);
+	color: black;
+	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
+	width: fit-content;
+}
+
 </style>

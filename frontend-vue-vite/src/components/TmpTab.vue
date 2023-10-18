@@ -93,7 +93,7 @@
 
 <style>
 .v-bottom-navigation {
-	background-color: green;
+	background-color: lemonchiffon;
 	outline: solid;
 }
 </style>
