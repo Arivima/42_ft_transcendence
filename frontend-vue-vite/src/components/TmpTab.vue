@@ -5,11 +5,6 @@
 	<v-bottom-navigation
       mode="shift"
     >
-		<v-card flat>
-			<v-card-text class="text-overline">Tmp nav</v-card-text>
-		</v-card>
-
-
 		<router-link
 			:to="{name:'login'}"
 			custom
@@ -96,4 +91,9 @@
     </v-bottom-navigation>
 </template>
 
-
+<style>
+.v-bottom-navigation {
+	background-color: green;
+	outline: solid;
+}
+</style>

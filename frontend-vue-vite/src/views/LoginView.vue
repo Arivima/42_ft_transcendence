@@ -10,7 +10,7 @@
 
 <template>
 	<div class="login">
-		<span class="background"></span>
+		<!-- <span class="background"></span> -->
 		<v-main >
 			<v-container
 				class="d-flex align-center justify-center fill-height pa-0 ma-0"
@@ -31,7 +31,10 @@
 
 <style scoped>
 
-
+.login {
+	background-color: aqua;
+	outline: solid;
+}
 .background {
     width: 100%;
     height: 100%; 

@@ -6,10 +6,10 @@ import TmpTab from './components/TmpTab.vue'
 </script>
 
 <template>
-	<v-app >
+	<v-app>
 		<TmpTab/>
 
-		<v-main class="pa-0 ma-0">
+		<v-main>
 				<RouterView></RouterView>
 		</v-main>
 	</v-app>
@@ -18,4 +18,25 @@ import TmpTab from './components/TmpTab.vue'
 
 <style scoped>
 
+.v-app {
+	background-color: red;
+	outline: solid;
+	height: 100dvh;
+	width: 100dvw;
+	margin: 0;
+	padding: 0;
+	align-content: center;
+	justify-content: left;
+}
+.v-main {
+	background-color: lightskyblue;
+	outline: solid;
+	height: 100dvh;
+	width: 100dvw;
+	margin: 0;
+	padding: 0;
+	align-content: center;
+	justify-content: left;
+}
 </style>
+

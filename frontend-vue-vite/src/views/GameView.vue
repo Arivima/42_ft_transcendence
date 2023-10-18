@@ -17,5 +17,10 @@ import NavSideBar from '../components/NavSideBar.vue'
 </template>
 
 <style>
-
+.game {
+	background-color: aqua;
+	outline: solid;
+	/* height: 100dvh; */
+	/* width: 100dvw; */
+}
 </style>
