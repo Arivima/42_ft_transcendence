@@ -1,7 +1,10 @@
 {
   "devDependencies": {
     "@prisma/client": "^5.3.1",
-    "prisma": "^5.4.1"
+    "@vue/cli": "^5.0.8",
+    "@vue/cli-service": "^5.0.8",
+    "prisma": "^5.4.1",
+    "vue-cli-plugin-vuetify": "~2.5.8"
   },
   "dependencies": {
     "2fa-util": "^1.2.0",
