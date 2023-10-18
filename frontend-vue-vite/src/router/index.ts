@@ -52,11 +52,13 @@ const checkLogIn = new Promise((resolve, reject) => {
 })
 
 router.beforeEach((to, from, next) => {
-	if ('login' == to.name) next()
+	if ('login' == to.name) next() //to avoid infinite redirection
+	if ('home' == to.name) next({ name: 'profile' })
 	else
 		checkLogIn
 			.then((_) => {
-				next()
+				if ('home' == to.name) next({ name: 'profile' })
+				else next()
 			})
 			.catch((_) => {
 				if (to.query.token) {
