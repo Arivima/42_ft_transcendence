@@ -1,4 +1,4 @@
-<script lang="ts">
+<!-- <script lang="ts">
 export default {
   data() {
     return {
@@ -35,11 +35,11 @@ export default {
     },
   },
 }
-</script>
+</script> -->
 
 <template>
   <div class="home">
-	<div>
+	<!-- <div>
 		<button @click="goToLandingPage">Go to Landing Page</button>
 	</div>
 
@@ -52,7 +52,7 @@ export default {
 		<h2>{{ user.username }}</h2>
 		<p>{{ user.firstName }}</p>
 		</div>
-	</div>
+	</div> -->
 
   </div>
 

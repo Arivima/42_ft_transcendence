@@ -10,10 +10,10 @@
 import NavSideBar from '../components/NavSideBar.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
-import MatchHistoryServer from '../components/WIP/MatchHistoryServer.vue'
+// import MatchHistoryServer from '../components/WIP/MatchHistoryServer.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-import SearchBar from '../components/Utils/SearchBar.vue'
+// import SearchBar from '../components/Utils/SearchBar.vue'
 </script>
 
 <template>
