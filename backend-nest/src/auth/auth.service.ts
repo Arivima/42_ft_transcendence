@@ -23,7 +23,9 @@ export class AuthService {
 		const payload = {
 			sub: String(player.id),
 			username: player.username,
-			avatar: player.avatar,
+			avatar: player.avatar, //SHOULD REMOVE
+			firstName: player.firstName,
+			familyName: player.lastName,
 		};
 		const token: string = await this.jwtService.signAsync(payload);
 		return token;

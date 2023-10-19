@@ -3,20 +3,26 @@
 <!-- https://vuetifyjs.com/en/api/v-badge/#props -->
 
 <script lang="ts">
-import jwt_decode from 'jwt-decode'
+import { usePlayerStore } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
 
+const { user } = storeToRefs(usePlayerStore())
 //TODO
 //1. clean code (maybe use $store ? + create JWT interface)
 export default {
 	data() {
 		return {
-			decoded_jwt: jwt_decode(localStorage.getItem('token') || '') || '',
 			user: {
-				username: jwt_decode(localStorage.getItem('token') || '')?.username || 'NaN',
-				firstName: jwt_decode(localStorage.getItem('token') || '')?.firstName || 'NaN',
-				familyName: jwt_decode(localStorage.getItem('token') || '')?.familyName || 'NaN',
-				status: 'playing' /* playing | online | offline */,
-				avatar: jwt_decode(localStorage.getItem('token') || '')?.avatar || 'NaN',
+				username: user.value.username,
+				firstName: user.value.firstName,
+				familyName: user.value.lastName,
+				status:
+					user.value.playing === undefined
+						? 'offline'
+						: user.value.playing
+						? 'playing'
+						: 'online' /* playing | online | offline */,
+				avatar: user.value.avatar,
 				my_friend: 1
 			},
 			badgeColor: 'grey',
@@ -30,8 +36,8 @@ export default {
 		}
 	},
 	mounted() {
-		if (this.user.status == 'online') this.badgeColor = 'green'
-		else if (this.user.status == 'playing') this.badgeColor = 'blue'
+		if (this.user.status == 'playing') this.badgeColor = 'blue'
+		else if (this.user.status == 'online') this.badgeColor = 'green'
 		else this.badgeColor = 'grey'
 	}
 }

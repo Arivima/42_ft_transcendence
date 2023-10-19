@@ -33,7 +33,7 @@ export class PlayersController {
 
 	@Get('me')
 	getMe(@Request() req) {
-		return req.user;
+		return this.playersService.findOne(req.user.sub);
 	}
 
 	@Get(':id')

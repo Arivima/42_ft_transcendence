@@ -1,14 +1,13 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-import HomeView from '../views/HomeView.vue'
-import LoginView from '../views/LoginView.vue'
-import ProfileView from '../views/ProfileView.vue'
-import GameView from '../views/GameView.vue'
-import ChatView from '../views/ChatView.vue'
 import axios from 'axios'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
 axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem('token')
+
+function lazyload(view: any) {
+	return () => import(`@/views/${view}.vue`)
+}
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.VITE_BASE_URL),
@@ -16,27 +15,27 @@ const router = createRouter({
 		{
 			path: '/',
 			name: 'home',
-			component: GameView
+			component: lazyload('GameView')
 		},
 		{
 			path: '/login',
 			name: 'login',
-			component: LoginView
+			component: lazyload('LoginView')
 		},
 		{
 			path: '/profile',
 			name: 'profile',
-			component: ProfileView
+			component: lazyload('ProfileView')
 		},
 		{
 			path: '/game',
 			name: 'game',
-			component: GameView
+			component: lazyload('GameView')
 		},
 		{
 			path: '/chat',
 			name: 'chat',
-			component: ChatView
+			component: lazyload('ChatView')
 		}
 	]
 })

@@ -4,16 +4,20 @@ import { UpdatePlayerDto } from './dto/update-player.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Player } from '@prisma/client';
 
+export class Connection {
+	playing: boolean;
+}
+
 @Injectable()
 export class PlayersService {
-	private connections: Set<number>;
+	private connections: Map<number, Connection>;
 
 	constructor(private readonly prisma: PrismaService) {
-		this.connections = new Set<number>();
+		this.connections = new Map<number, Connection>();
 	}
 
 	addConnection(userID: number) {
-		this.connections.add(userID);
+		this.connections.set(userID, { playing: false });
 	}
 
 	removeConnection(userID: number) {
@@ -40,13 +44,24 @@ export class PlayersService {
 	}
 
 	async findAll(): Promise<Player[]> {
-		return this.prisma.player.findMany();
+		const players = await this.prisma.player.findMany();
+
+		for (let player of players) {
+			player = {
+				...player,
+				...this.connections.get(player.id),
+			};
+		}
+		return players;
 	}
 
-	async findOne(id: number): Promise<Player | null> {
-		return this.prisma.player.findUnique({
-			where: { id },
-		});
+	async findOne(id: number): Promise<Player & Connection> {
+		return {
+			...(await this.prisma.player.findUnique({
+				where: { id },
+			})),
+			...this.connections.get(id),
+		};
 	}
 
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
