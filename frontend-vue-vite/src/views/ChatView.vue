@@ -6,9 +6,7 @@ import NavSideBar from '../components/NavSideBar.vue'
 <template>
     <div class="chat">
         <NavSideBar/>
-        <v-header>
             <h1>This is Chat</h1>
-        </v-header>
         
         <v-main>
         </v-main>

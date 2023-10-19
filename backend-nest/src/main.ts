@@ -6,7 +6,7 @@ import { ValidationPipe } from '@nestjs/common';
 
 // import { CorsOptions } from '@nestjs/platform-express/interfaces/cors-options.interface';
 
-dotenv.config();
+dotenv.config({ path: '../.env' });
 
 async function bootstrap() {
 	const corsOptions = {
