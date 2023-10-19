@@ -56,10 +56,12 @@ export class PlayersService {
 	}
 
 	async findOne(id: number): Promise<Player & Connection> {
+		const player = await this.prisma.player.findUnique({
+			where: { id },
+		});
+
 		return {
-			...(await this.prisma.player.findUnique({
-				where: { id },
-			})),
+			...player,
 			...this.connections.get(id),
 		};
 	}

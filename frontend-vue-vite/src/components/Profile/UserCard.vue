@@ -6,7 +6,7 @@
 import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
-const { user } = storeToRefs(usePlayerStore())
+const { user } = storeToRefs(await usePlayerStore())
 //TODO
 //1. clean code (maybe use $store ? + create JWT interface)
 export default {

@@ -33,22 +33,22 @@ export class PlayersController {
 
 	@Get('me')
 	getMe(@Request() req) {
-		return this.playersService.findOne(req.user.sub);
+		return this.playersService.findOne(Number(req.user.sub));
 	}
 
 	@Get(':id')
 	findOne(@Param('id') id: string) {
-		return this.playersService.findOne(+id);
+		return this.playersService.findOne(Number(id));
 	}
 
 	@Patch(':id')
 	update(@Param('id') id: string, @Body() updatePlayerDto: UpdatePlayerDto) {
-		return this.playersService.update(+id, updatePlayerDto);
+		return this.playersService.update(Number(id), updatePlayerDto);
 	}
 
 	@Delete(':id')
 	remove(@Param('id') id: string) {
-		return this.playersService.remove(+id);
+		return this.playersService.remove(Number(id));
 	}
 
 	// @Get(':id/getChats')
