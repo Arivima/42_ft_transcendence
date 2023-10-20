@@ -5,11 +5,15 @@
 <script lang="ts">
 import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
+import EditUserInfo from '../Utils/EditUserInfo.vue'
 
 const { user } = storeToRefs(await usePlayerStore())
 //TODO
 //1. clean code (maybe use $store ? + create JWT interface)
 export default {
+	components : {
+		EditUserInfo
+	},
 	data() {
 		return {
 			user: {
@@ -27,7 +31,7 @@ export default {
 			},
 			badgeColor: 'grey',
 			enabled2fa: true,
-			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
+			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
 			stats: {
 				victories: 5,
 				losses: 2,
@@ -161,16 +165,11 @@ export default {
 			density="compact"
 			variant="flat"
 		>
-			<v-btn
-				value="editUsername"
-				text="Edit username"
-				to="/chat"
-				prepend-icon="mdi-pencil"
-				block
-			>
+			<EditUserInfo/>
+			<v-btn value="editInfo" text="Edit profile" to="/chat" prepend-icon="mdi-pencil" block>
 			</v-btn>
-			<v-btn value="editAvatar" text="Edit avatar" to="/chat" prepend-icon="mdi-pencil" block>
-			</v-btn>
+
+
 			<v-btn
 				value="add2FA"
 				v-if="`${enabled2fa}` === 'false'"
