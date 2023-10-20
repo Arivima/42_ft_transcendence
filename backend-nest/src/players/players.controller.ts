@@ -35,6 +35,15 @@ export class PlayersController {
 	getMe(@Request() req) {
 		return this.playersService.findOne(Number(req.user.sub));
 	}
+	// @Get('addFriend/:username')
+	// addFriend(@Body() username: string) {}
+	
+	//TODO add interface "Connection" here for return type spec
+	@Get('friends/:id')
+	getFriends(@Param('id') id: string) {
+		console.log(`id: ${id}`);
+		return this.playersService.getAllFriends(Number(id));
+	}
 
 	@Get(':id')
 	findOne(@Param('id') id: string) {

@@ -3,28 +3,14 @@
 <!-- https://vuetifyjs.com/en/api/v-badge/#props -->
 
 <script lang="ts">
-import { usePlayerStore } from '@/stores/PlayerStore'
+import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const { user } = storeToRefs(await usePlayerStore())
-//TODO
-//1. clean code (maybe use $store ? + create JWT interface)
 export default {
 	data() {
 		return {
-			user: {
-				username: user.value.username,
-				firstName: user.value.firstName,
-				familyName: user.value.lastName,
-				status:
-					user.value.playing === undefined
-						? 'offline'
-						: user.value.playing
-						? 'playing'
-						: 'online' /* playing | online | offline */,
-				avatar: user.value.avatar,
-				my_friend: 1
-			},
+			user: user,
 			badgeColor: 'grey',
 			enabled2fa: true,
 			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
@@ -36,8 +22,8 @@ export default {
 		}
 	},
 	mounted() {
-		if (this.user.status == 'playing') this.badgeColor = 'blue'
-		else if (this.user.status == 'online') this.badgeColor = 'green'
+		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
+		else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
 		else this.badgeColor = 'grey'
 	}
 }
@@ -55,7 +41,7 @@ export default {
 				<v-card-item
 					class="text-black"
 					:title="user.username"
-					:subtitle="user.firstName + ' ' + user.familyName"
+					:subtitle="user.firstName + ' ' + user.lastName"
 				>
 				</v-card-item>
 			</div>

@@ -42,7 +42,7 @@
 				>
 
 					<template v-slot:prepend>
-						<v-badge dot :color="getBadgeColor(`${item.status}`)">
+						<v-badge dot :color="getBadgeColor(item.status)">
 							<v-avatar
 								:image="`${item.avatar}`" 
 							>
@@ -77,109 +77,22 @@
   </template>
   
   <script lang="ts">
+  import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
+  import { storeToRefs } from 'pinia'
+  
+  const { friends } = storeToRefs(await usePlayerStore())
 	export default {
 	  data: () => ({
 		profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
 		badgeColor: 'grey',
-		items: [
-		  {
-			username: 'Pauline',
-			status: 'online',
-			avatar: 'https://avatar.iran.liara.run/public/68',
-			my_friend: 1,
-		  },
-		  {
-			username: 'Caroline',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/63',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Sarah',
-			status: 'online',
-			avatar: 'https://avatar.iran.liara.run/public/86',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Juliette',
-			status: 'playing',
-			avatar: 'https://avatar.iran.liara.run/public/89',
-			my_friend: 1,
-		  },
-		  {
-			username: 'Aurore',
-			status: 'playing',
-			avatar: 'https://avatar.iran.liara.run/public/60',
-			my_friend: 1,
-		  },
-		  {
-			username: 'Margot',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/61',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Mathilde',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/62',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Margherite',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/63',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Marie-Amélie',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/64',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Capucine',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/65',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Henriette',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/66',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Roberte',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/67',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Joséphine',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/68',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Marie',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/69',
-			my_friend: 0,
-		  },
-		  {
-			username: 'Delphine',
-			status: 'offline',
-			avatar: 'https://avatar.iran.liara.run/public/70',
-			my_friend: 0,
-		  },
-		],
+		items: friends.value,
 	  }),
 	mounted() {
 	},
 	methods : {
-		getBadgeColor(status : string) : string {
-			if (status == 'online') return 'green'
-			else if (status == 'playing') return 'blue'
+		getBadgeColor(status : PlayerStatus) : string {
+			if (status == PlayerStatus.online) return 'green'
+			else if (status == PlayerStatus.playing) return 'blue'
 			else return 'grey'			
 		}
 	},

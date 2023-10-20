@@ -87,6 +87,51 @@ export class PlayersService {
 		}
 	}
 
+	async getAllFriends(userID: number) : Promise<(Player & Connection)[]> {
+		console.log(`userID: ${userID}`);
+		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
+			where: {
+				requestorID: userID,
+				are_friends: true
+			},
+			select: {
+				recipientID: true
+			}
+		});
+		const friendsAsRecipientIDs = await this.prisma.beFriends.findMany({
+			where: {
+				recipientID: userID,
+				are_friends: true,
+			},
+			select: {
+				requestorID: true
+			}
+		});
+
+		const friendsIDs : number[] = [];
+		for (const friend of friendsAsRequestorIDs) {
+			friendsIDs.push(friend.recipientID);
+		}
+		for (const friend of friendsAsRecipientIDs) {
+			friendsIDs.push(friend.requestorID);
+		}
+		console.log(`friendsIDs: ${friendsIDs}`);
+		let	friends = [];
+		for (const friendID of friendsIDs) {
+			friends.push(
+				await this.findOne(friendID)
+			);
+		}
+
+		return (friends);
+	}
+
+	async addFriend(recpientID: number, requestorID: number) {
+	}
+
+	async acceptFriendship(recpientID: number, requestorID: number) {
+	}
+
 	// async getChats(
 	// 	id: number,
 	// 	limit: number,
