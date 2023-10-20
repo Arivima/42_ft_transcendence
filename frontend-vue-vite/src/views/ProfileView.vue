@@ -11,9 +11,9 @@ import NavSideBar from '../components/NavSideBar.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 // import MatchHistoryServer from '../components/WIP/MatchHistoryServer.vue'
+import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-// import SearchBar from '../components/Utils/SearchBar.vue'
 </script>
 
 <template>
@@ -44,7 +44,7 @@ import Achievements from '../components/Profile/Achievements.vue'
 				<v-card
 					class="child2"
 				>
-				<!-- <SearchBar/> -->
+				<AddFriend/>
 				<Friends/>
 			</v-card>
 			</v-card>

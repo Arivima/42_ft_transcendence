@@ -19,14 +19,8 @@
 
 		<v-card-item>
 			<v-card-title class="text-overline">Friends</v-card-title>
-			<template v-slot:append>
-				<v-btn
-					icon="mdi-plus"
-					size="small"
-				></v-btn>
-			</template>
 		</v-card-item>
-
+		
 		<v-divider></v-divider>
   
 		<v-virtual-scroll
@@ -77,7 +71,12 @@
   </template>
   
   <script lang="ts">
+  import SearchBar from '../Utils/SearchBar.vue'
+
 	export default {
+		components:	{
+			SearchBar
+		},
 	  data: () => ({
 		profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
 		badgeColor: 'grey',
