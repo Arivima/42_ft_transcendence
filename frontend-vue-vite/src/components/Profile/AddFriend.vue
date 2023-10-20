@@ -7,6 +7,8 @@
 	max-width:  100%;
 	max-height:  100%;
 	width: fit-content;
+	outline: solid;
+	background-color: bisque;
 }
 
 </style>
@@ -24,6 +26,8 @@
 					icon="mdi-plus"
 					size="small"
 					@click="showBar = !showBar"
+					color="orange"
+					class="outline='solid'"
 				>
 				</v-btn>
 			</template>

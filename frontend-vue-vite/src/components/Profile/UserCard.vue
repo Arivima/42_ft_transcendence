@@ -65,7 +65,8 @@ export default {
 			</div>
 		</v-card>
 
-		<v-card class="itemStats backgroundItem" title="Stats" density="compact" variant="flat">
+		<v-card class="itemStats backgroundItem" density="compact" variant="flat">
+			<v-card-title class="text-overline">Stats</v-card-title>
 			<v-card-item
 				class=""
 				prepend-icon="mdi-trophy"
@@ -164,30 +165,28 @@ export default {
 			v-if="`${profile}` === 'MyProfile'"
 			density="compact"
 			variant="flat"
+			width="fit-content"
 		>
-			<EditUserInfo/>
-			<v-btn value="editInfo" text="Edit profile" to="/chat" prepend-icon="mdi-pencil" block>
-			</v-btn>
-
-
 			<v-btn
 				value="add2FA"
 				v-if="`${enabled2fa}` === 'false'"
 				text="Add 2FA"
 				to="/chat"
 				prepend-icon="mdi-shield-lock-outline"
+				class="ma-0 mb-1"
 				block
-			>
-			</v-btn>
+			></v-btn>
 			<v-btn
 				value="remove2FA"
 				v-if="`${enabled2fa}` === 'true'"
 				text="Remove 2FA"
 				to="/chat"
 				prepend-icon="mdi-shield-lock"
+				class="ma-0 mb-1"
 				block
-			>
-			</v-btn>
+			></v-btn>
+
+			<EditUserInfo/>
 		</v-card>
 	</v-card>
 </template>

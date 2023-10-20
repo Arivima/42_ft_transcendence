@@ -6,6 +6,15 @@ import NavSideBar from '../components/NavSideBar.vue'
 <template>
     <div class="chat">
         <NavSideBar/>
+        <v-navigation-drawer permanent>
+        <v-list>
+          <v-list-item title="channels" value="channels"></v-list-item>
+
+          <v-list-item title="direct messaging" value="contacts"></v-list-item>
+
+          <v-list-item title="Settings" value="settings"></v-list-item>
+        </v-list>
+      </v-navigation-drawer>
             <h1>This is Chat</h1>
         
         <v-main>

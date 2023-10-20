@@ -8,8 +8,8 @@ const data = ref({ model: {} })
 		<v-card-title class="text-overline">Achievements</v-card-title>
 
 		<v-divider></v-divider>
-		<!-- 
-		<v-sheet>
+		
+		<!-- <v-sheet>
 			<v-slide-group v-model="model" class="pa-1" selected-class="bg-primary" show-arrows>
 				<v-slide-group-item
 					v-for="n in 5"
