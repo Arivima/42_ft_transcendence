@@ -1,6 +1,13 @@
 <!-- GAME -->
-<script setup lang="ts">
+<script lang="ts">
 import NavSideBar from '../components/NavSideBar.vue'
+import { IntersectingCirclesSpinner } from 'epic-spinners'
+export default {
+	components : {
+		IntersectingCirclesSpinner, NavSideBar
+	}
+}
+
 </script>
 
 <template>
@@ -10,6 +17,11 @@ import NavSideBar from '../components/NavSideBar.vue'
 			<p>Used as home view</p>
 
 		<v-main>
+			<intersecting-circles-spinner
+				:animation-duration="1200"
+				:size="70"
+				color="#ff1d5e"
+				/>
 		</v-main>
 	</div>
 </template>

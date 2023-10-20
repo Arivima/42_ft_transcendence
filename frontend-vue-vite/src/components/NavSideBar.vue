@@ -18,9 +18,21 @@ export default {
 				firstName: user.value.firstName,
 				familyName: user.value.lastName,
 				avatar: user.value.avatar
-			}
+			},
+			styleSheetToggle : false,
 		}
-	}
+	},
+	// mounted() {
+	// 	if (this.styleSheetToggle) {
+	// 	import('@/assets/debug.css').then(() => {
+	// 		console.log('debug stylesheet loaded');
+	// 	});
+	// 	} else {
+	// 	import('@/assets/main.css').then(() => {
+	// 		console.log('main stylesheet loaded');
+	// 	});
+	// 	}
+	// },
 }
 </script>
 
@@ -35,7 +47,7 @@ export default {
 			></v-list-item>
 		</v-list>
 		<v-divider></v-divider>
-		<v-list class="navContent">
+		<v-list class="navContent ">
 			<v-list nav>
 				<v-list-item
 					:to="{ name: 'game' }"
@@ -52,10 +64,13 @@ export default {
 		</v-list>
 
 		<v-list nav>
+			<!-- <v-btn @click="styleSheetToggle = !styleSheetToggle"></v-btn> -->
 			<v-list-item
 				:to="{ name: 'home' }"
 				prepend-icon="mdi-logout"
 				title="Logout"
+				class="logout"
+				variant="tonal"
 			></v-list-item>
 		</v-list>
 	</v-navigation-drawer>
@@ -63,10 +78,12 @@ export default {
 
 <style>
 .navContent {
-	height: 90%;
+	height: 80%;
 }
 
 .v-navigation-drawer {
-	background-color: mediumaquamarine;
+	/* background-color: mediumaquamarine; */
+	/* outline: solid; */
 }
+
 </style>
