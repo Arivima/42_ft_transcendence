@@ -1,10 +1,20 @@
 <style>
 
+.dialog {
+	/* background-color: lightgoldenrodyellow; */
+	outline: solid;
+	outline-color: antiquewhite;
+	min-width: fit-content;
+	align-content: center;
+	justify-content: center;
+	margin: 25%;
+}
+
 </style>
 
 <template>
 	<div
-		class="pa-0 ma-0  h-100"
+		class=" pa-0 ma-0  h-100"
 		flat
 	>
 		<v-responsive
@@ -29,6 +39,7 @@
 					<v-card
 						title="Edit my profile"
 						rounded="lg"
+						class="dialog"
 					>
 						<v-card-item
 							class="ma-0  h-100"

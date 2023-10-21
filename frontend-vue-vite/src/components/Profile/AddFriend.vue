@@ -11,7 +11,7 @@
 
 <template>
 	<v-card
-		class="component justify-center align-center pa-1"	
+		class="component justify-center align-center"	
 		min-width="300"
 	>
 		<v-card-item
@@ -21,6 +21,8 @@
 				<v-btn
 					icon="mdi-plus"
 					size="small"
+					variant="tonal"
+					color="blue"
 					@click="showBar = !showBar"
 				>
 				</v-btn>

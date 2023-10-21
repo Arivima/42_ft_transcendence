@@ -1,10 +1,14 @@
-<style>
+<style scoped>
+	.SearchBar {
+		background-color: transparent;
+	}
+
 
 </style>
 
 <template>
 	<v-card
-		class="d-flex justify-center flex-wrap "
+		class="SearchBar d-flex justify-center flex-wrap "
 		variant="flat"
 	>
 	  <v-responsive
@@ -26,6 +30,7 @@
 		  density="compact"
 		  rounded
 		  variant="outlined"
+		  bg-color="white"
 		></v-autocomplete>
 	  </v-responsive>
 	</v-card>

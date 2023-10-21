@@ -3,8 +3,9 @@
 
 <template>
 	<v-bottom-navigation
-      mode="shift"
-    >
+		class="TmpTab"
+		mode="shift"
+	>
 		<router-link
 			:to="{name:'login'}"
 			custom
@@ -92,8 +93,5 @@
 </template>
 
 <style scoped>
-.v-bottom-navigation {
-	background-color: lemonchiffon;
-	outline: solid;
-}
+
 </style>

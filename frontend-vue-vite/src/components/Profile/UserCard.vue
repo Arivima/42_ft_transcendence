@@ -16,7 +16,7 @@ export default {
 		return {
 			user: user,
 			badgeColor: 'grey',
-			enabled2fa: true,
+			enabled2fa: true, /*TODO*/
 			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
 			stats: {
 				victories: 5,
@@ -34,7 +34,7 @@ export default {
 </script>
 
 <template>
-	<v-card class="containerContent" image="cats.jpg" rounded="0" variant="tonal">
+	<v-card class="containerContent component" image="cats.jpg" rounded="1" variant="tonal">
 		<v-card class="itemAvatar" density="comfortable" variant="flat">
 			<v-badge bordered inline :color="badgeColor" :content="user.status">
 				<v-avatar size="130" rounded="1">
@@ -43,7 +43,6 @@ export default {
 			</v-badge>
 			<div class="backgroundItem ma-3">
 				<v-card-item
-					class="text-black"
 					:title="user.username"
 					:subtitle="user.firstName + ' ' + user.lastName"
 				>
@@ -54,7 +53,6 @@ export default {
 		<v-card class="itemStats backgroundItem" density="compact" variant="flat">
 			<v-card-title class="text-overline">Stats</v-card-title>
 			<v-card-item
-				class=""
 				prepend-icon="mdi-trophy"
 				:title="String(stats.victories)"
 				subtitle="victories"
@@ -190,9 +188,6 @@ export default {
 	/* justify-items: stretch; */
 	/* height: 100%; */
 	/* width: 100%; */
-	margin: 1%;
-	padding: 1%;
-	outline: solid;
 }
 
 .itemAvatar {
@@ -209,7 +204,8 @@ export default {
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	/* outline: solid; */
+	outline: solid;
+	outline-color: antiquewhite;
 	/* background-color: rgb(36, 176, 129); */
 	background-color: transparent;
 }
@@ -226,9 +222,10 @@ export default {
 .containerContent .v-btn {
 	margin: 5px;
 	justify-content: start;
-	/* outline: solid; */
 	min-height: fit-content;
 	max-height: 20%;
+	outline: solid;
+	outline-color: antiquewhite;
 	/* color: blue; */
 	/* background-color: white; */
 }
@@ -238,9 +235,20 @@ export default {
 }
 
 .backgroundItem {
-	background-color: rgba(255, 255, 255, 0.41);
+	background-color: rgba(255, 255, 255, 0.497);
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
+	outline: solid;
+	outline-color: antiquewhite;
+}
+
+.itemAvatar .v-avatar {
+	outline: solid;
+	outline-color: antiquewhite;
+}
+
+.itemAvatar .v-badge__badge {
+	color: antiquewhite !important;
 }
 </style>
