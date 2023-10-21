@@ -1,23 +1,18 @@
 # Run these commands inside the backend container at startup
 
-Enter the container
+Enter the container (if you are running in local, skip this first step)
 
 ```
 docker exec -it backend /bin/bash
 ```
 
 
-Create a new migration to be applied as last for the addition of check constraints as of our db.
+Create new migration files and apply them.
 
 ```
-npx prisma migrate dev -n check_constraints --create-only
-cat constraints/constraints.sql >> migrations/*_check_constraints/migration.sql
-```
-
-Update database and prisma client
-
-```
-npx prisma migrate dev
+cd prisma
+make clean
+make migrate-dev
 ```
 
 Launch prisma studio for easy debugging

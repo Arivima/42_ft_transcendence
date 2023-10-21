@@ -1,14 +1,52 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "ChatRoomVisibility" AS ENUM ('public', 'private', 'protected');
 
-  - Added the required column `founderID` to the `ChatRoom` table without a default value. This is not possible if the table is not empty.
-
-*/
 -- CreateEnum
 CREATE TYPE "GameMode" AS ENUM ('public', 'direct');
 
--- AlterTable
-ALTER TABLE "ChatRoom" ADD COLUMN     "founderID" INTEGER NOT NULL;
+-- CreateTable
+CREATE TABLE "Player" (
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "id" INTEGER NOT NULL,
+    "username" TEXT NOT NULL,
+    "avatar" TEXT NOT NULL,
+    "firstName" TEXT,
+    "lastName" TEXT,
+    "profileIntra" TEXT,
+    "wins" INTEGER NOT NULL DEFAULT 0,
+    "losses" INTEGER NOT NULL DEFAULT 0,
+    "twofaSecret" TEXT,
+
+    CONSTRAINT "Player_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Message" (
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "content" TEXT NOT NULL,
+    "timestamp" TIMESTAMP(3) NOT NULL,
+    "messageID" SERIAL NOT NULL,
+    "senderID" INTEGER NOT NULL,
+    "receiverID" INTEGER NOT NULL,
+    "receiverSID" INTEGER NOT NULL,
+
+    CONSTRAINT "Message_pkey" PRIMARY KEY ("messageID")
+);
+
+-- CreateTable
+CREATE TABLE "ChatRoom" (
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "groupID" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "visibility" "ChatRoomVisibility" NOT NULL,
+    "password" TEXT NOT NULL,
+    "founderID" INTEGER NOT NULL,
+
+    CONSTRAINT "ChatRoom_pkey" PRIMARY KEY ("groupID")
+);
 
 -- CreateTable
 CREATE TABLE "Achievement" (
@@ -23,7 +61,8 @@ CREATE TABLE "Achievement" (
 
 -- CreateTable
 CREATE TABLE "Plays" (
-    "win_host" BOOLEAN NOT NULL,
+    "score_host" INTEGER NOT NULL,
+    "score_Guest" INTEGER NOT NULL,
     "mode" "GameMode" NOT NULL,
     "duration_sec" INTEGER NOT NULL,
     "hostID" INTEGER NOT NULL,
@@ -64,6 +103,21 @@ CREATE TABLE "Achieved" (
     CONSTRAINT "Achieved_pkey" PRIMARY KEY ("playerID","achievementName")
 );
 
+-- CreateIndex
+CREATE UNIQUE INDEX "Player_username_key" ON "Player"("username");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Player_avatar_key" ON "Player"("avatar");
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_senderID_fkey" FOREIGN KEY ("senderID") REFERENCES "Player"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_receiverID_fkey" FOREIGN KEY ("receiverID") REFERENCES "Player"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Message" ADD CONSTRAINT "Message_receiverSID_fkey" FOREIGN KEY ("receiverSID") REFERENCES "ChatRoom"("groupID") ON DELETE RESTRICT ON UPDATE CASCADE;
+
 -- AddForeignKey
 ALTER TABLE "ChatRoom" ADD CONSTRAINT "ChatRoom_founderID_fkey" FOREIGN KEY ("founderID") REFERENCES "Player"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -90,3 +144,11 @@ ALTER TABLE "Achieved" ADD CONSTRAINT "Achieved_playerID_fkey" FOREIGN KEY ("pla
 
 -- AddForeignKey
 ALTER TABLE "Achieved" ADD CONSTRAINT "Achieved_achievementName_fkey" FOREIGN KEY ("achievementName") REFERENCES "Achievement"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+
+ALTER TABLE "Message"
+ADD CONSTRAINT recipients_check
+CHECK (
+	("receiverID" IS NULL AND "receiverSID" IS NOT NULL) OR
+	("receiverSID" IS NULL AND "receiverID" IS NOT NULL)
+);
