@@ -1,3 +1,5 @@
+
+
 ALTER TABLE "Message"
 ADD CONSTRAINT recipients_check
 CHECK (

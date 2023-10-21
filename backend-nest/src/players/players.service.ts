@@ -87,16 +87,16 @@ export class PlayersService {
 		}
 	}
 
-	async getAllFriends(userID: number) : Promise<(Player & Connection)[]> {
+	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
 		console.log(`userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
 				requestorID: userID,
-				are_friends: true
+				are_friends: true,
 			},
 			select: {
-				recipientID: true
-			}
+				recipientID: true,
+			},
 		});
 		const friendsAsRecipientIDs = await this.prisma.beFriends.findMany({
 			where: {
@@ -104,11 +104,11 @@ export class PlayersService {
 				are_friends: true,
 			},
 			select: {
-				requestorID: true
-			}
+				requestorID: true,
+			},
 		});
 
-		const friendsIDs : number[] = [];
+		const friendsIDs: number[] = [];
 		for (const friend of friendsAsRequestorIDs) {
 			friendsIDs.push(friend.recipientID);
 		}
@@ -116,21 +116,90 @@ export class PlayersService {
 			friendsIDs.push(friend.requestorID);
 		}
 		console.log(`friendsIDs: ${friendsIDs}`);
-		let	friends = [];
+		const friends = [];
 		for (const friendID of friendsIDs) {
-			friends.push(
-				await this.findOne(friendID)
-			);
+			friends.push(await this.findOne(friendID));
 		}
 
-		return (friends);
+		return friends;
 	}
 
-	async addFriend(recpientID: number, requestorID: number) {
+	//TODO
+	//DONE?	1 : modify Plays table and Migrate
+	//DONE?	2 : finish this endpoint
+	//?	2.1 : AVOID USING STORE in front
+	//?	3 : Add "insert into Achievements.." script by hand
+	//?	4 : TEST
+	//?	5 : Do 2FA auth on the frontend
+	//?	6 : Rethink Vue pinia Stores.
+	//?	7 : Handle Images url to png (or blob) files in db
+	async getAllGames(userID: number, limit: number = Infinity) {
+		const gamesAsHost = await this.prisma.plays.findMany({
+			where: {
+				hostID: userID,
+			},
+			select: {
+				hostID: true,
+				guestID: true,
+				score_host: true,
+				score_Guest: true,
+			},
+		});
+		const gamesAsGuest = await this.prisma.plays.findMany({
+			where: {
+				guestID: userID,
+			},
+			select: {
+				guestID: true,
+				hostID: true,
+				score_host: true,
+				score_Guest: true,
+			},
+		});
+
+		let games = [];
+		for (const game of gamesAsHost) {
+			games.push({
+				host: (await this.findOne(game.hostID)).username,
+				guest: (await this.findOne(game.guestID)).username,
+				host_score: game.score_host,
+				guest_score: game.score_Guest,
+			});
+		}
+		for (const game of gamesAsGuest) {
+			games.push({
+				host: (await this.findOne(game.hostID)).username,
+				guest: (await this.findOne(game.guestID)).username,
+				host_score: game.score_host,
+				guest_score: game.score_Guest,
+			});
+		}
+		games = games.slice(0, limit);
+		// const games = gamesAsGuest
+		// 	.map(async (el) => {
+		// 		host: (await this.findOne(el.hostID)).username;
+		// 		guest: (await this.findOne(el.guestID)).username;
+		// 		host_score: el.score_host;
+		// 		guest_score: el.score_Guest;
+		// 	})
+		// 	.concat(
+		// 		gamesAsHost.map(async (el) => {
+		// 			host: (await this.findOne(el.hostID)).username;
+		// 			guest: (await this.findOne(el.guestID)).username;
+		// 			host_score: el.score_host;
+		// 			guest_score: el.score_Guest;
+		// 		}),
+		// 	)
+		// 	.slice(0, limit);
+
+		console.log('ciaoo');
+		console.log(games);
+		return games;
 	}
 
-	async acceptFriendship(recpientID: number, requestorID: number) {
-	}
+	// async addFriend(recpientID: number, requestorID: number) {}
+
+	// async acceptFriendship(recpientID: number, requestorID: number) {}
 
 	// async getChats(
 	// 	id: number,

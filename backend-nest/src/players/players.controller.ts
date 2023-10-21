@@ -7,6 +7,7 @@ import {
 	Param,
 	Delete,
 	Request,
+	Query,
 } from '@nestjs/common';
 import { PlayersService } from './players.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
@@ -37,12 +38,19 @@ export class PlayersController {
 	}
 	// @Get('addFriend/:username')
 	// addFriend(@Body() username: string) {}
-	
+
 	//TODO add interface "Connection" here for return type spec
 	@Get('friends/:id')
 	getFriends(@Param('id') id: string) {
-		console.log(`id: ${id}`);
 		return this.playersService.getAllFriends(Number(id));
+	}
+
+	@Get('games/:id')
+	getGames(@Param('id') id: string, @Query('limit') limit: string) {
+		return this.playersService.getAllGames(
+			Number(id),
+			limit ? Number(limit) : undefined,
+		);
 	}
 
 	@Get(':id')

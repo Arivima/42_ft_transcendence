@@ -17,47 +17,34 @@ import Achievements from '../components/Profile/Achievements.vue'
 </script>
 
 <template>
-    <div class="profile">
-        <NavSideBar/>
-		<v-card
-			class="parent"
-		>
-			<v-card
-				class="child1"
-			>
-				<v-card
-						class="child2"
-					>
-					<UserCard/>
+	<div class="profile">
+		<NavSideBar />
+		<v-card class="parent">
+			<v-card class="child1">
+				<v-card class="child2">
+					<UserCard />
 				</v-card>
 			</v-card>
-			<v-card
-				class="child1"
-			>
-				<v-card
-					class="child2"
-				>
-					<Achievements/>
-					<MatchHistoryTable/>                
+			<v-card class="child1">
+				<v-card class="child2">
+					<Achievements />
+					<Suspense><MatchHistoryTable /></Suspense>
 					<!-- <MatchHistoryServer/>                 -->
 				</v-card>
-				<v-card
-					class="child2"
-				>
-				<AddFriend/>
-				<Friends/>
-			</v-card>
+				<v-card class="child2">
+					<AddFriend />
+					<Friends />
+				</v-card>
 			</v-card>
 		</v-card>
-    </div >
+	</div>
 </template>
-
 
 <style>
 .parent {
-	display:flex;
-	flex-direction: column;  /* x and y axis inverted */
-	align-items: center;  /* y axis */
+	display: flex;
+	flex-direction: column; /* x and y axis inverted */
+	align-items: center; /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: start; /* x axis */
 	background-color: plum;
@@ -69,10 +56,10 @@ import Achievements from '../components/Profile/Achievements.vue'
 }
 
 .child1 {
-	display:flex;
+	display: flex;
 	flex-direction: row;
-	align-items: start;  /* y axis */
-	align-content: start;  /* y axis */
+	align-items: start; /* y axis */
+	align-content: start; /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: start; /* x axis */
 	padding: 1%;
@@ -84,10 +71,10 @@ import Achievements from '../components/Profile/Achievements.vue'
 }
 
 .child2 {
-	display:flex;
-	flex-direction: column;  /* x and y axis inverted */
-	align-items: stretch;  /* y axis */
-	align-content: center;  /* y axis */
+	display: flex;
+	flex-direction: column; /* x and y axis inverted */
+	align-items: stretch; /* y axis */
+	align-content: center; /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: center; /* x axis */
 	padding: 1%;

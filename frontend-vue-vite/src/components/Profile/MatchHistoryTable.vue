@@ -1,5 +1,3 @@
-
-
 <template>
 	<v-card class="pa-2 ma-2">
 		<v-card-item>
@@ -8,70 +6,39 @@
 				<!-- <v-btn icon="mdi-plus" size="small"></v-btn> -->
 			</template>
 		</v-card-item>
-  			<v-divider></v-divider>
-			<v-table
-				fixed-header
-				height="300px"
-			>
-				<thead>
-					<tr>
-					<th class="text-left">
-						
-					</th>
-					<th class="text-left">
-						Opponent
-					</th>
-					<th class="text-left">
-						{{ data.user.username }}
-					</th>
-					</tr>
-				</thead>
-
-				<tbody>
-					<tr
-					v-for="item in data.games"
-					:key="item.username"
-					>
-					<td>{{ item.username }}</td>
-					<td >{{ item.scoreOpponent }}</td>
-					<td >{{ item.scoreUser }}</td>
-					</tr>
-				</tbody>
-			</v-table>
+		<v-divider></v-divider>
+		<v-data-table
+			v-model:items-per-page="data.itemsPerPage"
+			:headers="data.headers"
+			:items="games"
+			item_value="name"
+			class="elevation-1"
+		></v-data-table>
 	</v-card>
-
 </template>
 
-
-
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { reactive } from 'vue'
+import { usePlayerStore } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
+import { VDataTable } from 'vuetify/labs/components'
 
+const { user, games } = storeToRefs(await usePlayerStore())
+
+//TODO FIX and avoid using STORE
 const data = reactive({
-		games : [
-          {
-            username: 'Pauline',
-            scoreUser: 2,
-            scoreOpponent: 3,
-          },
-          {
-            username: 'Sarah',
-            scoreUser: 4,
-            scoreOpponent: 3,
-          },
-          {
-            username: 'Caroline',
-            scoreUser: 1,
-            scoreOpponent: 1,
-          },
-          {
-            username: 'Daphné',
-            scoreUser: 1,
-            scoreOpponent: 4,
-          },
-        ],
-		user : {
-			username: 'Arielle',
-
-		}});
+	headers: [
+		{ title: 'Host', key: 'host', align: 'start' },
+		{ title: 'Score', key: 'host_score', align: 'start' },
+		{ title: 'Score', key: 'guest_score', align: 'start' },
+		{ title: 'Guest', key: 'guest', align: 'start' }
+	],
+	itemsPerPage: 5,
+	items_len: 11,
+	loading: false,
+	games: games.value,
+	user: {
+		username: user.value.username
+	}
+})
 </script>
