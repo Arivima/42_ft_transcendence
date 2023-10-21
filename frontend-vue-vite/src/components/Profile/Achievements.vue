@@ -4,7 +4,7 @@ const data = ref({ model: {} })
 </script>
 
 <template>
-	<v-card class="pa-2 ma-2">
+	<v-card class="component">
 		<v-card-title class="text-overline">Achievements</v-card-title>
 
 		<v-divider></v-divider>
@@ -47,3 +47,7 @@ const data = ref({ model: {} })
 		</v-sheet> -->
 	</v-card>
 </template>
+
+<style scoped>
+
+</style>

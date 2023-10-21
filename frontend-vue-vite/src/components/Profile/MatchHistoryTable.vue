@@ -1,45 +1,50 @@
+<style scoped>
+.component .v-table {
+	background-color: transparent;
+}
 
+/* table title row */
+.v-table.v-table--fixed-header > .v-table__wrapper > table > thead > tr > th  {
+	background-color: transparent;
+}
+</style>
 
 <template>
-	<v-card class="pa-2 ma-2">
+	<v-card class="component">
 		<v-card-item>
 			<v-card-title class="text-overline">Match history</v-card-title>
-			<template v-slot:append>
-				<!-- <v-btn icon="mdi-plus" size="small"></v-btn> -->
-			</template>
 		</v-card-item>
-  			<v-divider></v-divider>
-			<v-table
-				fixed-header
-				height="300px"
-			>
-				<thead>
-					<tr>
-					<th class="text-left">
-						
-					</th>
-					<th class="text-left">
-						Opponent
-					</th>
-					<th class="text-left">
-						{{ data.user.username }}
-					</th>
-					</tr>
-				</thead>
+		<v-divider></v-divider>
+		<v-table
+			fixed-header
+			height="300px"
+		>
+			<thead>
+				<tr>
+				<th class="text-left text-button">
 
-				<tbody>
-					<tr
-					v-for="item in data.games"
-					:key="item.username"
-					>
-					<td>{{ item.username }}</td>
-					<td >{{ item.scoreOpponent }}</td>
-					<td >{{ item.scoreUser }}</td>
-					</tr>
-				</tbody>
-			</v-table>
+				</th>
+				<th class="text-center text-overline">
+					Opponent
+				</th>
+				<th class="text-center text-overline">
+					{{ data.user.username }}
+				</th>
+				</tr>
+			</thead>
+
+			<tbody>
+				<tr
+				v-for="item in data.games"
+				:key="item.username"
+				>
+				<td class="text-left">{{ item.username }}</td>
+				<td class="text-center">{{ item.scoreOpponent }}</td>
+				<td class="text-center">{{ item.scoreUser }}</td>
+				</tr>
+			</tbody>
+		</v-table>
 	</v-card>
-
 </template>
 
 

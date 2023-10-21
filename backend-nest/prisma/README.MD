@@ -2,7 +2,10 @@
 
 Enter the container
 
-`docker exec -it backend /bin/bash`
+```
+docker exec -it backend /bin/bash
+```
+
 
 Create a new migration to be applied as last for the addition of check constraints as of our db.
 
@@ -19,4 +22,7 @@ npx prisma migrate dev
 
 Launch prisma studio for easy debugging
 
-`npx prisma studio`
+```
+npx prisma studio
+```
+

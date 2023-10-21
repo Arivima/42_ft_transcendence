@@ -37,7 +37,7 @@ export default {
 </script>
 
 <template>
-	<v-navigation-drawer expand-on-hover rail permanent>
+	<v-navigation-drawer expand-on-hover rail permanent class="NavSideBar">
 		<v-list>
 			<v-list-item
 				:prepend-avatar="user.avatar"
@@ -76,14 +76,9 @@ export default {
 	</v-navigation-drawer>
 </template>
 
-<style>
+<style scoped>
 .navContent {
 	height: 80%;
-}
-
-.v-navigation-drawer {
-	/* background-color: mediumaquamarine; */
-	/* outline: solid; */
 }
 
 </style>

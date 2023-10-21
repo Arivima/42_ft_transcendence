@@ -59,7 +59,7 @@ export default {
 </template>
 
 
-<style>
+<style scoped>
 .home {
 	background-color: aqua;
 	outline: solid;
