@@ -2,7 +2,10 @@
 
 Enter the container (if you are running in local, skip this first step)
 
-`docker exec -it backend /bin/bash`
+```
+docker exec -it backend /bin/bash
+```
+
 
 Create new migration files and apply them.
 
@@ -14,4 +17,7 @@ make migrate-dev
 
 Launch prisma studio for easy debugging
 
-`npx prisma studio`
+```
+npx prisma studio
+```
+

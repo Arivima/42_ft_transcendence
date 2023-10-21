@@ -26,7 +26,7 @@ export default {
 	</div>
 </template>
 
-<style>
+<style scoped>
 .game {
 	background-color: aqua;
 	outline: solid;

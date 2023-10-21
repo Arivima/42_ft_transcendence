@@ -1,16 +1,9 @@
 <!-- PROFILE -->
 
-<!-- TODO
-- link with database on all modules
-- responsiveness on screen size
-- position of cards on the page
--->
-
 <script setup lang="ts">
 import NavSideBar from '../components/NavSideBar.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
-// import MatchHistoryServer from '../components/WIP/MatchHistoryServer.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
@@ -40,17 +33,13 @@ import Achievements from '../components/Profile/Achievements.vue'
 	</div>
 </template>
 
-<style>
+<style scoped>
 .parent {
 	display: flex;
 	flex-direction: column; /* x and y axis inverted */
 	align-items: center; /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: start; /* x axis */
-	background-color: plum;
-	outline: solid;
-	padding: 1%;
-	margin: 1%;
 	width: 100%;
 	height: 100%;
 }
@@ -62,12 +51,8 @@ import Achievements from '../components/Profile/Achievements.vue'
 	align-content: start; /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: start; /* x axis */
-	padding: 1%;
-	margin: 1%;
-	background-color: lightcoral;
 	width: 100%;
 	height: 100%;
-	outline: solid;
 }
 
 .child2 {
@@ -77,15 +62,7 @@ import Achievements from '../components/Profile/Achievements.vue'
 	align-content: center; /* y axis */
 	justify-content: start; /* x axis */
 	justify-items: center; /* x axis */
-	padding: 1%;
-	margin: 1%;
-	background-color: yellow;
 	width: 100%;
 	height: 100%;
-	outline: solid;
 }
-
-/* .userCard {
-	background-image: url("saiyanBackground.jpeg");
-} */
 </style>

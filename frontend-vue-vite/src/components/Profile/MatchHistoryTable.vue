@@ -1,10 +1,18 @@
+<style scoped>
+.component .v-table {
+	background-color: transparent;
+}
+
+/* table title row */
+.v-table.v-table--fixed-header > .v-table__wrapper > table > thead > tr > th {
+	background-color: transparent;
+}
+</style>
+
 <template>
-	<v-card class="pa-2 ma-2">
+	<v-card class="component">
 		<v-card-item>
 			<v-card-title class="text-overline">Match history</v-card-title>
-			<template v-slot:append>
-				<!-- <v-btn icon="mdi-plus" size="small"></v-btn> -->
-			</template>
 		</v-card-item>
 		<v-divider></v-divider>
 		<v-data-table

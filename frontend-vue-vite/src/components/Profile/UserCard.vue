@@ -34,7 +34,7 @@ export default {
 </script>
 
 <template>
-	<v-card class="containerContent" image="saiyanBanner.jpg" rounded="0" variant="tonal">
+	<v-card class="containerContent" image="cats.jpg" rounded="0" variant="tonal">
 		<v-card class="itemAvatar" density="comfortable" variant="flat">
 			<v-badge bordered inline :color="badgeColor" :content="user.status">
 				<v-avatar size="130" rounded="1">
@@ -83,6 +83,7 @@ export default {
 			v-if="`${profile}` === 'PublicProfile'"
 			density="compact"
 			variant="flat"
+			title="View : Public Profile"
 		>
 			<v-btn
 				value="add"
@@ -99,6 +100,7 @@ export default {
 			v-if="`${profile}` === 'FriendProfile'"
 			density="compact"
 			variant="flat"
+			title="View : Friend Profile"
 		>
 			<v-btn
 				value="play"
@@ -152,6 +154,7 @@ export default {
 			density="compact"
 			variant="flat"
 			width="fit-content"
+			title="View : My Profile"
 		>
 			<v-btn
 				value="add2FA"

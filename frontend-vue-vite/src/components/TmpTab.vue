@@ -91,7 +91,7 @@
     </v-bottom-navigation>
 </template>
 
-<style>
+<style scoped>
 .v-bottom-navigation {
 	background-color: lemonchiffon;
 	outline: solid;

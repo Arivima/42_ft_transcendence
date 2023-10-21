@@ -1,21 +1,17 @@
 <!-- Friends -->
 
-<style>
-.containerAddFriend {
-	padding: 2%;
-	margin: 2%;
+<style scoped>
+.component {
 	max-width:  100%;
 	max-height:  100%;
 	width: fit-content;
-	outline: solid;
-	background-color: bisque;
 }
 
 </style>
 
 <template>
 	<v-card
-		class="containerAddFriend justify-center align-center pa-1"	
+		class="component justify-center align-center pa-1"	
 		min-width="300"
 	>
 		<v-card-item
@@ -26,8 +22,6 @@
 					icon="mdi-plus"
 					size="small"
 					@click="showBar = !showBar"
-					color="orange"
-					class="outline='solid'"
 				>
 				</v-btn>
 			</template>

@@ -22,7 +22,7 @@ import NavSideBar from '../components/NavSideBar.vue'
     </div>
 </template>
 
-<style>
+<style scoped>
 .chat {
 	background-color: aqua;
 	outline: solid;
