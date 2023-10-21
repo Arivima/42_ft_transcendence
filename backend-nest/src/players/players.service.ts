@@ -126,6 +126,40 @@ export class PlayersService {
 		return (friends);
 	}
 
+
+// TODO make achievementName unique
+
+	async getAllAchievements(userID: number) : Promise<(Player & Connection)[]> {
+		console.log(`userID: ${userID}`);
+		const achievementNames = await this.prisma.achieved.findMany({
+			where: {
+				playerID: userID,
+			},
+			select: {
+				achievementName : true,
+			}
+		});
+
+		console.log(`achievementNames: ${achievementNames}`);
+		let	achievements = [];
+		for (const achievementName of achievementNames) {
+			achievements.push(
+				await this.prisma.achievement.findUnique({
+					where : {
+						name: achievementName.achievementName,
+					},
+					select : {
+						name : true,
+						description : true,
+						picture : true,
+					}
+				})
+			);
+
+		}
+		return (achievements);
+	}
+
 	async addFriend(recpientID: number, requestorID: number) {
 	}
 

@@ -1,53 +1,84 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-const data = ref({ model: {} })
+<script lang="ts">
+	import { usePlayerStore } from '@/stores/PlayerStore'
+	import { storeToRefs } from 'pinia'
+
+	const { achievements } = storeToRefs(await usePlayerStore())
+
+	export default {
+		components:	{
+		},
+		data: () => ({
+			achievements: achievements.value,
+			model: null,
+		}),
+		mounted() {
+		},
+		methods : {
+
+		},
+	}
 </script>
 
+<!-- TODO add achievements to database -->
+<!-- TODO update pictures -->
+<!-- TODO update names -->
+<!-- TODO update descriptions -->
 <template>
 	<v-card class="component">
 		<v-card-title class="text-overline">Achievements</v-card-title>
-
 		<v-divider></v-divider>
-		
-		<!-- <v-sheet>
-			<v-slide-group v-model="model" class="pa-1" selected-class="bg-primary" show-arrows>
+		<v-sheet
+			class="componentContents"
+		>
+			<v-slide-group
+				v-model="model"
+				class="pa-1"
+				selected-class="bg-primary"
+				show-arrows
+			>
 				<v-slide-group-item
-					v-for="n in 5"
-					:key="n"
+					v-for="achievement in achievements"
+					:key="achievement.name"
 					v-slot="{ isSelected, toggle, selectedClass }"
 				>
 					<v-card
-						color="grey-lighten-1"
-						:class="['ma-1', selectedClass]"
+						:image="achievement.picture"
+						:class="['ma-4', selectedClass]"
 						height="80"
 						width="80"
 						@click="toggle"
 					>
 						<div class="d-flex fill-height align-center justify-center">
-							<v-scale-transition>
-								<v-icon
-									v-if="isSelected"
-									color="white"
-									size="48"
-									icon="mdi-close-circle-outline"
-								></v-icon>
-							</v-scale-transition>
+							<v-scale-transition></v-scale-transition>
 						</div>
 					</v-card>
 				</v-slide-group-item>
 			</v-slide-group>
 
 			<v-expand-transition>
-				<v-sheet v-if="model != null" max-height="50">
-					<div class="d-flex fill-height align-center justify-center">
-						<p class="text-p">Achievement : {{ model }}</p>
-					</div>
+				<v-sheet
+					v-if="model != null"
+					height="50"
+					class="componentDescription d-flex flex-column fill-height justify-center align-center pa-3"
+				>
+						<v-chip class="text-overline" color="blue">{{ achievements[model].name }}</v-chip>
+						<div class="d-flex w-100 align-left px-6 py-2">
+							<p class="font-weight-light">{{ achievements[model].description }}</p>
+						</div>
 				</v-sheet>
 			</v-expand-transition>
-		</v-sheet> -->
+		</v-sheet>
 	</v-card>
 </template>
 
 <style scoped>
+
+.componentContents {
+	background-color: transparent;
+}
+
+.componentDescription {
+	background-color: transparent;
+}
 
 </style>

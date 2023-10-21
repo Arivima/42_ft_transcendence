@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/20 23:55:11 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/10/21 19:54:34 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,16 @@ export interface Player {
 	my_friend: boolean
 }
 
+export interface Achievement {
+	name: string
+	description: string
+	picture: string
+}
+
 //?: make multiple players store
 export const usePlayerStore = async () => {
 	const s = defineStore('PlayerStore', {
-		state: (): { user: Player; loading: boolean, friends: Player[] } => {
+		state: (): { user: Player; loading: boolean, friends: Player[], achievements: Achievement[]  } => {
 			return {
 				user: {
 					id: -1,
@@ -49,6 +55,7 @@ export const usePlayerStore = async () => {
 					my_friend: true,
 				},
 				friends: [],
+				achievements : [],
 				loading: true
 			}
 		},
@@ -74,6 +81,7 @@ export const usePlayerStore = async () => {
 								: PlayerStatus.online /* playing | online | offline */,
 						my_friend: true,
 					}));
+					this.achievements = (await axios.get(`players/achievements/${this.user.id}`)).data;
 				} catch (_) {
 					console.log('axios failed inside user store')
 				}

@@ -45,6 +45,12 @@ export class PlayersController {
 		return this.playersService.getAllFriends(Number(id));
 	}
 
+	@Get('achievements/:id')
+	getAchievements(@Param('id') id: string) {
+		console.log(`id: ${id}`);
+		return this.playersService.getAllAchievements(Number(id));
+	}
+
 	@Get(':id')
 	findOne(@Param('id') id: string) {
 		return this.playersService.findOne(Number(id));
