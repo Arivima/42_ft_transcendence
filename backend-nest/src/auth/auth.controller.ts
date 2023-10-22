@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   auth.controller.ts                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: earendil <earendil@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/08 20:49:41 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/18 12:49:31 by earendil         ###   ########.fr       */
+/*   Updated: 2023/10/22 22:24:02 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,5 +115,17 @@ export class AuthController {
 		) {
 			throw new UnauthorizedException('Invalid TOTP');
 		}
+	}
+
+	/**
+	 * this endpoint is to be called to disable 2fa 
+	 * @param otp
+	 * @param req
+	 */
+	@Protected()
+	@Delete('2fa/remove')
+	async remove2fa(@Body('otp') otp: string, @Request() req) {
+		if (false == (await this.authService.removeOTP(Number(req.user.sub), otp)))
+			throw new UnauthorizedException('Invalid TOTP');
 	}
 }

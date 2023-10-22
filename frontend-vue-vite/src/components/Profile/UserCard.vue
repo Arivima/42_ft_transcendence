@@ -6,11 +6,12 @@
 import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 import EditUserInfo from '../Utils/EditUserInfo.vue'
+import Dialog2FA from './Dialog2FA.vue'
 
 const { user } = storeToRefs(await usePlayerStore())
 export default {
 	components : {
-		EditUserInfo
+		EditUserInfo, Dialog2FA,
 	},
 	data() {
 		return {
@@ -22,8 +23,11 @@ export default {
 				victories: 5,
 				losses: 2,
 				ladder: 2.5
-			}
+			},
+			dialogEdit: false,
 		}
+	},
+	methods : {
 	},
 	mounted() {
 		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
@@ -76,9 +80,9 @@ export default {
 			</v-card-item>
 		</v-card>
 
+			<!-- v-if="`${profile}` === 'PublicProfile'" -->
 		<v-card
 			class="itemActions itemActionsPublicProfile"
-			v-if="`${profile}` === 'PublicProfile'"
 			density="compact"
 			variant="flat"
 			title="View : Public Profile"
@@ -93,34 +97,34 @@ export default {
 			</v-btn>
 		</v-card>
 
+			<!-- v-if="`${profile}` === 'FriendProfile'" -->
 		<v-card
 			class="itemActions itemActionsFriendProfile"
-			v-if="`${profile}` === 'FriendProfile'"
 			density="compact"
 			variant="flat"
 			title="View : Friend Profile"
 		>
+				<!-- v-if="`${user.status}` === 'online'" -->
 			<v-btn
 				value="play"
-				v-if="`${user.status}` === 'online'"
 				:text="'Play with ' + `${user.firstName}`"
 				to="/game"
 				prepend-icon="mdi-controller"
 				block
 			>
 			</v-btn>
+				<!-- v-if="`${user.status}` === 'online'" -->
 			<v-btn
 				value="chat"
-				v-if="`${user.status}` === 'online'"
 				:text="'Chat with ' + `${user.firstName}`"
 				to="/chat"
 				prepend-icon="mdi-chat"
 				block
 			>
 			</v-btn>
+				<!-- v-if="`${user.status}` === 'playing'" -->
 			<v-btn
 				value="watch"
-				v-if="`${user.status}` === 'playing'"
 				:text="'Watch ' + `${user.firstName}` + '\'s game'"
 				to="/game"
 				prepend-icon="mdi-play"
@@ -146,34 +150,106 @@ export default {
 			</v-btn>
 		</v-card>
 
+			<!-- v-if="`${profile}` === 'MyProfile'" -->
 		<v-card
 			class="itemActions itemActionsMyProfile"
-			v-if="`${profile}` === 'MyProfile'"
 			density="compact"
 			variant="flat"
 			width="fit-content"
 			title="View : My Profile"
 		>
+
+
+
+				<!-- v-if="`${enabled2fa}` === 'false'" -->
 			<v-btn
-				value="add2FA"
-				v-if="`${enabled2fa}` === 'false'"
-				text="Add 2FA"
-				to="/chat"
-				prepend-icon="mdi-shield-lock-outline"
-				class="ma-0 mb-1"
-				block
-			></v-btn>
-			<v-btn
-				value="remove2FA"
-				v-if="`${enabled2fa}` === 'true'"
-				text="Remove 2FA"
-				to="/chat"
+				value="enable2FA"
+				text="Enable 2FA"
 				prepend-icon="mdi-shield-lock"
 				class="ma-0 mb-1"
 				block
-			></v-btn>
+				@click="getQRcode"
+			>
+				Enable 2FA
+				<Dialog2FA mode="enable"></Dialog2FA>
+			</v-btn>
 
-			<EditUserInfo/>
+				<!-- v-if="`${enabled2fa}` === 'true'" -->
+			<v-btn
+				value="disable2FA"
+				text="Disable 2FA"
+				prepend-icon="mdi-shield-lock-outline"
+				class="ma-0 mb-1"
+				block
+			>
+				Disable 2FA
+				<Dialog2FA mode="disable"></Dialog2FA>
+			</v-btn>
+
+				<v-btn
+				value="editProfile"
+				prepend-icon="mdi-pencil"
+				block
+				class="ma-0 mb-1"
+			>
+				Edit profile
+
+				<v-dialog
+					v-model="dialogEdit"
+					activator="parent"
+					width="800"
+				>
+					<v-card
+						title="Edit my profile"
+						rounded
+						class="dialog"
+					>
+						<v-card-item
+							class="ma-0 h-100"
+						>
+							<v-label
+								text="Username"
+								class="text-overline"
+							></v-label>
+							<v-text-field
+								placeholder="New username"
+								density="compact"	
+								clearable variant="solo-filled"
+								flat
+							></v-text-field>
+							<v-label
+								text="Avatar"
+								class="text-overline"
+							></v-label>
+							<v-text-field
+								placeholder="New avatar"
+								density="compact"
+								clearable variant="solo-filled"
+								flat
+							></v-text-field>
+						</v-card-item>
+
+						<div class="pa-0 ma-4 text-end">
+							<v-btn
+								@click="dialogEdit = false"
+								border
+								class="me-4 "
+								color="grey"
+								text="Cancel"
+								variant="text"
+							></v-btn>
+
+							<v-btn
+								@click="dialogEdit = false"
+								color="grey"
+								text="Done"
+								variant="flat"
+							></v-btn>
+						</div>
+					</v-card>
+				</v-dialog>
+
+			</v-btn>
 		</v-card>
 	</v-card>
 </template>

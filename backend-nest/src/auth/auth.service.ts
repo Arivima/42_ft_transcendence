@@ -26,6 +26,7 @@ export class AuthService {
 			avatar: player.avatar, //SHOULD REMOVE
 			firstName: player.firstName,
 			familyName: player.lastName,
+			// otp: player.twofaSecret != null
 		};
 		const token: string = await this.jwtService.signAsync(payload);
 		return token;
@@ -33,6 +34,10 @@ export class AuthService {
 
 	async verifyOTP(userID: number, otp: string): Promise<boolean> {
 		return this.twofaService.verifyOTP(userID, otp);
+	}
+
+	async removeOTP(userID: number, otp: string): Promise<boolean> {
+		return this.twofaService.removeOTP(userID, otp);
 	}
 
 	async generate2FAQRCode(userID: number): Promise<string> {
