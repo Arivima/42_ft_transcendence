@@ -1,101 +1,157 @@
-<!-- TODO -->
-<!-- link with back
-reset component everytime dialogAdd2fa == false -->
-
-
 <script lang="ts">
+import { defineComponent } from 'vue'
 import { VOtpInput } from 'vuetify/labs/VOtpInput'
 import axios from 'axios'
 
-export default {
+export default defineComponent({
 	components : {
 		VOtpInput,
 	},
 	props: {
-		mode: String, // force (enable | login | disable)
+		mode: {
+			type: String,
+			required: true,
+			validator(value : string) {
+				return ['enable', 'login', 'disable'].includes(value)
+			}
+		}
 	},
 	data() {
 		return {
-			dialogAdd2fa: false,
+			dialogBox: false,
 			otp: '',
 			qrCode: '',
 			title: '',
+			snackbar: false,
+			snackMessage: '',
+			errorPopUp: false,
 			errorMessage: '',
+			loading: false,
 		}
 	},
 	methods : {
-
-		async sendOtp() {
-			// try {
-			// 	let response = (await axios.post(`auth/2fa/`)).data
-				
-			// }
-
-
+		displaySnackbar(message : string) {
+			this.snackbar = true
+			this.snackMessage = message
+		},
+		displayError(message : string) {
+			this.errorPopUp = true
+			this.errorMessage = message
+		},
+		async getQRcode() {
+			this.loading = true
 			try {
-			// 	let response
-			// 	switch(this.mode) { 
-			// 		case 'enable': { 
-			// 			response = (await axios.post(`auth/2fa/`))
-			// 			break; 
-			// 		} 
-			// 		case 'login': { 
-			// 			response = (await axios.post(`auth/2fa/login`))
-			// 			break; 
-			// 		} 
-			// 		case 'disable': { 
-			// 			response = (await axios.delete(`auth/2fa/remove`))
-			// 			break; 
-			// 		}
-			// 	}
-			// 	response?.status
-			// 	// ok
-			// 		this.dialogAdd2fa = false
-			// 	// false
-			// 		this.errorMessage = "Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again."
-			// 	// error
-			// 		this.errorMessage = "Error: Server internal error."
-
-			// 		// axios
-			// 	// .get('players/me')
-			// 	// .then((res) => resolve(res))
-			// 	// .catch((err) => reject(err))
-
-				this.errorMessage = "Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again."
-					
-
+				this.qrCode = (await axios.get(`auth/2fa/qrcode`)).data.qrcode
+				this.loading = false
 			} catch (error) {
 				console.log(error);
 			}
 		},
-		async getQRcode() {
-			try {
-				this.qrCode = (await axios.get(`auth/2fa/qrcode`)).data.qrcode
-			} catch (error) {
-				console.log(error);
+		async sendOtp() {
+			this.loading = true
+			switch(this.mode) {
+				case 'enable' : {
+					axios
+						.post(`auth/2fa/`)
+						.then(response => {
+							if (response.data === true){
+								this.displaySnackbar("Confirmed authentication. 2 factor authentication has been enabled. Proceeding to app")
+								this.dialogBox = false
+							}
+							else
+								this.displayError("Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again.")
+						})
+						.catch(error => {
+							this.displayError("Error: Server internal error.")
+							console.log(error)
+						})
+						.finally(() => this.loading = false)
+					break
+				}
+				case 'login' : {
+					axios
+						.post(`auth/2fa/login`)
+						.then(response => {
+							if (response.data === true){
+								this.displaySnackbar("Confirmed authentication. Proceeding to app")
+								this.dialogBox = false
+							}
+							else
+								this.displayError("Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again.")
+						})
+						.catch(error => {
+							this.displayError("Error: Server internal error.")
+							console.log(error)
+						})
+						.finally(() => this.loading = false)
+					break
+				}
+				case 'disable' : {
+					axios
+						.delete(`auth/2fa/remove`)
+						.then(response => {
+							if (response.data === true){
+								this.displaySnackbar("Confirmed authentication. 2 factor authentication has been disabled")
+								this.dialogBox = false
+							}
+							else
+								this.displayError("Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again.")
+						})
+						.catch(error => {
+							this.displayError("Error: Server internal error.")
+							console.log(error)
+						})
+						.finally(() => this.loading = false)
+					break
+				}
+				default: {
+					break
+				}
 			}
 		},
 	},
+	watch: {
+		dialogBox(isActive : boolean){
+			if (isActive == true) {
+				switch(this.mode) {
+					case 'enable' : {
+						this.title = "Enable 2 factor authentication"
+						this.getQRcode()
+						break
+					}
+					case 'login' : {
+						this.title = "Confirm login with 2 factor authentication"
+						break
+					}
+					case 'disable' : {
+						this.title = "Disable 2 factor authentication"
+						break
+					}
+					default:
+						break
+				}
+			}
+			else {
+				this.otp = '',
+				this.qrCode = '',
+				this.title = '',
+				this.errorMessage = '',
+				this.snackMessage = '',
+				this.loading = false,
+			}
+		}
+	},
 	mounted() {
-		if (this.mode == 'enable'){
-			this.title = "Enable 2 factor authentication"
-			this.getQRcode()
-		} 
-		if (this.mode == 'login')
-			this.title = "Confirm login with 2 factor authentication"
-		if (this.mode == 'disable')
-			this.title = "Disable 2 factor authentication"
-
-			
+		
 	}
-}
+})
 </script>
 
 
 
 <template>
 	<v-dialog
-		v-model="dialogAdd2fa"
+		v-model="dialogBox"
 		activator="parent"
 	>
 		<v-card
@@ -138,7 +194,7 @@ export default {
 			</v-card-item>
 			<div class="text-end ">
 				<v-btn
-					@click="dialogAdd2fa = false"
+					@click="dialogBox = false"
 					border
 					class="me-4 "
 					color="grey"
@@ -146,6 +202,49 @@ export default {
 					variant="text"
 				></v-btn>
 			</div>
+
+
+				<!-- :timeout="5000" -->
+			<v-snackbar
+				v-model="snackbar"
+				color="success"
+				multi-line
+				location="top"
+			>
+			{{ snackMessage }}
+
+			<template v-slot:actions>
+					<!-- color="blue" -->
+					<!-- variant="text" -->
+				<v-btn
+					@click="snackbar = false"
+				>
+				Close
+				</v-btn>
+			</template>
+			</v-snackbar>
+
+				<!-- :timeout="10000" -->
+			<v-snackbar
+				v-model="errorPopUp"
+				color="red-darken-2"
+				elevation="24"
+				multi-line
+				location="bottom"
+				location-strategy="connected"
+			>
+			{{ errorMessage }}
+
+			<template v-slot:actions>
+					<!-- color="blue" -->
+					<!-- variant="text" -->
+				<v-btn
+					@click="errorPopUp = false"
+				>
+				Close
+				</v-btn>
+			</template>
+			</v-snackbar>
 		</v-card>
 	</v-dialog>
 </template>
