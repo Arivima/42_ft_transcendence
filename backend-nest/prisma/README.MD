@@ -10,9 +10,9 @@ docker exec -it backend /bin/bash
 Create new migration files and apply them.
 
 ```
-cd prisma
-make clean
-make migrate-dev
+cd prisma;
+make clean;
+make migrate-dev;
 ```
 
 Launch prisma studio for easy debugging

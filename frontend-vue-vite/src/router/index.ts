@@ -60,6 +60,7 @@ router.beforeEach((to, from, next) => {
 			else next()
 	})
 	.catch((_) => {
+			// if token is set redirect to OTP VIEW
 			if ('login' == to.name) next()
 			else next({ name: 'login' })
 	})

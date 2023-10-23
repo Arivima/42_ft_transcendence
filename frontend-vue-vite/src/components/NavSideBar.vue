@@ -22,7 +22,12 @@ export default {
 			styleSheetToggle : false,
 		}
 	},
-	// mounted() {
+	methods : {
+		logOut() {
+			this.styleSheetToggle = !this.styleSheetToggle
+		}
+	},
+	mounted() {
 	// 	if (this.styleSheetToggle) {
 	// 	import('@/assets/debug.css').then(() => {
 	// 		console.log('debug stylesheet loaded');
@@ -32,7 +37,7 @@ export default {
 	// 		console.log('main stylesheet loaded');
 	// 	});
 	// 	}
-	// },
+	},
 }
 </script>
 
@@ -63,22 +68,29 @@ export default {
 			</v-list>
 		</v-list>
 
+
 		<v-list nav>
-			<!-- <v-btn @click="styleSheetToggle = !styleSheetToggle"></v-btn> -->
+			
+			<v-switch
+				color="primary"
+				v-model="styleSheetToggle"
+				label="logged out ?"
+			></v-switch>
 			<v-list-item
-				:to="{ name: 'home' }"
+				@click="logOut"
 				prepend-icon="mdi-logout"
 				title="Logout"
 				class="logout"
 				variant="tonal"
 			></v-list-item>
+			<p class="text-caption py-8">Cazzendence 2023</p>
 		</v-list>
 	</v-navigation-drawer>
 </template>
 
 <style scoped>
 .navContent {
-	height: 80%;
+	height: 70%;
 }
 
 </style>

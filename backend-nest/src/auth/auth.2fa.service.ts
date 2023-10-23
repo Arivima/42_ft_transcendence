@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { generateSecret, verify } from '2fa-util';
 import { PlayersService } from 'src/players/players.service';
 
@@ -27,6 +27,19 @@ export class TwoFaService {
 			return false;
 		}
 	}
+
+	async removeOTP(userID: number, otp: string): Promise<boolean> {
+		if (await this.verifyOTP(userID, otp)) {
+			if (null == await this.pservice.update(userID, {
+							twofaSecret: null
+						})
+			)
+				throw new InternalServerErrorException("db failed operation");
+			return true;
+		}
+		return false;
+	}
+
 
 	async generate2FAQRCode(userID: number): Promise<string> {
 		const { qrcode, secret } = await generateSecret(
