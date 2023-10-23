@@ -168,7 +168,6 @@ export default {
 				prepend-icon="mdi-shield-lock"
 				class="ma-0 mb-1"
 				block
-				@click="getQRcode"
 			>
 				Enable 2FA
 				<Dialog2FA mode="enable"></Dialog2FA>
