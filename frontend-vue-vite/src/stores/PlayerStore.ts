@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PlayerStore.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
+/*   By: earendil <earendil@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/21 21:37:36 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/10/23 18:48:38 by earendil         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ export interface Achievement {
 }
 
 export interface Game {
+	createdAt: string
+	dateString: string
 	host: string
 	guest: string
 	host_score: number
@@ -49,7 +51,13 @@ export interface Game {
 //?: make multiple players store
 export const usePlayerStore = async () => {
 	const s = defineStore('PlayerStore', {
-		state: (): { user: Player; loading: boolean; friends: Player[]; games: Game[], achievements: Achievement[]  } => {
+		state: (): {
+			user: Player
+			loading: boolean
+			friends: Player[]
+			fetchGames: (id: number) => Promise<Game[]>
+			achievements: Achievement[]
+		} => {
 			return {
 				user: {
 					id: -1,
@@ -62,8 +70,8 @@ export const usePlayerStore = async () => {
 					my_friend: true
 				},
 				friends: [],
-				games: [],
-				achievements : [],
+				fetchGames: fetchGames,
+				achievements: [],
 				loading: true
 			}
 		},
@@ -91,12 +99,9 @@ export const usePlayerStore = async () => {
 								: PlayerStatus.online /* playing | online | offline */,
 						my_friend: true
 					}))
-					this.games = (
-						await axios.get(`players/games/${this.user.id}`, { params: { limit: 5 } })
+					this.achievements = (
+						await axios.get(`players/achievements/${this.user.id}`)
 					).data
-					console.log('mario')
-					console.log(this.games)
-					this.achievements = (await axios.get(`players/achievements/${this.user.id}`)).data;
 				} catch (_) {
 					console.log('axios failed inside user store')
 				}
@@ -117,4 +122,20 @@ export const usePlayerStore = async () => {
 		console.log('not loading')
 	}
 	return s
+}
+
+async function fetchGames(id: number): Promise<Game[]> {
+	const games = (await axios.get(`players/games/${id}`, { params: { limit: Infinity } })).data
+
+	const gamesDateReadable = games.map((game: any) => {
+		return {
+			createdAt: game.createdAt,
+			dateString: new Date(game.createdAt).toLocaleString(),
+			host: game.host,
+			guest: game.guest,
+			host_score: game.host_score,
+			guest_score: game.guest_score
+		}
+	})
+	return gamesDateReadable
 }

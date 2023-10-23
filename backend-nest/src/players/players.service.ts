@@ -124,55 +124,68 @@ export class PlayersService {
 		return friends;
 	}
 
+	// TODO make achievementName unique
 
-// TODO make achievementName unique
-
-	async getAllAchievements(userID: number) : Promise<(Player & Connection)[]> {
+	async getAllAchievements(userID: number): Promise<(Player & Connection)[]> {
 		console.log(`userID: ${userID}`);
 		const achievementNames = await this.prisma.achieved.findMany({
 			where: {
 				playerID: userID,
 			},
 			select: {
-				achievementName : true,
-			}
+				achievementName: true,
+			},
 		});
 
 		console.log(`achievementNames: ${achievementNames}`);
-		let	achievements = [];
+		const achievements = [];
 		for (const achievementName of achievementNames) {
 			achievements.push(
 				await this.prisma.achievement.findUnique({
-					where : {
+					where: {
 						name: achievementName.achievementName,
 					},
-					select : {
-						name : true,
-						description : true,
-						picture : true,
-					}
-				})
+					select: {
+						name: true,
+						description: true,
+						picture: true,
+					},
+				}),
 			);
-
 		}
-		return (achievements);
+		return achievements;
 	}
 
 	//TODO
 	//DONE?	1 : modify Plays table and Migrate
 	//DONE?	2 : finish this endpoint
 	//?	2.1 : AVOID USING STORE in front
+	//?		2.2: MatchHistory: use Server Side table with seb socket (socket.io)
 	//?	3 : Add "insert into Achievements.." script by hand
 	//?	4 : TEST
 	//?	5 : Do 2FA auth on the frontend
 	//?	6 : Rethink Vue pinia Stores.
+	//?	7 : Implement Logout
 	//?	7 : Handle Images url to png (or blob) files in db
-	async getAllGames(userID: number, limit: number = Infinity) {
+	//?	8 : add type spec to this endpoint handler
+	async getAllGames(
+		userID: number,
+		limit: number = Infinity,
+	): Promise<
+		{
+			createdAt: Date;
+			host: string;
+			guest: string;
+			host_score: number;
+			guest_score: number;
+		}[]
+	> {
 		const gamesAsHost = await this.prisma.plays.findMany({
 			where: {
 				hostID: userID,
 			},
 			select: {
+				createdAt: true,
 				hostID: true,
 				guestID: true,
 				score_host: true,
@@ -184,6 +197,7 @@ export class PlayersService {
 				guestID: userID,
 			},
 			select: {
+				createdAt: true,
 				guestID: true,
 				hostID: true,
 				score_host: true,
@@ -194,6 +208,7 @@ export class PlayersService {
 		let games = [];
 		for (const game of gamesAsHost) {
 			games.push({
+				createdAt: game.createdAt,
 				host: (await this.findOne(game.hostID)).username,
 				guest: (await this.findOne(game.guestID)).username,
 				host_score: game.score_host,
@@ -202,6 +217,7 @@ export class PlayersService {
 		}
 		for (const game of gamesAsGuest) {
 			games.push({
+				createdAt: game.createdAt,
 				host: (await this.findOne(game.hostID)).username,
 				guest: (await this.findOne(game.guestID)).username,
 				host_score: game.score_host,

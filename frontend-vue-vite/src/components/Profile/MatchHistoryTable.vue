@@ -15,38 +15,131 @@
 			<v-card-title class="text-overline">Match history</v-card-title>
 		</v-card-item>
 		<v-divider></v-divider>
-		<v-data-table
-			v-model:items-per-page="data.itemsPerPage"
-			:headers="data.headers"
+		<v-data-table-server
+			v-model:items-per-page="itemsPerPage"
 			:items="games"
-			item_value="name"
+			:search="search"
+			:headers="headers"
+			:items-length="totalItems"
+			:loading="loading"
 			class="elevation-1"
-		></v-data-table>
+			@update:options="fetchData"
+		>
+			<template v-slot:tfoot>
+				<tr style="display: flex; width: 200%">
+					<td>
+						<v-text-field
+							v-model="searchedHost"
+							hide-details
+							placeholder="host..."
+							class="ma-2"
+							type="string"
+							density="compact"
+						></v-text-field>
+					</td>
+					<td>
+						<v-text-field
+							v-model="searchedGuest"
+							hide-details
+							placeholder="guest..."
+							class="ma-2"
+							type="string"
+							density="compact"
+						></v-text-field>
+					</td>
+				</tr>
+			</template>
+		</v-data-table-server>
 	</v-card>
 </template>
 
-<script setup lang="ts">
-import { reactive } from 'vue'
-import { usePlayerStore } from '@/stores/PlayerStore'
+<script lang="ts">
+import { usePlayerStore, type Game } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import { VDataTable } from 'vuetify/labs/components'
+import { VDataTableServer } from 'vuetify/labs/components'
 
-const { user, games } = storeToRefs(await usePlayerStore())
+const { user, fetchGames } = storeToRefs(await usePlayerStore())
+const _items_per_page = 5
 
+//TODO
+//1.	write function to sort on multiple keys
+//2.	add toast for data loading error
+//3.	use web sockets (socket.io)
+//4.	clean the user store
 //TODO FIX and avoid using STORE
-const data = reactive({
-	headers: [
-		{ title: 'Host', key: 'host', align: 'start' },
-		{ title: 'Score', key: 'host_score', align: 'start' },
-		{ title: 'Score', key: 'guest_score', align: 'start' },
-		{ title: 'Guest', key: 'guest', align: 'start' }
-	],
-	itemsPerPage: 5,
-	items_len: 11,
-	loading: false,
-	games: games.value,
-	user: {
-		username: user.value.username
+export default {
+	components: {
+		VDataTableServer
+	},
+	data: () => ({
+		games: [] as Game[],
+		itemsPerPage: _items_per_page,
+		search: '',
+		headers: [
+			{ title: 'Date', key: 'dateString', align: 'start' },
+			{ title: 'Host', key: 'host', align: 'start' },
+			{ title: 'Score', key: 'host_score', align: 'start' },
+			{ title: 'Score', key: 'guest_score', align: 'start' },
+			{ title: 'Guest', key: 'guest', align: 'start' }
+		],
+		totalItems: 0,
+		loading: true,
+		searchedGuest: '',
+		searchedHost: '',
+		user: {
+			id: user.value.id,
+			username: user.value.username
+		}
+	}),
+	methods: {
+		async fetchData(options: { page: number; itemsPerPage: number }) {
+			this.loading = true
+			const start = (options.page - 1) * options.itemsPerPage
+			const end = start + options.itemsPerPage
+			console.log(`start, end: (${start}, ${end})`)
+			try {
+				this.games = await fetchGames.value(this.user.id)
+				this.games = this.games.filter((game) => {
+					if (
+						this.searchedGuest &&
+						false == game.guest.toLowerCase().includes(this.searchedGuest.toLowerCase())
+					)
+						return false
+					if (
+						this.searchedHost &&
+						false == game.host.toLowerCase().includes(this.searchedHost.toLowerCase())
+					)
+						return false
+					return true
+				})
+				this.games.sort((a: Game, b: Game) => {
+					return Date.parse(b.createdAt) - Date.parse(a.createdAt)
+				})
+				this.totalItems = this.games.length
+				this.games = this.games.slice(start, end)
+				this.loading = false
+			} catch (err) {
+				//TODO show toast
+				this.games = []
+				this.totalItems = 0
+				this.loading = false
+				console.log(err)
+			}
+		}
+	},
+	watch: {
+		searchedGuest: {
+			handler() {
+				this.search = String(Date.now())
+			},
+			immediate: true
+		},
+		searchedHost: {
+			handler() {
+				this.search = String(Date.now())
+			},
+			immediate: false
+		}
 	}
-})
+}
 </script>
