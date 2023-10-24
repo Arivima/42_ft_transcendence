@@ -158,17 +158,17 @@ export class PlayersService {
 	}
 
 	//TODO
-	//DONE?	1 : modify Plays table and Migrate
-	//DONE?	2 : finish this endpoint
-	//?	2.1 : AVOID USING STORE in front
-	//?		2.2: MatchHistory: use Server Side table with seb socket (socket.io)
+	//DONE	1 : modify Plays table and Migrate
+	//DONE	2 : finish this endpoint
+	//DONE	2.1 : AVOID USING STORE in front
+	//DONE		2.2: MatchHistory: use Server Side table with seb socket (socket.io)
 	//?	3 : Add "insert into Achievements.." script by hand
 	//?	4 : TEST
 	//?	5 : Do 2FA auth on the frontend
 	//?	6 : Rethink Vue pinia Stores.
 	//?	7 : Implement Logout
 	//?	7 : Handle Images url to png (or blob) files in db
-	//?	8 : add type spec to this endpoint handler
+	//DONE	8 : add type spec to this endpoint handler
 	async getAllGames(
 		userID: number,
 		limit: number = Infinity,

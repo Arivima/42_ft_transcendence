@@ -12,6 +12,9 @@
 
 #!/bin/bash
 
+npm i -g @nestjs/cli
+
+npm install --save @nestjs/swagger
 npm i --save @nestjs/passport passport @nestjs/jwt passport-jwt
 npm i --save-dev @types/passport-jwt
 
@@ -21,6 +24,12 @@ npm i --save prisma
 npm i --save @prisma/client
 npm i --save class-validator class-transformer
 
+npm install iconv
+npm install iconv-lite
+
+
 npx prisma generate
+
+nest update
 
 exec npm run start:dev
