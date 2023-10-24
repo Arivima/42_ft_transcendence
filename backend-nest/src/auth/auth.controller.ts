@@ -54,11 +54,11 @@ export class AuthController {
 			// now let's sign in the app (find/register user, create a token)
 			const token = await this.authService.signIn(req.user);
 
+			//to prevent old non-deleted session to activate
+			this.pservice.removeConnection(userID);
 			// log the user in
-			if (false == (await this.authService.is2FAset(userID))){
-                console.log('DEBUG | Auth.controller | is2FAset() : false');
+			if (false == (await this.authService.is2FAset(userID)))
 				this.pservice.addConnection(userID);
-			}
 
 			// let's share the session token with the user
 			const redirect_url = new URL(`${req.protocol}:${req.hostname}`);

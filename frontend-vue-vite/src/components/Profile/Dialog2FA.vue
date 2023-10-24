@@ -81,8 +81,10 @@ export default defineComponent({
 							otp : this.otp
 						})
 						.then((response) => {
-							if (response.data === true)
+							if (response.data === true){
 								this.displaySuccess('Confirmed authentication.')
+								this.$router.push({name: 'home'})
+							}
 							else
 								this.displayError('Error: Invalid one time password. Please retry.')
 						})

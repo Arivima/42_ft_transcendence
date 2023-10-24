@@ -22,6 +22,11 @@ const router = createRouter({
 			component: lazyload('LoginView')
 		},
 		{
+			path: '/login-2fa',
+			name: 'login-2fa',
+			component: lazyload('Login2FAView')
+		},
+		{
 			path: '/profile',
 			name: 'profile',
 			component: lazyload('ProfileView')
@@ -65,8 +70,10 @@ router.beforeEach((to, from, next) => {
 				if (!localStorage.getItem('token'))
 					next();
 				else
-					next({name: 'otp-login'})
+					next({name: 'login-2fa'})
 			}
+			else if ('login-2fa' == to.name)
+				next();
 			else next({ name: 'login' })
 	})
 })
