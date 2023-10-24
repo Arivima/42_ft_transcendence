@@ -48,6 +48,17 @@ export interface Game {
 	guest_score: number
 }
 
+const emptyUser = {
+	id: -1,
+	username: 'Nan',
+	avatar: 'Nan',
+	firstName: 'Nan',
+	lastName: 'Nan',
+	playing: undefined,
+	status: PlayerStatus.offline,
+	my_friend: true
+};
+
 //?: make multiple players store
 export const usePlayerStore = async () => {
 	const s = defineStore('PlayerStore', {
@@ -59,16 +70,7 @@ export const usePlayerStore = async () => {
 			achievements: Achievement[]
 		} => {
 			return {
-				user: {
-					id: -1,
-					username: 'Nan',
-					avatar: 'Nan',
-					firstName: 'Nan',
-					lastName: 'Nan',
-					playing: undefined,
-					status: PlayerStatus.offline,
-					my_friend: true
-				},
+				user: emptyUser,
 				friends: [],
 				fetchGames: fetchGames,
 				achievements: [],
@@ -106,6 +108,11 @@ export const usePlayerStore = async () => {
 					console.log('axios failed inside user store')
 				}
 				return this.user
+			},
+
+			async logout(): Promise<void> {
+				await axios.delete('auth/42')
+				this.user = emptyUser
 			}
 		}
 	})()

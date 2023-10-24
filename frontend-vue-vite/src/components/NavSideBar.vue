@@ -8,7 +8,8 @@
 import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
-const { user } = storeToRefs(await usePlayerStore())
+const playerStore = await usePlayerStore()
+const { user } = storeToRefs(playerStore)
 
 export default {
 	data() {
@@ -23,8 +24,15 @@ export default {
 		}
 	},
 	methods : {
-		logOut() {
-			this.styleSheetToggle = !this.styleSheetToggle
+		async logOut() {
+			try {
+				await playerStore.logout()
+				this.$router.go(0)
+			}
+			catch(err) {
+				//TODO TOAST ERROR
+				console.log(err)
+			}
 		}
 	},
 	mounted() {

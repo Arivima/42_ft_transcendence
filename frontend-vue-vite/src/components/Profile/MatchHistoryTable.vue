@@ -19,7 +19,7 @@
 			v-model:items-per-page="itemsPerPage"
 			:items="games"
 			:search="search"
-			:headers="headers"
+			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
 			class="elevation-1"
@@ -62,9 +62,8 @@ const { user, fetchGames } = storeToRefs(await usePlayerStore())
 const _items_per_page = 5
 
 //TODO
-//1.	write function to sort on multiple keys
 //2.	add toast for data loading error
-//3.	use web sockets (socket.io)
+//LATER_FOR_FRIENDS_TABLE3.	use web sockets (socket.io)
 //4.	clean the user store
 //TODO FIX and avoid using STORE
 export default {
@@ -81,7 +80,7 @@ export default {
 			{ title: 'Score', key: 'host_score', align: 'start' },
 			{ title: 'Score', key: 'guest_score', align: 'start' },
 			{ title: 'Guest', key: 'guest', align: 'start' }
-		],
+		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
 		totalItems: 0,
 		loading: true,
 		searchedGuest: '',
