@@ -7,7 +7,7 @@ services:
     env_file:
       - ./backend-nest/.env # Load environment variables from a file
     ports:
-      - "5433:5432"
+      - "5438:5432"
     volumes:
       - database_data:/${HOME}/postgresql/data
     networks:

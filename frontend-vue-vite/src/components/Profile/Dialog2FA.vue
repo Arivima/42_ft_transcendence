@@ -22,47 +22,51 @@ export default defineComponent({
 			otp: '',
 			qrCode: '',
 			title: '',
-			snackbar: false,
-			snackMessage: '',
-			errorPopUp: false,
+			success: false,
+			successMessage: '',
+			error: false,
 			errorMessage: '',
-			loading: false
+			loading: false,
 		}
 	},
 	methods: {
-		displaySnackbar(message: string) {
-			this.snackbar = true
-			this.snackMessage = message
+		resetOtp(){
+			this.otp = ''
+			this.error = false			
+		},
+		displaySuccess(message: string) {
+			this.success = true
+			this.successMessage = message
 		},
 		displayError(message: string) {
-			this.errorPopUp = true
+			this.error = true
 			this.errorMessage = message
+			this.otp = ''
 		},
 		async getQRcode() {
 			this.loading = true
-			try {
-				this.qrCode = (await axios.get(`auth/2fa/qrcode`)).data.qrcode
-				this.loading = false
-			} catch (error) {
-				console.log(error)
-			}
+			axios
+				.get(`auth/2fa/qrcode`)
+				.then((response) => {this.qrCode = response.data.qrcode})
+				.catch((error) => {
+					this.displayError('Error: Server internal error.')
+					console.log(error)
+				})
+				.finally(() => (this.loading = false))
 		},
 		async sendOtp() {
 			this.loading = true
 			switch (this.mode) {
 				case 'enable': {
 					axios
-						.post(`auth/2fa/`)
+						.post(`auth/2fa`, {
+							otp : this.otp
+						})
 						.then((response) => {
-							if (response.data === true) {
-								this.displaySnackbar(
-									'Confirmed authentication. 2 factor authentication has been enabled. Proceeding to app'
-								)
-								this.dialogBox = false
-							} else
-								this.displayError(
-									'Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again.'
-								)
+							if (response.data === true)
+								this.displaySuccess('Enabled 2FA.')
+							else
+								this.displayError('Error: Invalid one time password. Please retry.')
 						})
 						.catch((error) => {
 							this.displayError('Error: Server internal error.')
@@ -73,15 +77,14 @@ export default defineComponent({
 				}
 				case 'login': {
 					axios
-						.post(`auth/2fa/login`)
+						.post(`auth/2fa/login`, {
+							otp : this.otp
+						})
 						.then((response) => {
-							if (response.data === true) {
-								this.displaySnackbar('Confirmed authentication. Proceeding to app')
-								this.dialogBox = false
-							} else
-								this.displayError(
-									'Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again.'
-								)
+							if (response.data === true)
+								this.displaySuccess('Confirmed authentication.')
+							else
+								this.displayError('Error: Invalid one time password. Please retry.')
 						})
 						.catch((error) => {
 							this.displayError('Error: Server internal error.')
@@ -92,17 +95,14 @@ export default defineComponent({
 				}
 				case 'disable': {
 					axios
-						.delete(`auth/2fa/remove`)
+						.post(`auth/2fa/remove`, {
+								otp : this.otp
+							})
 						.then((response) => {
-							if (response.data === true) {
-								this.displaySnackbar(
-									'Confirmed authentication. 2 factor authentication has been disabled'
-								)
-								this.dialogBox = false
-							} else
-								this.displayError(
-									'Error: Invalid one time password. Please retry. To generate a new QR code close this window and try again.'
-								)
+							if (response.data === true)
+								this.displaySuccess('Disabled 2FA.')
+							else
+								this.displayError('Error: Invalid one time password. Please retry.')
 						})
 						.catch((error) => {
 							this.displayError('Error: Server internal error.')
@@ -118,8 +118,19 @@ export default defineComponent({
 		}
 	},
 	watch: {
+		success(isActive : boolean) {
+			if (isActive == true) {
+				this.error = false
+			}
+		},
 		dialogBox(isActive: boolean) {
 			if (isActive == true) {
+				this.otp = ''
+				this.qrCode = ''
+				this.title = ''
+				this.error = false
+				this.success = false
+				this.loading = false				
 				switch (this.mode) {
 					case 'enable': {
 						this.title = 'Enable 2 factor authentication'
@@ -137,14 +148,7 @@ export default defineComponent({
 					default:
 						break
 				}
-			} else {
-				this.otp = ''
-				this.qrCode = ''
-				this.title = ''
-				this.errorMessage = ''
-				this.snackMessage = ''
-				this.loading = false
-			}
+			} 
 		}
 	},
 	mounted() {}
@@ -153,89 +157,72 @@ export default defineComponent({
 
 <template>
 	<v-dialog v-model="dialogBox" activator="parent">
-		<v-card :title="title" rounded class="dialog bg-white ma-auto pa-4">
-			<v-card-item v-if="qrCode">
+		<v-card rounded class="dialog bg-white ma-auto pa-4" :loading="loading">
+			<v-card-title class="text-button">{{ title }}</v-card-title>
+			<v-card-item v-show="qrCode">
 				<h3 class="text-overline">QR code</h3>
 				<h4 class="font-weight-light">
 					Please scan this QR code in your authentication app
 				</h4>
 				<div class="align-center justify-center ma-4 d-flex">
 					<v-img
-						class="bg-white border"
 						max-width="300"
 						aspect-ratio="1"
 						:src="qrCode"
 					></v-img>
 				</div>
+				<v-btn text="generate new QR code" @click="getQRcode" size="x-small" border class="my-2" color="grey" variant="text"></v-btn>
 			</v-card-item>
 			<v-card-item>
 				<h3 class="text-overline">Verification Code</h3>
 				<h4 class="font-weight-light">
 					Please enter the verification code from your authentication app
 				</h4>
-				<v-alert
-					class="font-weight-light my-2 pa-2"
-					density="compact"
-					color="purple"
-					v-show="errorMessage"
-					>{{ errorMessage }}</v-alert
-				>
 				<v-otp-input
 					v-model="otp"
-					class="ma-2"
-					length="6"
 					variant="outlined"
 					@finish="sendOtp"
-				></v-otp-input>
-				<v-btn
-					size="x-small"
-					text="reset"
-					border
-					class="my-2"
-					color="grey"
-					variant="text"
-					@click="otp = ''"
-				></v-btn>
+					:error=Boolean(error)
+					></v-otp-input>
+				<v-btn text="reset" @click="resetOtp" size="x-small" border class="my-2" color="grey" variant="text"></v-btn>
+				<v-alert v-model="error" color="error" density="compact" class="my-3">{{ errorMessage }}</v-alert>
+				<v-alert v-model="success" color="success" density="compact" class="my-3">{{ successMessage }}</v-alert>
 			</v-card-item>
 			<div class="text-end">
-				<v-btn
-					@click="dialogBox = false"
-					border
-					class="me-4"
-					color="grey"
-					text="Cancel"
-					variant="text"
-				></v-btn>
+				<v-btn text="Close" @click="dialogBox = false" border class="me-4" color="primary" variant="tonal"></v-btn>
 			</div>
-
-			<!-- :timeout="5000" -->
-			<v-snackbar v-model="snackbar" color="success" multi-line location="top">
-				{{ snackMessage }}
-
-				<template v-slot:actions>
-					<!-- color="blue" -->
-					<!-- variant="text" -->
-					<v-btn @click="snackbar = false"> Close </v-btn>
-				</template>
-			</v-snackbar>
-
-			<!-- :timeout="10000" -->
-			<v-snackbar
-				v-model="errorPopUp"
-				color="red-darken-2"
-				elevation="24"
-				multi-line
-				location="bottom"
-				location-strategy="connected"
-			>
-				{{ errorMessage }}
-
-				<template v-slot:actions>
-					<!-- color="blue" -->
-					<!-- variant="text" -->
-					<v-btn @click="errorPopUp = false"> Close </v-btn>
-				</template>
-			</v-snackbar>
 		</v-card>
 	</v-dialog>
 </template>
+
+
+
+			<!-- <v-snackbar
+				v-model="success"
+				color="purple"
+				elevation="24"
+				multi-line
+				location="bottom"
+
+				:timeout="10000"
+			>
+				{{ successMessage }}
+				<template v-slot:actions>
+					<v-btn text="Close" @click="success = false" color="white" variant="tonal"></v-btn>
+				</template>
+			</v-snackbar> -->
+
+
+			<!-- <v-snackbar
+				v-model="error"
+				color="error"
+				elevation="24"
+				multi-line
+				location="center"
+				:timeout="10000"
+			>
+				{{ errorMessage }}
+				<template v-slot:actions>
+					<v-btn text="Close" @click="error = false" color="white" variant="tonal"></v-btn>
+				</template>
+			</v-snackbar> -->

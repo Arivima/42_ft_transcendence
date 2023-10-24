@@ -29,7 +29,8 @@ export class PlayersService {
 	}
 
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
-		console.log('DEBUG | PlayersService | create() : called');
+        console.log('DEBUG | Players.Service | create() : called');
+
 
 		return this.prisma.player.create({
 			data: {
@@ -88,7 +89,7 @@ export class PlayersService {
 	}
 
 	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
-		console.log(`userID: ${userID}`);
+        console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
 				requestorID: userID,
@@ -115,7 +116,7 @@ export class PlayersService {
 		for (const friend of friendsAsRecipientIDs) {
 			friendsIDs.push(friend.requestorID);
 		}
-		console.log(`friendsIDs: ${friendsIDs}`);
+        console.log(`DEBUG | Players.Service | getAllFriends | friendsIDs: ${friendsIDs}`);
 		const friends = [];
 		for (const friendID of friendsIDs) {
 			friends.push(await this.findOne(friendID));
@@ -127,7 +128,7 @@ export class PlayersService {
 	// TODO make achievementName unique
 
 	async getAllAchievements(userID: number): Promise<(Player & Connection)[]> {
-		console.log(`userID: ${userID}`);
+        console.log(`DEBUG | Players.Service | getAllAchievements | userID: ${userID}`);
 		const achievementNames = await this.prisma.achieved.findMany({
 			where: {
 				playerID: userID,
@@ -137,7 +138,7 @@ export class PlayersService {
 			},
 		});
 
-		console.log(`achievementNames: ${achievementNames}`);
+        console.log(`DEBUG | Players.Service | getAllAchievements | achievementNames: ${achievementNames}`);
 		const achievements = [];
 		for (const achievementName of achievementNames) {
 			achievements.push(
@@ -241,9 +242,8 @@ export class PlayersService {
 		// 		}),
 		// 	)
 		// 	.slice(0, limit);
+        console.log(`DEBUG | Players.Service | getAllGames | games : ` + games);
 
-		console.log('ciaoo');
-		console.log(games);
 		return games;
 	}
 

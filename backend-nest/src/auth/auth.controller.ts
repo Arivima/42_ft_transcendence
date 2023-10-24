@@ -48,15 +48,17 @@ export class AuthController {
 		const userID = Number(req.user.id);
 
 		try {
-			console.log('DEBUG | Controller | login42() : called');
+            console.log('DEBUG | Auth.controller | login42() : called');
 
 			// after validate(), user is stored in req.user
 			// now let's sign in the app (find/register user, create a token)
 			const token = await this.authService.signIn(req.user);
 
 			// log the user in
-			if (false == (await this.authService.is2FAset(userID)))
+			if (false == (await this.authService.is2FAset(userID))){
+                console.log('DEBUG | Auth.controller | is2FAset() : false');
 				this.pservice.addConnection(userID);
+			}
 
 			// let's share the session token with the user
 			const redirect_url = new URL(`${req.protocol}:${req.hostname}`);
@@ -98,9 +100,11 @@ export class AuthController {
 	@Protected()
 	@Post('2fa/login')
 	async login2fa(@Body('otp') otp: string, @Request() req) {
+        console.log('DEBUG | Auth.controller | login2fa() | otp : ' + otp);
 		if (false == (await this.authService.verifyOTP(Number(req.user.sub), otp)))
-			throw new UnauthorizedException('Invalid TOTP');
+			return false;
 		this.pservice.addConnection(Number(req.user.sub));
+		return true;
 	}
 
 	/**
@@ -110,11 +114,8 @@ export class AuthController {
 	 */
 	@Post('2fa')
 	async verify2fa(@Body('otp') otp: string, @Request() req) {
-		if (
-			false == (await this.authService.verifyOTP(Number(req.user.sub), otp))
-		) {
-			throw new UnauthorizedException('Invalid TOTP');
-		}
+        console.log('DEBUG | Auth.controller | verify2fa() | otp : ' + otp);
+		return (await this.authService.verifyOTP(Number(req.user.sub), otp))
 	}
 
 	/**
@@ -122,10 +123,9 @@ export class AuthController {
 	 * @param otp
 	 * @param req
 	 */
-	@Protected()
-	@Delete('2fa/remove')
+	@Protected()//TODO REMOVE DECOAATOR
+	@Post('2fa/remove')
 	async remove2fa(@Body('otp') otp: string, @Request() req) {
-		if (false == (await this.authService.removeOTP(Number(req.user.sub), otp)))
-			throw new UnauthorizedException('Invalid TOTP');
+		return (await this.authService.removeOTP(Number(req.user.sub), otp))
 	}
 }

@@ -10,7 +10,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 			clientSecret: process.env.SECRET,
 			callbackURL: process.env.CALLBACK_URL,
 		});
-		console.log('DEBUG | Strategy | constructor() : called');
+        console.log('DEBUG | auth.strategy | constructor() : called');
 	}
 
 	async validate(
@@ -19,7 +19,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 		profile: any,
 		done: (error: any, profile: any) => any,
 	) {
-		console.log('DEBUG | Strategy | validate() : called');
+        console.log('DEBUG | auth.strategy | validate() : called');
 
 		// store profile in req.user
 		const user = {
