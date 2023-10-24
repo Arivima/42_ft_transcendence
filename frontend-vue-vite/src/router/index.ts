@@ -61,7 +61,12 @@ router.beforeEach((to, from, next) => {
 	})
 	.catch((_) => {
 			// if token is set redirect to OTP VIEW
-			if ('login' == to.name) next()
+			if ('login' == to.name) {
+				if (!localStorage.getItem('token'))
+					next();
+				else
+					next({name: 'otp-login'})
+			}
 			else next({ name: 'login' })
 	})
 })

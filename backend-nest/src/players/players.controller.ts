@@ -55,7 +55,7 @@ export class PlayersController {
 
 	@Get('achievements/:id')
 	getAchievements(@Param('id') id: string) {
-		console.log(`id: ${id}`);
+        console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
 		return this.playersService.getAllAchievements(Number(id));
 	}
 

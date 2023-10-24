@@ -18,7 +18,7 @@ export class AuthService {
 	// takes the full object as argument in case we need
 	// to add more info to the token in the future
 	async generateJwt(player: Player): Promise<string> {
-		console.log('DEBUG | Service | generateJwt() : called');
+        console.log('DEBUG | auth.service | generateJwt() : called');
 
 		const payload = {
 			sub: String(player.id),
@@ -49,7 +49,7 @@ export class AuthService {
 	}
 
 	async registerPlayer(user: any): Promise<Player> {
-		console.log('DEBUG | Service | registerPlayer() : called');
+        console.log('DEBUG | auth.service | registerPlayer() : called');
 
 		// using the nestjs response object to create a new entry in the database
 		const playerDto: CreatePlayerDto = user as CreatePlayerDto;
@@ -58,7 +58,7 @@ export class AuthService {
 	}
 
 	async signIn(user: any): Promise<string> {
-		console.log('DEBUG | Service | signIn() : called');
+        console.log('DEBUG | auth.service | signIn() : called');
 
 		// finds the player in the database
 		let player: Player = await this.playerService.findOne(Number(user.id));

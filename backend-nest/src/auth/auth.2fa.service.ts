@@ -13,7 +13,8 @@ export class TwoFaService {
 
 		if (this.unconfirmed_secrets.has(userID)) {
 			secret = this.unconfirmed_secrets.get(userID);
-			if (true === (await verify(otp, secret))) {
+			console.log('DEBUG | auth.2fa.service | verifyOTP | secret : ' + secret)
+			if (true == (await verify(otp, secret))) {
 				this.pservice.update(userID, { twofaSecret: secret });
 				this.unconfirmed_secrets.delete(userID);
 				return true;
@@ -21,15 +22,16 @@ export class TwoFaService {
 			return false;
 		} else {
 			secret = (await this.pservice.findOne(userID)).twofaSecret;
-			if (secret && (await verify(otp, secret))) {
-				return true;
-			}
+			console.log('DEBUG | auth.2fa.service | verifyOTP | secret : ' + secret)
+			if (secret && true == (await verify(otp, secret))) {
+					return true;
+				}
 			return false;
 		}
 	}
 
 	async removeOTP(userID: number, otp: string): Promise<boolean> {
-		if (await this.verifyOTP(userID, otp)) {
+		if (true == (await this.verifyOTP(userID, otp))) {
 			if (null == await this.pservice.update(userID, {
 							twofaSecret: null
 						})

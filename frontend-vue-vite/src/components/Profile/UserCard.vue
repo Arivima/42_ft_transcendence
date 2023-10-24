@@ -161,7 +161,10 @@ export default {
 
 
 
-				<!-- v-if="`${enabled2fa}` === 'false'" -->
+		<v-chip  class="ma-2 pa-1 justify-center" color="purple" variant="elevated">
+			store call : {{ user.twofaSecret? user.twofaSecret : 'no secret' }}
+		</v-chip>
+
 			<v-btn
 				value="enable2FA"
 				text="Enable 2FA"
@@ -185,7 +188,18 @@ export default {
 				<Dialog2FA mode="disable"></Dialog2FA>
 			</v-btn>
 
-				<v-btn
+			<v-btn
+				text="Login 2FA"
+				prepend-icon="mdi-shield-lock-outline"
+				class="ma-0 mb-1"
+				block
+			>
+				Login 2FA
+				<Dialog2FA mode="login"></Dialog2FA>
+			</v-btn>
+
+
+			<v-btn
 				value="editProfile"
 				prepend-icon="mdi-pencil"
 				block

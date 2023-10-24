@@ -28,6 +28,7 @@ export interface Player {
 	avatar: string
 	firstName: string
 	lastName: string
+	twofaSecret: string
 	playing: boolean | undefined
 	status: PlayerStatus
 	my_friend: boolean
@@ -54,6 +55,7 @@ const emptyUser = {
 	avatar: 'Nan',
 	firstName: 'Nan',
 	lastName: 'Nan',
+	twofaSecret: 'Nan',
 	playing: undefined,
 	status: PlayerStatus.offline,
 	my_friend: true
@@ -106,6 +108,7 @@ export const usePlayerStore = async () => {
 					).data
 				} catch (_) {
 					console.log('axios failed inside user store')
+					console.log(this.user)
 				}
 				return this.user
 			},
