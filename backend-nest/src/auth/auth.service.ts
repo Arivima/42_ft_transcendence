@@ -45,7 +45,7 @@ export class AuthService {
 	}
 
 	async is2FAset(userID: number): Promise<boolean> {
-		if ((await this.playerService.findOne(userID))?.twofaSecret.length)
+		if ((await this.playerService.findOne(userID)).twofaSecret?.length)
 			return true;
 		return false;
 		// return !!(await this.playerService.findOne(userID))?.twofaSecret;

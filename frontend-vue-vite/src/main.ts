@@ -19,8 +19,8 @@ app.use(VuetifyInstance)
 app.use(VueAxios, axios)
 // app.provide('axios', app.config.globalProperties.axios) // composition api
 
-axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
-axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem('token')
+// axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
+// axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem('token')
 app.config.globalProperties.$http = axios
 
 app.mount('#app')
