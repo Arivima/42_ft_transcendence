@@ -14,7 +14,6 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
-axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem('token')
 
 export enum PlayerStatus {
 	offline = 'offline',
@@ -28,6 +27,7 @@ export interface Player {
 	avatar: string
 	firstName: string
 	lastName: string
+	token:	string | null
 	twofaSecret: string
 	playing: boolean | undefined
 	status: PlayerStatus
@@ -55,6 +55,7 @@ const emptyUser = {
 	avatar: 'Nan',
 	firstName: 'Nan',
 	lastName: 'Nan',
+	token: null,
 	twofaSecret: 'Nan',
 	playing: undefined,
 	status: PlayerStatus.offline,
@@ -62,11 +63,10 @@ const emptyUser = {
 };
 
 //?: make multiple players store
-export const usePlayerStore = async () => {
-	const s = defineStore('PlayerStore', {
+export const usePlayerStore = defineStore('PlayerStore', {
 		state: (): {
 			user: Player
-			loading: boolean
+			loading: boolean //TODO ? forse rimuovere
 			friends: Player[]
 			fetchGames: (id: number) => Promise<Game[]>
 			achievements: Achievement[]
@@ -80,14 +80,19 @@ export const usePlayerStore = async () => {
 			}
 		},
 		actions: {
-			async fetchData() {
+			async fetchData(token: string) {
+				if (false == this.loading)
+					return this.user
+				axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + token
+				const player = (await axios.get('players/me')).data
 				try {
 					this.user = {
-						...(await axios.get('players/me')).data,
+						...player,
+						token: token,
 						status:
-							this.user.playing === undefined
+							player.playing === undefined
 								? PlayerStatus.offline
-								: this.user.playing
+								: player.playing
 								? PlayerStatus.playing
 								: PlayerStatus.online /* playing | online | offline */,
 						my_friend: true
@@ -106,6 +111,7 @@ export const usePlayerStore = async () => {
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
 					).data
+					this.loading = false;
 				} catch (_) {
 					console.log('axios failed inside user store')
 					console.log(this.user)
@@ -113,26 +119,16 @@ export const usePlayerStore = async () => {
 				return this.user
 			},
 
+			getToken(): string | null {
+				return this.user.token;
+			},
+
 			async logout(): Promise<void> {
 				await axios.delete('auth/42')
 				this.user = emptyUser
 			}
 		}
-	})()
-	if (s.loading) {
-		console.log('loading')
-		try {
-			console.log('fetching data for user store')
-			await s.fetchData()
-			s.loading = false
-		} catch (err) {
-			console.log(err)
-		}
-	} else {
-		console.log('not loading')
-	}
-	return s
-}
+	});
 
 async function fetchGames(id: number): Promise<Game[]> {
 	const games = (await axios.get(`players/games/${id}`, { params: { limit: Infinity } })).data

@@ -1,11 +1,17 @@
 <!-- LOGIN -->
 
-<!-- TODO
-- responsiveness on screen size : it's popping out
-- try to center the button
--->
+<script lang="ts">
+import Dialog2FA from '../components/Profile/Dialog2FA.vue'
 
-<script setup lang="ts">
+export default {
+	components : {
+		Dialog2FA,
+	},
+	data() {
+		return {
+		}
+	},
+}
 </script>
 
 <template>
@@ -14,10 +20,10 @@
 		variant="tonal"
 	>
 		<v-btn
-			prepend-icon="mdi-login"
-			href="http://localhost:3000/auth/42"
-			text="Login now !"
+			prepend-icon="mdi-shield-lock"
 		>
+			Two-factor authentication
+			<Dialog2FA mode="login"></Dialog2FA>
 		</v-btn>
 	</v-card>
 </template>

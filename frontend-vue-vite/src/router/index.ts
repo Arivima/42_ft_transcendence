@@ -1,8 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 import axios from 'axios'
+import { usePlayerStore } from '@/stores/PlayerStore'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
+
+let token: string | null = null
 
 function lazyload(view: any) {
 	return () => import(`@/views/${view}.vue`)
@@ -20,6 +23,11 @@ const router = createRouter({
 			path: '/login',
 			name: 'login',
 			component: lazyload('LoginView')
+		},
+		{
+			path: '/login-2fa',
+			name: 'login-2fa',
+			component: lazyload('Login2FAView')
 		},
 		{
 			path: '/profile',
@@ -40,35 +48,43 @@ const router = createRouter({
 })
 
 const checkLogIn = () => new Promise((resolve, reject) => {
-	const token = localStorage.getItem('token')
 	if (!token) reject('token not found')
 	else
 		axios
 			.get('players/me')//, {headers: {Authorization: 'Bearer ' + token.toString()}})
-			.then((res) => resolve(res))
+			.then((res) => {
+				usePlayerStore().fetchData(token as string);
+				resolve(res)
+			})
 			.catch((err) => reject(err))
 })
 
 router.beforeEach((to, from, next) => {
 	if (to.query.token) {
-		localStorage.setItem('token', to.query.token.toString())
-		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem('token')
+		token = to.query.token as string
+		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + to.query.token as string
 	}
 	checkLogIn()
-	.then((_) => {
-			if ('login' == to.name || 'home' == to.name) next({name: 'profile'})
+		.then((_) => {
+			if ('login' == to.name || 'login-2fa' == to.name || 'home' == to.name)
+				next({ name: 'profile' })
 			else next()
-	})
-	.catch((_) => {
+		})
+		.catch((_) => {
 			// if token is set redirect to OTP VIEW
-			if ('login' == to.name) {
-				if (!localStorage.getItem('token'))
+			if (!token) {
+				if ('login' == to.name)
 					next();
 				else
-					next({name: 'otp-login'})
+					next({ name: 'login' })
 			}
-			else next({ name: 'login' })
-	})
+			else {
+				if ('login-2fa' == to.name)
+					next();
+				else
+					next({ name: 'login-2fa' })
+			}
+		})
 })
 
 export default router
