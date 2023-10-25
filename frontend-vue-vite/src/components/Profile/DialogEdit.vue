@@ -9,35 +9,79 @@ export default defineComponent({
 		return {
 			dialogBox: false,
 			title: '',
-			success: false,
-			successMessage: '',
-			error: false,
-			errorMessage: '',
-			loading: false,
+
+			successUsername: false,
+			successMessageUsername: '',
+			errorUsername: false,
+			errorMessageUsername: '',
+			loadingUsername: false,
+			
+			successAvatar: false,
+			successMessageAvatar: '',
+			errorAvatar: false,
+			errorMessageAvatar: '',
+			loadingAvatar: false,
+			file: [] as File[],
 		}
 	},
 	methods: {
-		displaySuccess(message: string) {
-			this.success = true
-			this.successMessage = message
+		displaySuccessAvatar(message: string) {
+			this.successAvatar = true
+			this.successMessageAvatar = message
 		},
-		displayError(message: string) {
-			this.error = true
-			this.errorMessage = message
+		displayErrorAvatar() {
+			this.errorAvatar = true
+			this.errorMessageAvatar = "Error while loading"
+		},
+		displaySuccessUsername(message: string) {
+			this.successUsername = true
+			this.successMessageUsername = message
+		},
+		displayErrorUsername(message: string) {
+			this.errorUsername = true
+			this.errorMessageUsername = message
+		},
+		sendAvatar(){
+			// this.displaySuccessAvatar("Successfully uploaded a new avatar picture !")
+			this.successAvatar = true
+			this.successMessageAvatar = "Successfully uploaded a new avatar picture !"
+
 		},
 	},
 	watch: {
-		success(isActive : boolean) {
+		successUsername(isActive : boolean) {
 			if (isActive == true) {
-				this.error = false
+				this.errorUsername = false
+			}
+		},
+		successAvatar(isActive : boolean) {
+			if (isActive == true) {
+				this.errorAvatar = false
+				this.errorMessageAvatar = ''
+			}
+		},
+		errorAvatar(isActive : boolean) {
+			if (isActive == true) {
+				this.successAvatar = false
+				this.successMessageAvatar = ''
 			}
 		},
 		dialogBox(isActive: boolean) {
 			if (isActive == true) {
 				this.title = ''
-				this.error = false
-				this.success = false
-				this.loading = false				
+
+				this.successUsername = false
+				this.successMessageUsername = ''
+				this.errorUsername = false
+				this.errorMessageUsername = ''
+				this.loadingUsername = false
+
+				this.successAvatar = false
+				this.successMessageAvatar = ''
+				this.errorAvatar = false
+				this.errorMessageAvatar = ''
+				this.loadingAvatar = false
+
 			} 
 		}
 	},
@@ -47,56 +91,57 @@ export default defineComponent({
 
 <template>
 	<v-dialog v-model="dialogBox" activator="parent">
-		<v-card rounded class="dialog bg-white ma-auto pa-4" :loading="loading">
+		<v-card rounded class="dialog bg-white ma-auto pa-4 w-75">
 			<v-card-title class="text-button">Edit profile information</v-card-title>
 
-<!-- 
-			<v-file-input
-				append-icon=""
-				append-inner-icon=""
-				base-color=""
-				bg-color=""
-				center-affix
-				chips
-				clearable
-				clear-icon=""
-				color=""
-				density="compact"
-				direction="vertical"
-				dirty
-				:error="error"
-				:error-messages="errorMessage"
-				focused
-				:loading="loadingFile"
-				prepend-icon=""
-				prepend-inner-icon=""
-				rounded=""
-				rules=""
-				show-size=""
-				single-line=""
-				
-			>
-			</v-file-input> -->
 
 
 			<v-card-item >
 				<h3 class="text-overline">Username</h3>
 				<h4 class="font-weight-light">Change your username</h4>
-				<v-text-field placeholder="New username" density="compact" clearable variant="solo-filled" flat ></v-text-field>
-	
-				<v-alert v-model="error" color="error" density="compact" class="my-3">{{ errorMessage }}</v-alert>
-				<v-alert v-model="success" color="success" density="compact" class="my-3">{{ successMessage }}</v-alert>
+				<v-text-field placeholder="New avatar" density="compact" clearable variant="solo-filled" flat></v-text-field>
+
+				<v-alert v-model="errorUsername" color="error" density="compact" class="my-3">{{ errorMessageUsername }}</v-alert>
+				<v-alert v-model="successUsername" color="success" density="compact" class="my-3">{{ successMessageUsername }}</v-alert>
 
 				<v-btn text="Upload" size="x-small" border color="primary" variant="tonal"></v-btn>
 			</v-card-item>
 
 			
+				<!-- rules="" -->
+				<!-- validate-on -->
+				<!-- validation-value -->
+					<!-- :model-value="" -->
 
-			<v-card-item>
+				<v-card-item>
 				<h3 class="text-overline">Avatar</h3>
-				<h4 class="font-weight-light">Change your avatar</h4>
-				<v-text-field placeholder="New avatar" density="compact" clearable variant="solo-filled" flat></v-text-field>
-				<v-btn text="Upload" size="x-small" border color="primary" variant="tonal"></v-btn>
+				<h4 class="font-weight-light">Choose an image for your new avatar. Maximum size 2M.</h4>
+				<v-file-input
+					:loading="loadingAvatar"
+					:error="errorAvatar"
+					:error-messages="errorMessageAvatar"
+					label="upload avatar"
+					accept="image/*"
+					density="compact"
+					chips
+					show-size
+					prepend-icon="mdi-image-edit"
+					color="primary"
+					clear-icon="mdi-close-circle-outline"
+					variant="outlined" 
+					class="my-2"
+					@click:prepend="displayErrorAvatar"
+					:messages="successMessageAvatar"
+				>
+				</v-file-input>
+				<!-- <div class="align-center justify-center ma-4 d-flex">
+					<v-img
+						max-width="300"
+						aspect-ratio="1"
+						:src="file.toString"
+					></v-img>
+				</div> -->
+				<v-btn text="Upload" @click="sendAvatar" size="x-small" border color="primary" variant="tonal"></v-btn>
 			</v-card-item>
 
 			<div class="text-end">
