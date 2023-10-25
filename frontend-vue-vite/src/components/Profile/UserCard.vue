@@ -7,11 +7,12 @@ import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 import EditUserInfo from '../Utils/EditUserInfo.vue'
 import Dialog2FA from './Dialog2FA.vue'
+import DialogEdit from './DialogEdit.vue'
 
 const { user } = storeToRefs(await usePlayerStore())
 export default {
 	components : {
-		EditUserInfo, Dialog2FA,
+		EditUserInfo, Dialog2FA, DialogEdit,
 	},
 	data() {
 		return {
@@ -158,16 +159,9 @@ export default {
 			width="fit-content"
 			title="View : My Profile"
 		>
-
-
-
-		<v-chip  class="ma-2 pa-1 justify-center" color="purple" variant="elevated">
-			store call : {{ user.twofaSecret? user.twofaSecret : 'no secret' }}
-		</v-chip>
-
 			<v-btn
 				value="enable2FA"
-				text="Enable 2FA"
+				v-show="!user.twofaSecret"
 				prepend-icon="mdi-shield-lock"
 				class="ma-0 mb-1"
 				block
@@ -175,11 +169,9 @@ export default {
 				Enable 2FA
 				<Dialog2FA mode="enable"></Dialog2FA>
 			</v-btn>
-
-				<!-- v-if="`${enabled2fa}` === 'true'" -->
 			<v-btn
 				value="disable2FA"
-				text="Disable 2FA"
+				v-show="user.twofaSecret"
 				prepend-icon="mdi-shield-lock-outline"
 				class="ma-0 mb-1"
 				block
@@ -187,81 +179,14 @@ export default {
 				Disable 2FA
 				<Dialog2FA mode="disable"></Dialog2FA>
 			</v-btn>
-
-			<v-btn
-				text="Login 2FA"
-				prepend-icon="mdi-shield-lock-outline"
-				class="ma-0 mb-1"
-				block
-			>
-				Login 2FA
-				<Dialog2FA mode="login"></Dialog2FA>
-			</v-btn>
-
-
 			<v-btn
 				value="editProfile"
 				prepend-icon="mdi-pencil"
-				block
 				class="ma-0 mb-1"
+				block
 			>
 				Edit profile
-
-				<v-dialog
-					v-model="dialogEdit"
-					activator="parent"
-					width="800"
-				>
-					<v-card
-						title="Edit my profile"
-						rounded
-						class="dialog"
-					>
-						<v-card-item
-							class="ma-0 h-100"
-						>
-							<v-label
-								text="Username"
-								class="text-overline"
-							></v-label>
-							<v-text-field
-								placeholder="New username"
-								density="compact"	
-								clearable variant="solo-filled"
-								flat
-							></v-text-field>
-							<v-label
-								text="Avatar"
-								class="text-overline"
-							></v-label>
-							<v-text-field
-								placeholder="New avatar"
-								density="compact"
-								clearable variant="solo-filled"
-								flat
-							></v-text-field>
-						</v-card-item>
-
-						<div class="pa-0 ma-4 text-end">
-							<v-btn
-								@click="dialogEdit = false"
-								border
-								class="me-4 "
-								color="grey"
-								text="Cancel"
-								variant="text"
-							></v-btn>
-
-							<v-btn
-								@click="dialogEdit = false"
-								color="grey"
-								text="Done"
-								variant="flat"
-							></v-btn>
-						</div>
-					</v-card>
-				</v-dialog>
-
+				<DialogEdit ></DialogEdit>
 			</v-btn>
 		</v-card>
 	</v-card>
