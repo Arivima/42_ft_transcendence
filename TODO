@@ -1,0 +1,12 @@
+1. Handle Images url to png (or blob) files in db
+2. Add "insert into Achievements.." script by hand
+3. Do "Add friend", etc. stuff
+3. Clean Store
+	3.1. Think if we need to remove loading in PlayerStore
+2. Toasts
+
+
+3. Check encryption of twofaSecret in db
+4. make achievement name unique in db
+4. make avatar NOT unique in db
+5. remove @Protected() decorator on 2fa remove endpoint in back
