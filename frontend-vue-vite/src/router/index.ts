@@ -61,6 +61,7 @@ const checkLogIn = () => new Promise((resolve, reject) => {
 
 router.beforeEach((to, from, next) => {
 	if (to.query.token) {
+		console.log(`token: ${to.query.token}`)
 		token = to.query.token as string
 		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + to.query.token as string
 	}

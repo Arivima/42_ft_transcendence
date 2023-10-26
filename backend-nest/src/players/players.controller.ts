@@ -8,10 +8,24 @@ import {
 	Delete,
 	Request,
 	Query,
+	Res,
+	UploadedFile,
+	ParseFilePipe,
+	MaxFileSizeValidator,
+	FileTypeValidator,
+	UseInterceptors,
+	Put,
+	HttpException,
+	HttpStatus,
 } from '@nestjs/common';
+import * as fs from 'fs'
+import * as path from 'path';//REMOVE
 import { PlayersService } from './players.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
+import { Response } from 'express';
+import { Express } from 'express'
+import { FileInterceptor } from '@nestjs/platform-express';
 // import { ApiBody } from '@nestjs/swagger';
 
 @Controller('players')
@@ -33,9 +47,41 @@ export class PlayersController {
 	}
 
 	@Get('me')
-	getMe(@Request() req) {
-		return this.playersService.findOne(Number(req.user.sub));
+	async getMe(@Request() req) {
+		const player = await this.playersService.findOne(Number(req.user.sub));
+
+		if (player) {
+			player.avatar = `/players/avatar/${req.user.sub}`
+		}
+		console.log(`avatar address: ${player.avatar}`);
+		return player;
 	}
+
+	@Get('avatar/:id')
+	async getAvatar(@Param('id') id: string, @Res() res: Response) {
+		const filePath = path.join(
+			process.cwd(), (await this.playersService.findOne(Number(id))).avatar
+		);
+
+		fs.open(filePath, 'r', (err, fd) => {
+			let returnedFilePath: string;
+
+			if (err) {
+				returnedFilePath = path.join(
+					process.cwd(),
+					process.env.BACKEND_DEFAULT_ONERR_PFP
+				);
+			}
+			else {
+				fs.close(fd)
+				returnedFilePath = filePath;
+			}
+			const file = fs.createReadStream(returnedFilePath)
+			res.setHeader("Content-Type", `img/${filePath.split('.')[1]}`)
+			file.pipe(res)
+		});
+	}
+
 	// @Get('addFriend/:username')
 	// addFriend(@Body() username: string) {}
 
@@ -63,10 +109,43 @@ export class PlayersController {
 	findOne(@Param('id') id: string) {
 		return this.playersService.findOne(Number(id));
 	}
+	
+	@Put('me/avatar')
+	@UseInterceptors(FileInterceptor('avatar'))
+	async update(
+		@Request() req,
+		@UploadedFile(
+			new ParseFilePipe({
+				validators: [
+					new MaxFileSizeValidator({ maxSize: 1024*1024*2}),
+					new FileTypeValidator({ fileType: 'image/*'}),
+				]
+			})
+		) avatar: Express.Multer.File
+	) {
+		const newRelPath = `${process.env.BACKEND_PFP_BASEFOLDER}${avatar.originalname}`;
+		const newfilePath = path.join(
+			process.cwd(),
+			newRelPath
+		);
 
-	@Patch(':id')
-	update(@Param('id') id: string, @Body() updatePlayerDto: UpdatePlayerDto) {
-		return this.playersService.update(Number(id), updatePlayerDto);
+		try {
+			const oldRelPath = (await this.playersService.findOne(Number(req.user.sub))).avatar;
+			const oldFilePath = path.join(
+				process.cwd(),
+				oldRelPath
+			);
+
+			fs.unlinkSync(oldFilePath);
+			await this.playersService.update(
+				Number(req.user.sub),
+				{avatar: newRelPath}
+			);
+			fs.writeFileSync(newfilePath, avatar.buffer);
+		}
+		catch (error) {
+			throw new HttpException('Could Not Upload Avatar', HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 	@Delete(':id')

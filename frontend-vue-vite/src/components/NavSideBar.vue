@@ -18,7 +18,7 @@ export default {
 				username: user.value.username,
 				firstName: user.value.firstName,
 				familyName: user.value.lastName,
-				avatar: user.value.avatar
+				avatar: user.value.avatar,
 			},
 			styleSheetToggle : false,
 		}
@@ -35,7 +35,7 @@ export default {
 			}
 		}
 	},
-	mounted() {
+	async mounted() {
 	// 	if (this.styleSheetToggle) {
 	// 	import('@/assets/debug.css').then(() => {
 	// 		console.log('debug stylesheet loaded');

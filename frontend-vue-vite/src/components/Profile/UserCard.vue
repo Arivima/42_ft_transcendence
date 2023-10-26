@@ -9,7 +9,8 @@ import EditUserInfo from '../Utils/EditUserInfo.vue'
 import Dialog2FA from './Dialog2FA.vue'
 import DialogEdit from './DialogEdit.vue'
 
-const { user } = storeToRefs(await usePlayerStore())
+const playerStore = usePlayerStore();
+const { user } = storeToRefs(playerStore)
 export default {
 	components : {
 		EditUserInfo, Dialog2FA, DialogEdit,
@@ -30,7 +31,7 @@ export default {
 	},
 	methods : {
 	},
-	mounted() {
+	async mounted() {
 		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
 		else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
 		else this.badgeColor = 'grey'
