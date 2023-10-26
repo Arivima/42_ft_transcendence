@@ -28,6 +28,8 @@ export class PlayersService {
 		return this.connections.has(userID);
 	}
 
+	// async downloadFile(url: path)
+
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
         console.log('DEBUG | Players.Service | create() : called');
 

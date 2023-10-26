@@ -9,7 +9,8 @@ import EditUserInfo from '../Utils/EditUserInfo.vue'
 import Dialog2FA from './Dialog2FA.vue'
 import DialogEdit from './DialogEdit.vue'
 
-const { user } = storeToRefs(await usePlayerStore())
+const playerStore = usePlayerStore();
+const { user } = storeToRefs(playerStore)
 export default {
 	components : {
 		EditUserInfo, Dialog2FA, DialogEdit,
@@ -17,6 +18,8 @@ export default {
 	data() {
 		return {
 			user: user,
+			avatar: '',
+			// fetchAvatar: fetchAvatar,
 			badgeColor: 'grey',
 			enabled2fa: true, /*TODO*/
 			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
@@ -30,10 +33,12 @@ export default {
 	},
 	methods : {
 	},
-	mounted() {
+	async mounted() {
 		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
 		else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
 		else this.badgeColor = 'grey'
+		this.avatar = await playerStore.fetchAvatar();
+		// this.avatar = "https://www.ventennipaperoni.com/wp-content/uploads/2020/03/volto-pippo-e1584113937806.jpg";
 	}
 }
 </script>
@@ -43,7 +48,7 @@ export default {
 		<v-card class="itemAvatar" density="comfortable" variant="flat">
 			<v-badge bordered inline :color="badgeColor" :content="user.status">
 				<v-avatar size="130" rounded="1">
-					<v-img cover :src="user.avatar"></v-img>
+					<v-img cover :src="avatar"></v-img>
 				</v-avatar>
 			</v-badge>
 			<div class="backgroundItem ma-3">

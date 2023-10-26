@@ -8,10 +8,14 @@ import {
 	Delete,
 	Request,
 	Query,
+	Res,
 } from '@nestjs/common';
+import * as fs from 'fs'
+import * as path from 'path';//REMOVE
 import { PlayersService } from './players.service';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
+import { Response } from 'express';
 // import { ApiBody } from '@nestjs/swagger';
 
 @Controller('players')
@@ -33,9 +37,38 @@ export class PlayersController {
 	}
 
 	@Get('me')
-	getMe(@Request() req) {
-		return this.playersService.findOne(Number(req.user.sub));
+	async getMe(@Request() req) {
+		const player = await this.playersService.findOne(Number(req.user.sub));
+
+		if (player) {
+			//TODO CORREGGERE
+			player.avatar = `${req.protocol}://${req.hostname}:${process.env.BACKEND_PORT}/players/me/avatar`
+		}
+		console.log(`avatar address: ${player.avatar}`);
+		return player;
 	}
+
+	@Get('avatar/:id')
+	async getAvatar(@Param('id') id: string, @Res() res: Response) {
+		const filePath = path.join(
+			process.cwd(), (await this.playersService.findOne(Number(id))).avatar
+		);
+
+		fs.open(filePath, 'r', (err, fd) => {
+			let returnedFilePath: string;
+
+			if (err) {
+				returnedFilePath = '/public/upload/Default_on_error.svg.png';
+			}
+			else {
+				fs.close(fd)
+				returnedFilePath = filePath;
+			}
+			const file = fs.createReadStream(filePath)
+			file.pipe(res)
+		});
+	}
+
 	// @Get('addFriend/:username')
 	// addFriend(@Body() username: string) {}
 

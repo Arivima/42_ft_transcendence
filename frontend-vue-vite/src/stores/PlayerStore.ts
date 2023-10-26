@@ -119,6 +119,21 @@ export const usePlayerStore = defineStore('PlayerStore', {
 				return this.user
 			},
 
+			async fetchAvatar(): Promise<string> {
+				try {
+					const response = await axios.get(`players/avatar/${this.user.id}`, {
+						responseType: 'arraybuffer'
+					});
+					const contentType = response.headers['content-type'];
+					return `data:${contentType};base64,${Buffer.from(response.data, 'binary').toString('base64')}`;
+				}
+				catch (error) {
+					console.log(`fetchAvatar() Exception: ${error}`)
+					return '';
+				}
+			},
+
+
 			getToken(): string | null {
 				return this.user.token;
 			},
