@@ -177,7 +177,7 @@ export default {
 			<v-btn
 				value="disable2FA"
 				v-show="user.twofaSecret"
-				prepend-icon="mdi-shield-lock-outline"
+				prepend-icon="mdi-shield-remove-outline"
 				class="ma-0 mb-1"
 				block
 			>
