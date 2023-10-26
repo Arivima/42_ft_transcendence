@@ -51,8 +51,7 @@ export class PlayersController {
 		const player = await this.playersService.findOne(Number(req.user.sub));
 
 		if (player) {
-			//TODO CORREGGERE
-			player.avatar = `${req.protocol}://${req.hostname}:${process.env.BACKEND_PORT}/players/me/avatar`
+			player.avatar = `/players/avatar/${req.user.sub}`
 		}
 		console.log(`avatar address: ${player.avatar}`);
 		return player;
@@ -78,6 +77,7 @@ export class PlayersController {
 				returnedFilePath = filePath;
 			}
 			const file = fs.createReadStream(returnedFilePath)
+			res.setHeader("Content-Type", `img/${filePath.split('.')[1]}`)
 			file.pipe(res)
 		});
 	}
@@ -123,27 +123,25 @@ export class PlayersController {
 			})
 		) avatar: Express.Multer.File
 	) {
-		const filePath = path.join(
+		const newRelPath = `${process.env.BACKEND_PFP_BASEFOLDER}${avatar.originalname}`;
+		const newfilePath = path.join(
 			process.cwd(),
-			`${process.env.BACKEND_PFP_BASEFOLDER}${avatar.originalname}`
+			newRelPath
 		);
 
 		try {
-			// const oldRelPath = (await this.playersService.findOne(Number(req.user.id))).avatar;
-
-			// console.log(`oldRelPath: ${oldRelPath}`);
-			// const oldFilePath = path.join(
-			// 	process.cwd(),
-			// 	`${process.env.BACKEND_PFP_BASEFOLDER}`,
-			// 	oldRelPath
-			// );
-
-			// fs.unlinkSync(oldFilePath);
-			await this.playersService.update(
-				Number(req.user.id),
-				{avatar: filePath}
+			const oldRelPath = (await this.playersService.findOne(Number(req.user.sub))).avatar;
+			const oldFilePath = path.join(
+				process.cwd(),
+				oldRelPath
 			);
-			fs.writeFileSync(filePath, avatar.buffer);
+
+			fs.unlinkSync(oldFilePath);
+			await this.playersService.update(
+				Number(req.user.sub),
+				{avatar: newRelPath}
+			);
+			fs.writeFileSync(newfilePath, avatar.buffer);
 		}
 		catch (error) {
 			throw new HttpException('Could Not Upload Avatar', HttpStatus.INTERNAL_SERVER_ERROR);

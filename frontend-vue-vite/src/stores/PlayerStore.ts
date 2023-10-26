@@ -97,6 +97,7 @@ export const usePlayerStore = defineStore('PlayerStore', {
 								: PlayerStatus.online /* playing | online | offline */,
 						my_friend: true
 					}
+					this.user.avatar = await this.fetchAvatar();
 					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
 					this.friends = this.friends.map((friend) => ({
 						...friend,
@@ -115,13 +116,14 @@ export const usePlayerStore = defineStore('PlayerStore', {
 				} catch (_) {
 					console.log('axios failed inside user store')
 					console.log(this.user)
+					this.user = emptyUser;
 				}
 				return this.user
 			},
 
 			async fetchAvatar(): Promise<string> {
 				try {
-					const response = await axios.get(`players/avatar/${this.user.id}`, {
+					const response = await axios.get(this.user.avatar, {
 						responseType: 'arraybuffer'
 					});
 					const contentType = response.headers['content-type'];

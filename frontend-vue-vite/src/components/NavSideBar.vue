@@ -18,7 +18,7 @@ export default {
 				username: user.value.username,
 				firstName: user.value.firstName,
 				familyName: user.value.lastName,
-				avatar: '',
+				avatar: user.value.avatar,
 			},
 			styleSheetToggle : false,
 		}
@@ -36,8 +36,6 @@ export default {
 		}
 	},
 	async mounted() {
-		this.user.avatar = await playerStore.fetchAvatar();
-		// this.user.avatar = `https://www.ventennipaperoni.com/wp-content/uploads/2020/03/volto-pippo-e1584113937806.jpg`;
 	// 	if (this.styleSheetToggle) {
 	// 	import('@/assets/debug.css').then(() => {
 	// 		console.log('debug stylesheet loaded');
