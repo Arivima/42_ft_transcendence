@@ -24,6 +24,9 @@ npm i --save prisma
 npm i --save @prisma/client
 npm i --save class-validator class-transformer
 
+npm i -D @types/multer
+
+
 npm install iconv
 npm install iconv-lite
 
