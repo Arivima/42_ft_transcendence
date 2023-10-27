@@ -26,6 +26,7 @@ import { UpdatePlayerDto } from './dto/update-player.dto';
 import { Response } from 'express';
 import { Express } from 'express'
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 // import { ApiBody } from '@nestjs/swagger';
 
 @Controller('players')
@@ -91,6 +92,12 @@ export class PlayersController {
 		return this.playersService.getAllFriends(Number(id));
 	}
 
+	@Get('me/addFriend/:id')
+	sendFrendship(@Param('id') recipientID: string, @Request() req)
+	{
+		this.playersService.sendFriendship(Number(req.user.sub), Number(recipientID));
+	}
+
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
 		return this.playersService.getAllGames(
@@ -101,7 +108,7 @@ export class PlayersController {
 
 	@Get('achievements/:id')
 	getAchievements(@Param('id') id: string) {
-        console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
+		console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
 		return this.playersService.getAllAchievements(Number(id));
 	}
 
@@ -112,7 +119,7 @@ export class PlayersController {
 	
 	@Put('me/avatar')
 	@UseInterceptors(FileInterceptor('avatar'))
-	async update(
+	async updateAvatar(
 		@Request() req,
 		@UploadedFile(
 			new ParseFilePipe({
@@ -145,6 +152,23 @@ export class PlayersController {
 		}
 		catch (error) {
 			throw new HttpException('Could Not Upload Avatar', HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Patch('me')
+	async updateMe(@Request() req, @Body() updatePlaterDto: UpdatePlayerDto)
+	{
+		try {
+			await this.playersService.update(Number(req.user.sub), updatePlaterDto);
+		}
+		catch(err) {
+			if (
+				(err instanceof PrismaClientKnownRequestError) &&
+				(err as PrismaClientKnownRequestError).code == 'P2002'
+			)
+				throw new HttpException(`username ${updatePlaterDto.username} is already in use`, HttpStatus.CONFLICT);
+			else
+				throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

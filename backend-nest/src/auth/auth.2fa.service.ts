@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { generateSecret, verify } from '2fa-util';
 import { PlayersService } from 'src/players/players.service';
 
@@ -31,15 +31,18 @@ export class TwoFaService {
 	}
 
 	async removeOTP(userID: number, otp: string): Promise<boolean> {
-		if (true == (await this.verifyOTP(userID, otp))) {
-			if (null == await this.pservice.update(userID, {
-							twofaSecret: null
-						})
-			)
-				throw new InternalServerErrorException("db failed operation");
-			return true;
+		try {
+			if (true == (await this.verifyOTP(userID, otp))) {
+				await this.pservice.update(userID, {
+					twofaSecret: null
+				})
+				return true;
+			}
+			return false;
 		}
-		return false;
+		catch (error) {
+			throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 
 

@@ -70,14 +70,10 @@ export class PlayersService {
 	}
 
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
-		try {
-			return await this.prisma.player.update({
-				where: { id },
-				data: updatePlayerDto,
-			});
-		} catch (error: any) {
-			return null;
-		}
+		return await this.prisma.player.update({
+			where: { id },
+			data: updatePlayerDto,
+		});
 	}
 
 	async remove(id: number): Promise<Player> {
@@ -88,6 +84,16 @@ export class PlayersService {
 		} catch (error: any) {
 			return null;
 		}
+	}
+
+	async sendFriendship(userID: number, recipientID: number)
+	{
+		this.prisma.beFriends.create({
+			data: {
+				requestorID: userID,
+				recipientID: recipientID
+			},
+		})
 	}
 
 	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
