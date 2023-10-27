@@ -7,7 +7,6 @@ import TmpTab from './components/TmpTab.vue'
 
 <template>
 	<v-app>
-		<TmpTab/>
 		<v-main>
 				<RouterView></RouterView>
 		</v-main>

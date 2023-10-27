@@ -20,7 +20,6 @@ export default {
 				familyName: user.value.lastName,
 				avatar: user.value.avatar,
 			},
-			styleSheetToggle : false,
 		}
 	},
 	methods : {
@@ -36,27 +35,21 @@ export default {
 		}
 	},
 	async mounted() {
-	// 	if (this.styleSheetToggle) {
-	// 	import('@/assets/debug.css').then(() => {
-	// 		console.log('debug stylesheet loaded');
-	// 	});
-	// 	} else {
-	// 	import('@/assets/main.css').then(() => {
-	// 		console.log('main stylesheet loaded');
-	// 	});
-	// 	}
+
 	},
 }
 </script>
 
 <template>
-	<v-navigation-drawer expand-on-hover rail permanent class="NavSideBar">
+	<v-navigation-drawer expand-on-hover rail permanent class="NavSideBar rounded ma-2">
 		<v-list>
 			<v-list-item
 				:prepend-avatar="user.avatar"
-				:title="user.firstName + ' ' + user.familyName"
+				:title="user.firstName"
 				:subtitle="user.username"
 				:to="{ name: 'profile' }"
+				rounded
+				class="mx-2 px-2"
 			></v-list-item>
 		</v-list>
 		<v-divider></v-divider>
@@ -79,11 +72,6 @@ export default {
 
 		<v-list nav>
 			
-			<v-switch
-				color="primary"
-				v-model="styleSheetToggle"
-				label="logged out ?"
-			></v-switch>
 			<v-list-item
 				@click="logOut"
 				prepend-icon="mdi-logout"
@@ -91,7 +79,12 @@ export default {
 				class="logout"
 				variant="tonal"
 			></v-list-item>
-			<p class="text-caption py-8">Cazzendence 2023</p>
+			<v-list-item
+				disabled
+				prepend-icon="mdi-cat"
+				title="Cazzendence 2023"
+				variant="plain"
+			></v-list-item>
 		</v-list>
 	</v-navigation-drawer>
 </template>

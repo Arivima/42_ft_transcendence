@@ -3,14 +3,15 @@
 <!-- https://vuetifyjs.com/en/api/v-badge/#props -->
 
 <script lang="ts">
-import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
+import { usePlayerStore, PlayerStatus, type Game } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 import EditUserInfo from '../Utils/EditUserInfo.vue'
 import Dialog2FA from './Dialog2FA.vue'
 import DialogEdit from './DialogEdit.vue'
 
 const playerStore = usePlayerStore();
-const { user } = storeToRefs(playerStore)
+const { user, fetchGames } = storeToRefs(playerStore)
+
 export default {
 	components : {
 		EditUserInfo, Dialog2FA, DialogEdit,
@@ -22,19 +23,48 @@ export default {
 			enabled2fa: true, /*TODO*/
 			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
 			stats: {
-				victories: 5,
-				losses: 2,
-				ladder: 2.5
+				loading : false,
+				victories: 0,
+				losses: 0,
+				ladder: 0
 			},
 			dialogEdit: false,
 		}
 	},
 	methods : {
+		async setStats(){
+			this.stats.loading = true
+			// TODO : ADD IN DATABASE
+			try {
+				const games = await fetchGames.value(this.user.id)
+				for (const game of games){
+					if (game.host == this.user.username){
+						if (game.host_score > game.guest_score)
+							this.stats.victories++
+						else
+							this.stats.losses++
+						this.stats.ladder += (game.host_score - game.guest_score)
+					}
+					else {
+						if (game.host_score > game.guest_score)
+							this.stats.losses++
+						else
+							this.stats.victories++
+							this.stats.ladder += (game.guest_score - game.host_score)
+					}
+				}
+				this.stats.loading = false
+			} catch (err) {
+				console.error(err)
+				this.stats.loading = false
+			}
+		},
 	},
 	async mounted() {
 		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
 		else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
 		else this.badgeColor = 'grey'
+		this.setStats()
 	}
 }
 </script>
@@ -56,7 +86,7 @@ export default {
 			</div>
 		</v-card>
 
-		<v-card class="itemStats backgroundItem" density="compact" variant="flat">
+		<v-card class="itemStats backgroundItem" density="compact" variant="flat" :loading="stats.loading">
 			<v-card-title class="text-overline">Stats</v-card-title>
 			<v-card-item
 				prepend-icon="mdi-trophy"

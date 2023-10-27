@@ -95,7 +95,6 @@ export default {
 			this.loading = true
 			const start = (options.page - 1) * options.itemsPerPage
 			const end = start + options.itemsPerPage
-			console.log(`start, end: (${start}, ${end})`)
 			try {
 				this.games = await fetchGames.value(this.user.id)
 				this.games = this.games.filter((game) => {
