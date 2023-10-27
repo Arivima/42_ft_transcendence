@@ -86,6 +86,16 @@ export class PlayersService {
 		}
 	}
 
+	async sendFriendship(userID: number, recipientID: number)
+	{
+		this.prisma.beFriends.create({
+			data: {
+				requestorID: userID,
+				recipientID: recipientID
+			},
+		})
+	}
+
 	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
         console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({

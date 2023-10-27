@@ -92,6 +92,12 @@ export class PlayersController {
 		return this.playersService.getAllFriends(Number(id));
 	}
 
+	@Get('me/addFriend/:id')
+	sendFrendship(@Param('id') recipientID: string, @Request() req)
+	{
+		this.playersService.sendFriendship(Number(req.user.sub), Number(recipientID));
+	}
+
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
 		return this.playersService.getAllGames(
@@ -102,7 +108,7 @@ export class PlayersController {
 
 	@Get('achievements/:id')
 	getAchievements(@Param('id') id: string) {
-        console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
+		console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
 		return this.playersService.getAllAchievements(Number(id));
 	}
 
