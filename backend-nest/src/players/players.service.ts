@@ -70,14 +70,10 @@ export class PlayersService {
 	}
 
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
-		try {
-			return await this.prisma.player.update({
-				where: { id },
-				data: updatePlayerDto,
-			});
-		} catch (error: any) {
-			return null;
-		}
+		return await this.prisma.player.update({
+			where: { id },
+			data: updatePlayerDto,
+		});
 	}
 
 	async remove(id: number): Promise<Player> {

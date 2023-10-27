@@ -26,6 +26,7 @@ import { UpdatePlayerDto } from './dto/update-player.dto';
 import { Response } from 'express';
 import { Express } from 'express'
 import { FileInterceptor } from '@nestjs/platform-express';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 // import { ApiBody } from '@nestjs/swagger';
 
 @Controller('players')
@@ -112,7 +113,7 @@ export class PlayersController {
 	
 	@Put('me/avatar')
 	@UseInterceptors(FileInterceptor('avatar'))
-	async update(
+	async updateAvatar(
 		@Request() req,
 		@UploadedFile(
 			new ParseFilePipe({
@@ -145,6 +146,23 @@ export class PlayersController {
 		}
 		catch (error) {
 			throw new HttpException('Could Not Upload Avatar', HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Patch('me')
+	async updateMe(@Request() req, @Body() updatePlaterDto: UpdatePlayerDto)
+	{
+		try {
+			await this.playersService.update(Number(req.user.sub), updatePlaterDto);
+		}
+		catch(err) {
+			if (
+				(err instanceof PrismaClientKnownRequestError) &&
+				(err as PrismaClientKnownRequestError).code == 'P2002'
+			)
+				throw new HttpException(`username ${updatePlaterDto.username} is already in use`, HttpStatus.CONFLICT);
+			else
+				throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
