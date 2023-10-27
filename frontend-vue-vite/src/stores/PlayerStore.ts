@@ -142,6 +142,7 @@ export const usePlayerStore = defineStore('PlayerStore', {
 
 			async logout(): Promise<void> {
 				await axios.delete('auth/42')
+				localStorage.removeItem(import.meta.env.JWT_KEY);
 				this.user = emptyUser
 			}
 		}
