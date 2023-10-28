@@ -11,26 +11,31 @@ export default {
 </script>
 
 <template>
-    <div class="game">
+	<v-card
+		class="game flex-column"
+		variant="tonal"
+	>
 		<NavSideBar/>
-			<h1>This is Game</h1>
-			<p>Used as home view</p>
-
-		<v-main>
+		<h1>This is Game</h1>
 			<intersecting-circles-spinner
 				:animation-duration="1200"
 				:size="70"
 				color="#ff1d5e"
 				/>
-		</v-main>
-	</div>
+		</v-card>
 </template>
 
 <style scoped>
 .game {
 	background-color: aqua;
+	height: 100%;
+	width: 100%;
 	outline: solid;
-	/* height: 100dvh; */
-	/* width: 100dvw; */
+	display: flex;
+	justify-content: center;
+	justify-items: center;
+	align-content: center;
+	align-items: center;
+
 }
 </style>

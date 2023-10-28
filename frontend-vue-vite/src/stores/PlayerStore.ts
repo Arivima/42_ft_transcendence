@@ -21,6 +21,12 @@ export enum PlayerStatus {
 	playing = 'playing'
 }
 
+export interface FriendRequest {
+	username: string
+	avatar: string
+	status: string
+}
+
 export interface Player {
 	id: number
 	username: string
