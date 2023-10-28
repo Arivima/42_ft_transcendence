@@ -5,6 +5,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
+RUN npm i vite-plugin-node-polyfills
+
 RUN npm install
 
 COPY . .

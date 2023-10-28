@@ -80,7 +80,7 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	99696,
 	'mmarinel',
-	'https://cdn.intra.42.fr/users/b0b7a8da1b0909115e781960cca2a3ea/mmarinel.jpeg',
+	'public/upload/Rapunzel.jpg',
 	'Matteo',
 	'Marinelli',
 	'https://api.intra.42.fr/v2/users/mmarinel'

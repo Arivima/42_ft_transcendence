@@ -9,48 +9,71 @@ import EditUserInfo from '../Utils/EditUserInfo.vue'
 import Dialog2FA from './Dialog2FA.vue'
 import DialogEdit from './DialogEdit.vue'
 
-const playerStore = usePlayerStore();
+const playerStore = usePlayerStore()
 const { user, fetchGames } = storeToRefs(playerStore)
 
 export default {
-	components : {
-		EditUserInfo, Dialog2FA, DialogEdit,
+	components: {
+		EditUserInfo,
+		Dialog2FA,
+		DialogEdit
 	},
 	data() {
 		return {
 			user: user,
 			badgeColor: 'grey',
-			enabled2fa: true, /*TODO*/
+			enabled2fa: true /*TODO*/,
 			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
 			stats: {
-				loading : false,
+				loading: false,
 				victories: 0,
 				losses: 0,
 				ladder: 0
 			},
 			dialogEdit: false,
+			notifications: [
+				{
+					username: 'pippo',
+					avatar: user.value.avatar
+				},
+				{
+					username: 'pluto',
+					avatar: user.value.avatar
+				},
+				{
+					username: 'paperino',
+					avatar: user.value.avatar
+				},
+				{
+					username: 'topolino',
+					avatar: user.value.avatar
+				},
+				{
+					username: 'paperone',
+					avatar: user.value.avatar
+				},
+				{
+					username: 'paperina',
+					avatar: user.value.avatar
+				}
+			]
 		}
 	},
-	methods : {
-		async setStats(){
+	methods: {
+		async setStats() {
 			this.stats.loading = true
 			// TODO : ADD IN DATABASE
 			try {
 				const games = await fetchGames.value(this.user.id)
-				for (const game of games){
-					if (game.host == this.user.username){
-						if (game.host_score > game.guest_score)
-							this.stats.victories++
-						else
-							this.stats.losses++
-						this.stats.ladder += (game.host_score - game.guest_score)
-					}
-					else {
-						if (game.host_score > game.guest_score)
-							this.stats.losses++
-						else
-							this.stats.victories++
-							this.stats.ladder += (game.guest_score - game.host_score)
+				for (const game of games) {
+					if (game.host == this.user.username) {
+						if (game.host_score > game.guest_score) this.stats.victories++
+						else this.stats.losses++
+						this.stats.ladder += game.host_score - game.guest_score
+					} else {
+						if (game.host_score > game.guest_score) this.stats.losses++
+						else this.stats.victories++
+						this.stats.ladder += game.guest_score - game.host_score
 					}
 				}
 				this.stats.loading = false
@@ -58,7 +81,7 @@ export default {
 				console.error(err)
 				this.stats.loading = false
 			}
-		},
+		}
 	},
 	async mounted() {
 		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
@@ -86,7 +109,12 @@ export default {
 			</div>
 		</v-card>
 
-		<v-card class="itemStats backgroundItem" density="compact" variant="flat" :loading="stats.loading">
+		<v-card
+			class="itemStats backgroundItem"
+			density="compact"
+			variant="flat"
+			:loading="stats.loading"
+		>
 			<v-card-title class="text-overline">Stats</v-card-title>
 			<v-card-item
 				prepend-icon="mdi-trophy"
@@ -112,7 +140,7 @@ export default {
 			</v-card-item>
 		</v-card>
 
-			<!-- v-if="`${profile}` === 'PublicProfile'" -->
+		<!-- v-if="`${profile}` === 'PublicProfile'" -->
 		<v-card
 			class="itemActions itemActionsPublicProfile"
 			density="compact"
@@ -129,14 +157,14 @@ export default {
 			</v-btn>
 		</v-card>
 
-			<!-- v-if="`${profile}` === 'FriendProfile'" -->
+		<!-- v-if="`${profile}` === 'FriendProfile'" -->
 		<v-card
 			class="itemActions itemActionsFriendProfile"
 			density="compact"
 			variant="flat"
 			title="View : Friend Profile"
 		>
-				<!-- v-if="`${user.status}` === 'online'" -->
+			<!-- v-if="`${user.status}` === 'online'" -->
 			<v-btn
 				value="play"
 				:text="'Play with ' + `${user.firstName}`"
@@ -145,7 +173,7 @@ export default {
 				block
 			>
 			</v-btn>
-				<!-- v-if="`${user.status}` === 'online'" -->
+			<!-- v-if="`${user.status}` === 'online'" -->
 			<v-btn
 				value="chat"
 				:text="'Chat with ' + `${user.firstName}`"
@@ -154,7 +182,7 @@ export default {
 				block
 			>
 			</v-btn>
-				<!-- v-if="`${user.status}` === 'playing'" -->
+			<!-- v-if="`${user.status}` === 'playing'" -->
 			<v-btn
 				value="watch"
 				:text="'Watch ' + `${user.firstName}` + '\'s game'"
@@ -182,7 +210,7 @@ export default {
 			</v-btn>
 		</v-card>
 
-			<!-- v-if="`${profile}` === 'MyProfile'" -->
+		<!-- v-if="`${profile}` === 'MyProfile'" -->
 		<v-card
 			class="itemActions itemActionsMyProfile"
 			density="compact"
@@ -210,14 +238,38 @@ export default {
 				Disable 2FA
 				<Dialog2FA mode="disable"></Dialog2FA>
 			</v-btn>
-			<v-btn
-				value="editProfile"
-				prepend-icon="mdi-pencil"
-				class="ma-0 mb-1"
-				block
-			>
+			<v-btn value="editProfile" prepend-icon="mdi-pencil" class="ma-0 mb-1" block>
 				Edit profile
-				<DialogEdit ></DialogEdit>
+				<DialogEdit></DialogEdit>
+			</v-btn>
+
+			<v-btn>
+				Example
+				<v-menu activator="parent" max-height="150">
+					<v-list>
+						<v-list-item
+							v-for="(item, index) in notifications"
+							:key="index"
+							:value="index"
+							:title="item.username"
+							:prepend-avatar="item.avatar"
+							density="compact"
+						>
+							<template v-slot:append>
+								<v-icon
+									@click="$router.go(-1)"
+									icon="mdi-check-circle-outline"
+									color="success"
+								>
+								</v-icon>
+								<v-icon icon="mdi-close-circle-outline" color="error"> </v-icon>
+							</template>
+							<!-- <template v-slot:prepend>
+								<v-avatar size="x-small"> </v-avatar>
+							</template> -->
+						</v-list-item>
+					</v-list>
+				</v-menu>
 			</v-btn>
 		</v-card>
 	</v-card>
