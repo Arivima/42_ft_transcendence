@@ -10,8 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { defineStore } from 'pinia'
+import { defineStore, type StoreDefinition } from 'pinia'
 import axios from 'axios'
+import {io, Socket} from 'socket.io-client'
+// import type { Socket } from 'socket.io-client'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
 
@@ -33,11 +35,12 @@ export interface Player {
 	avatar: string
 	firstName: string
 	lastName: string
-	token:	string | null
-	twofaSecret: string
 	playing: boolean | undefined
 	status: PlayerStatus
 	my_friend: boolean
+	notificationsSocket: Socket | null
+	token:	string | null
+	twofaSecret: string//?RIMUOVERE
 }
 
 export interface Achievement {
@@ -61,15 +64,16 @@ const emptyUser = {
 	avatar: 'Nan',
 	firstName: 'Nan',
 	lastName: 'Nan',
-	token: null,
-	twofaSecret: 'Nan',
 	playing: undefined,
 	status: PlayerStatus.offline,
-	my_friend: true
+	my_friend: true,
+	notificationsSocket: null,
+	token: null,
+	twofaSecret: 'Nan',
 };
 
 //?: make multiple players store
-export const usePlayerStore = defineStore('PlayerStore', {
+export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		state: (): {
 			user: Player
 			loading: boolean //TODO ? forse rimuovere
@@ -99,6 +103,11 @@ export const usePlayerStore = defineStore('PlayerStore', {
 					this.user = {
 						...player,
 						token: token,
+						notificationsSocket: io(`http://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}`, {
+							auth: {
+								'token': token
+							}
+						}),
 						status:
 							player.playing === undefined
 								? PlayerStatus.offline

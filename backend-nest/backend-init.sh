@@ -23,6 +23,7 @@ npm i --save 2fa-util
 npm i --save prisma
 npm i --save @prisma/client
 npm i --save class-validator class-transformer
+npm i --save @nestjs/websockets @nestjs/platform-socket.io
 
 npm i -D @types/multer
 

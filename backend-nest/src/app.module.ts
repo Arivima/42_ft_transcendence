@@ -5,9 +5,10 @@ import { PrismaModule } from './prisma/prisma.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/auth.guard.jwt';
 import { JwtService } from '@nestjs/jwt';
+import { FrienshipsModule } from './frienships/frienships.module';
 
 @Module({
-	imports: [PlayersModule, AuthModule, PrismaModule],
+	imports: [PlayersModule, FrienshipsModule, AuthModule, PrismaModule, FrienshipsModule],
 	// controllers: [AppController],
 	providers: [
 		{
