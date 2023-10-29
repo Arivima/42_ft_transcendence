@@ -5,19 +5,19 @@
 <script lang="ts">
 import { usePlayerStore, PlayerStatus, type Game } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import EditUserInfo from '../Utils/EditUserInfo.vue'
 import Dialog2FA from './Dialog2FA.vue'
 import DialogEdit from './DialogEdit.vue'
+import Notifications from './Notifications.vue'
 
 const playerStore = usePlayerStore()
 const { user, fetchGames } = storeToRefs(playerStore)
 
 export default {
 	components: {
-		EditUserInfo,
-		Dialog2FA,
-		DialogEdit
-	},
+    Dialog2FA,
+    DialogEdit,
+    Notifications
+},
 	data() {
 		return {
 			user: user,
@@ -31,32 +31,6 @@ export default {
 				ladder: 0
 			},
 			dialogEdit: false,
-			notifications: [
-				{
-					username: 'pippo',
-					avatar: user.value.avatar
-				},
-				{
-					username: 'pluto',
-					avatar: user.value.avatar
-				},
-				{
-					username: 'paperino',
-					avatar: user.value.avatar
-				},
-				{
-					username: 'topolino',
-					avatar: user.value.avatar
-				},
-				{
-					username: 'paperone',
-					avatar: user.value.avatar
-				},
-				{
-					username: 'paperina',
-					avatar: user.value.avatar
-				}
-			]
 		}
 	},
 	methods: {
@@ -149,7 +123,7 @@ export default {
 		>
 			<v-btn
 				value="add"
-				:text="'Add ' + `${user.firstName}` + 'as friend'"
+				:text="'Add ' + `${user.firstName}` + ' as a friend'"
 				to="/game"
 				prepend-icon="mdi-account-plus"
 				block
@@ -243,34 +217,8 @@ export default {
 				<DialogEdit></DialogEdit>
 			</v-btn>
 
-			<v-btn>
-				Example
-				<v-menu activator="parent" max-height="150">
-					<v-list>
-						<v-list-item
-							v-for="(item, index) in notifications"
-							:key="index"
-							:value="index"
-							:title="item.username"
-							:prepend-avatar="item.avatar"
-							density="compact"
-						>
-							<template v-slot:append>
-								<v-icon
-									@click="$router.go(-1)"
-									icon="mdi-check-circle-outline"
-									color="success"
-								>
-								</v-icon>
-								<v-icon icon="mdi-close-circle-outline" color="error"> </v-icon>
-							</template>
-							<!-- <template v-slot:prepend>
-								<v-avatar size="x-small"> </v-avatar>
-							</template> -->
-						</v-list-item>
-					</v-list>
-				</v-menu>
-			</v-btn>
+			<Notifications></Notifications>
+
 		</v-card>
 	</v-card>
 </template>
