@@ -2,23 +2,40 @@ import { Injectable } from '@nestjs/common';
 import { CreateFrienshipDto } from './dto/create-frienship.dto';
 import { UpdateFrienshipDto } from './dto/update-frienship.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Player } from '@prisma/client';
+import { BeFriends, Player } from '@prisma/client';
+import { SendFriendshipRequestDto } from './dto/send-friendship-request.dto';
 
 @Injectable()
 export class FrienshipsService {
 
 	constructor(private readonly prisma: PrismaService) {}
 
-	createFrienshipRequest(userID : number, recipientID: number) {
-		this.prisma.beFriends.create({
+	async createFrienshipRequest(userID : number, recipientID: number): Promise<SendFriendshipRequestDto> {
+		
+		const requestor = await this.prisma.player.findUnique({
+			where: {
+				id: userID
+			},
+			select: {
+				id: true,
+				avatar: true
+			}
+		});
+
+		await this.prisma.beFriends.create({
 			data: {
 				requestorID: userID,
 				recipientID: recipientID
 			},
 		})
+
+		return {
+			requestorID: requestor.id,
+			requestorAvatar: requestor.avatar
+		};
 	}
 
-	async findAllFrienshipRequests(userID: number): Promise<Player[]> {
+	async findAllFrienshipRequests(userID: number): Promise<SendFriendshipRequestDto[]> {
 		const requestorsIDs = await this.prisma.beFriends.findMany({
 				where: {
 					recipientID: userID,
@@ -30,22 +47,29 @@ export class FrienshipsService {
 				},
 		});
 
-		let requestors: Player[] = [];
-		let recordFound: Player | null;
+		let requestors: SendFriendshipRequestDto[] = [];
+		let recordFound: any;
 		for (let requestorID of requestorsIDs) {
 			recordFound = await this.prisma.player.findUnique({
 				where: {
 					id: requestorID.requestorID
 				},
+				select: {
+					id: true,
+					avatar: true
+				}
 			});
 			if (null != recordFound)
-				requestors.push(recordFound);
+				requestors.push({
+					requestorID: recordFound.id,
+					requestorAvatar: recordFound.avatar
+				});
 		}
 		return requestors;
 	}
 
-	async updateFrienshipRequest(updateFrienshipDto: UpdateFrienshipDto) {
-		await this.prisma.beFriends.update({
+	async updateFrienshipRequest(updateFrienshipDto: UpdateFrienshipDto): Promise<BeFriends> {
+		return await this.prisma.beFriends.update({
 			where: {
 				requestorID_recipientID: {
 					requestorID: updateFrienshipDto.requestorID,
