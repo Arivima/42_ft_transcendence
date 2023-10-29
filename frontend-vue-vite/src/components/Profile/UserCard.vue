@@ -1,74 +1,75 @@
-<!-- Resources -->
-<!-- https://vuetifyjs.com/en/components/badges/ -->
-<!-- https://vuetifyjs.com/en/api/v-badge/#props -->
-
 <script lang="ts">
-import { usePlayerStore, PlayerStatus, type Game } from '@/stores/PlayerStore'
+import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import Dialog2FA from './Dialog2FA.vue'
-import DialogEdit from './DialogEdit.vue'
+
 import Notifications from './Notifications.vue'
+import Avatar from './UserCard/Avatar.vue'
+import Stats from './UserCard/Stats.vue'
+import ActionsPublicProfile from './UserCard/ActionsPublicProfile.vue'
+import ActionsFriendProfile from './UserCard/ActionsFriendProfile.vue'
+import ActionsMyProfile from './UserCard/ActionsMyProfile.vue'
 
 const playerStore = usePlayerStore()
-const { user, fetchGames } = storeToRefs(playerStore)
+const { user, friends, fetchPlayer } = storeToRefs(playerStore)
 
 export default {
 	components: {
-    Dialog2FA,
-    DialogEdit,
-    Notifications
-},
+		Notifications,
+		Avatar,
+		Stats,
+		ActionsPublicProfile,
+		ActionsFriendProfile,
+		ActionsMyProfile,
+	},
 	data() {
 		return {
-			user: user,
-			badgeColor: 'grey',
-			enabled2fa: true /*TODO*/,
-			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
-			stats: {
-				loading: false,
-				victories: 0,
-				losses: 0,
-				ladder: 0
-			},
-			dialogEdit: false,
+			// badgeColor: 'grey',
+			// profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
+			userVisitor: user.value,
+			userVisitorFriends: friends,
+			userProfile: {} as Player,
+			visibility: '', // ('MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile')
 		}
 	},
 	methods: {
-		async setStats() {
-			this.stats.loading = true
-			// TODO : ADD IN DATABASE
-			try {
-				const games = await fetchGames.value(this.user.id)
-				for (const game of games) {
-					if (game.host == this.user.username) {
-						if (game.host_score > game.guest_score) this.stats.victories++
-						else this.stats.losses++
-						this.stats.ladder += game.host_score - game.guest_score
-					} else {
-						if (game.host_score > game.guest_score) this.stats.losses++
-						else this.stats.victories++
-						this.stats.ladder += game.guest_score - game.host_score
-					}
-				}
-				this.stats.loading = false
-			} catch (err) {
-				console.error(err)
-				this.stats.loading = false
-			}
-		}
+		getUserProfile() {
+			let Profileid : number = Number(this.$route.params.id)
+			Profileid = 81841 // TODO change when route update
+			fetchPlayer.value(Profileid)
+				.then((targetUser : Player) => {
+					this.userProfile = targetUser;
+					this.setVisibility()
+				})
+				.catch((err) => console.log(err))
+		},
+		setVisibility() {
+			console.log('userVisitor : ' + this.userVisitor.id)
+			console.log('userProfile : ' + this.userProfile.id)
+
+			if (this.userVisitor.id == this.userProfile.id)
+				this.visibility = 'MyProfile'
+			else if (this.userVisitorFriends.includes(this.userProfile))
+				this.visibility = 'FriendProfile'
+			// TODO ADD BLOCKED USER
+			else 
+				this.visibility = 'PublicProfile'
+
+			console.log('VISIBILITY : ' + this.visibility)
+		},
 	},
 	async mounted() {
-		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
-		else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
-		else this.badgeColor = 'grey'
-		this.setStats()
+		this.getUserProfile()
+
+		// if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
+		// else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
+		// else this.badgeColor = 'grey'
 	}
 }
 </script>
 
 <template>
 	<v-card class="containerContent component" image="cats.jpg" rounded="1" variant="tonal">
-		<v-card class="itemAvatar" density="comfortable" variant="flat">
+		<!-- <v-card class="itemAvatar" density="comfortable" variant="flat">
 			<v-badge bordered inline :color="badgeColor" :content="user.status">
 				<v-avatar size="130" rounded="1">
 					<v-img cover :src="user.avatar"></v-img>
@@ -81,145 +82,25 @@ export default {
 				>
 				</v-card-item>
 			</div>
-		</v-card>
+		</v-card> -->
 
-		<v-card
-			class="itemStats backgroundItem"
-			density="compact"
-			variant="flat"
-			:loading="stats.loading"
-		>
-			<v-card-title class="text-overline">Stats</v-card-title>
-			<v-card-item
-				prepend-icon="mdi-trophy"
-				:title="String(stats.victories)"
-				subtitle="victories"
-			>
-			</v-card-item>
+		<Avatar></Avatar>
+		<Stats></Stats>
 
-			<v-card-item
-				class=""
-				prepend-icon="mdi-trophy-broken"
-				:title="String(stats.losses)"
-				subtitle="losses"
-			>
-			</v-card-item>
+			<!-- v-show="visibility == 'PublicProfile'" -->
+			<!-- v-show="visibility == 'FriendProfile'" -->
+			<!-- v-show="visibility == 'MyProfile'" -->
+		<ActionsPublicProfile
+		></ActionsPublicProfile>
+		<ActionsFriendProfile
+		></ActionsFriendProfile>
+		<ActionsMyProfile
+		></ActionsMyProfile>
+		<!-- ADD BLOCKED PROFILE -->
 
-			<v-card-item
-				class=""
-				prepend-icon="mdi-sword-cross"
-				:title="String(stats.ladder)"
-				subtitle="ladder lvl"
-			>
-			</v-card-item>
-		</v-card>
+		<!-- // TODO -->
+		<Notifications v-show="visibility == 'MyProfile'"></Notifications>
 
-		<!-- v-if="`${profile}` === 'PublicProfile'" -->
-		<v-card
-			class="itemActions itemActionsPublicProfile"
-			density="compact"
-			variant="flat"
-			title="View : Public Profile"
-		>
-			<v-btn
-				value="add"
-				:text="'Add ' + `${user.firstName}` + ' as a friend'"
-				to="/game"
-				prepend-icon="mdi-account-plus"
-				block
-			>
-			</v-btn>
-		</v-card>
-
-		<!-- v-if="`${profile}` === 'FriendProfile'" -->
-		<v-card
-			class="itemActions itemActionsFriendProfile"
-			density="compact"
-			variant="flat"
-			title="View : Friend Profile"
-		>
-			<!-- v-if="`${user.status}` === 'online'" -->
-			<v-btn
-				value="play"
-				:text="'Play with ' + `${user.firstName}`"
-				to="/game"
-				prepend-icon="mdi-controller"
-				block
-			>
-			</v-btn>
-			<!-- v-if="`${user.status}` === 'online'" -->
-			<v-btn
-				value="chat"
-				:text="'Chat with ' + `${user.firstName}`"
-				to="/chat"
-				prepend-icon="mdi-chat"
-				block
-			>
-			</v-btn>
-			<!-- v-if="`${user.status}` === 'playing'" -->
-			<v-btn
-				value="watch"
-				:text="'Watch ' + `${user.firstName}` + '\'s game'"
-				to="/game"
-				prepend-icon="mdi-play"
-				block
-			>
-			</v-btn>
-
-			<v-btn
-				value="remove"
-				:text="'Remove ' + `${user.firstName}`"
-				to="/chat"
-				prepend-icon="mdi-account-remove"
-				block
-			>
-			</v-btn>
-			<v-btn
-				value="block"
-				:text="'Block ' + `${user.firstName}`"
-				to="/chat"
-				prepend-icon="mdi-account-cancel"
-				block
-			>
-			</v-btn>
-		</v-card>
-
-		<!-- v-if="`${profile}` === 'MyProfile'" -->
-		<v-card
-			class="itemActions itemActionsMyProfile"
-			density="compact"
-			variant="flat"
-			width="fit-content"
-			title="View : My Profile"
-		>
-			<v-btn
-				value="enable2FA"
-				v-show="!user.twofaSecret"
-				prepend-icon="mdi-shield-lock"
-				class="ma-0 mb-1"
-				block
-			>
-				Enable 2FA
-				<Dialog2FA mode="enable"></Dialog2FA>
-			</v-btn>
-			<v-btn
-				value="disable2FA"
-				v-show="user.twofaSecret"
-				prepend-icon="mdi-shield-remove-outline"
-				class="ma-0 mb-1"
-				block
-			>
-				Disable 2FA
-				<Dialog2FA mode="disable"></Dialog2FA>
-			</v-btn>
-			<v-btn value="editProfile" prepend-icon="mdi-pencil" class="ma-0 mb-1" block>
-				Edit profile
-				<DialogEdit></DialogEdit>
-			</v-btn>
-
-			<Notifications></Notifications>
-
-		</v-card>
 	</v-card>
 </template>
 
@@ -233,35 +114,6 @@ export default {
 	/* justify-items: stretch; */
 	/* height: 100%; */
 	/* width: 100%; */
-}
-
-.itemAvatar {
-	display: flex;
-	flex-direction: column;
-	margin: 1%;
-	padding: 1%;
-	/* outline: solid; */
-	/* background-color: aquamarine; */
-	background-color: transparent;
-}
-.itemStats {
-	display: flex;
-	flex-direction: column;
-	margin: 1%;
-	padding: 1%;
-	outline: solid;
-	outline-color: antiquewhite;
-	/* background-color: rgb(36, 176, 129); */
-	background-color: transparent;
-}
-.itemActions {
-	display: flex;
-	flex-direction: column;
-	margin: 1%;
-	padding: 1%;
-	/* outline: solid; */
-	/* background-color: rgb(13, 114, 78); */
-	background-color: transparent;
 }
 
 .containerContent .v-btn {
@@ -286,14 +138,5 @@ export default {
 	width: fit-content;
 	outline: solid;
 	outline-color: antiquewhite;
-}
-
-.itemAvatar .v-avatar {
-	outline: solid;
-	outline-color: antiquewhite;
-}
-
-.itemAvatar .v-badge__badge {
-	color: antiquewhite !important;
 }
 </style>

@@ -113,8 +113,13 @@ export class PlayersController {
 	}
 
 	@Get(':id')
-	findOne(@Param('id') id: string) {
-		return this.playersService.findOne(Number(id));
+	async findOne(@Param('id') id: string) {
+		const player = await this.playersService.findOne(Number(id));
+
+		if (player) {
+			player.avatar = `players/avatar/${player.id}`;
+		}
+		return player;
 	}
 	
 	@Put('me/avatar')

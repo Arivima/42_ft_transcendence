@@ -32,6 +32,11 @@ const router = createRouter({
 			name: 'profile',
 			component: lazyload('ProfileView')
 		},
+		// {
+		// 	path: '/profile/:id',
+		// 	name: 'profile',
+		// 	component: lazyload('ProfileView')
+		// },
 		{
 			path: '/game',
 			name: 'game',
@@ -67,7 +72,11 @@ router.beforeEach((to, from, next) => {
 	checkLogIn()
 		.then((_) => {
 			if ('login' == to.name || 'login-2fa' == to.name || 'home' == to.name)
-				next({ name: 'profile' })
+				next({ name: `profile` })// change to profile/usePlayerStore().id
+			// next({ name: `profile/${usePlayerStore().$id}` })// change to profile/usePlayerStore().id
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ELSE if to.name == 'profile' --> fill watchedUserStore with our data, then call next()
+			// ELSE if to.name == 'profile/:id' --> fill watchedUserStore with user of id data, then call next()
+			
 			else next()
 		})
 		.catch((_) => {
