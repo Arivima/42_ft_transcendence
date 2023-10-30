@@ -50,7 +50,8 @@ export default {
 				:to="{ name: 'profile' }"
 				rounded
 				class="mx-2 px-2"
-			></v-list-item>
+			>
+		</v-list-item>
 		</v-list>
 		<v-divider></v-divider>
 		<v-list class="navContent ">
