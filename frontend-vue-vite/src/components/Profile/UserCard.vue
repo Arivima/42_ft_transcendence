@@ -35,13 +35,24 @@ export default {
 	},
 	computed: {
 		visibility() : string {
+			console.log('userVisitor id: ' + this.userVisitor.id )
+			console.log('userProfile id: ' + this.userProfile.id )
+			console.log('typeof userVisitor : ' + this.userVisitor)
+			console.log('typeof userProfile : ' + this.userProfile)
+			console.log('typeof userVisitorFriends : ' + this.userVisitorFriends)
+			console.log('typeof userVisitorFriends[0] : ' + this.userVisitorFriends[0])
+			console.log('are friends : ' + this.userProfile.my_friend)
+			console.log('are friends : ' + this.userProfile.my_friend)
+			
+			let profileType = '';
 			if (this.userVisitor.id == this.userProfile.id)
-				return 'MyProfile'
-			else if (this.userVisitorFriends.includes(this.userProfile))
-				return 'FriendProfile'
+				profileType = 'MyProfile'
+			else if (this.userVisitorFriends[this.userProfile.id] )
+				profileType = 'FriendProfile'
 			// TODO ADD BLOCKED USER
 			else 
-				return 'PublicProfile'
+				profileType = 'PublicProfile'
+			return profileType
 		},
 	},
 	watch : {
@@ -58,7 +69,34 @@ export default {
 </script>
 
 <template>
-	<v-card class="containerContent component" image="cats.jpg" rounded="1" variant="tonal">
+	<p class="text-overline">Visibility : {{ visibility }}</p>
+	<div class="d-flex flex-row justify-space-between align-start">
+		<v-card class="pa-2 mx-3">
+			<p class="text-overline">Profile : </p>
+			<p class="text-caption">
+				{{ userProfile.username }}
+				| {{ userProfile.id }}
+				| {{ userProfile.firstName }}
+				| {{ userProfile.lastName }}
+			</p>
+		</v-card>
+		<v-card class="pa-2 mx-3">
+			<p class="text-overline">Visitor : </p>
+			<p class="text-caption">
+				{{ userVisitor.username }}
+				| {{ userVisitor.id }}
+				| {{ userVisitor.firstName }}
+				| {{ userVisitor.lastName }}
+				| {{ userVisitorFriends }}
+			</p>
+		</v-card>
+	</div>
+	<v-card
+		class="containerContent component"
+		image="cats.jpg"
+		rounded="1"
+		variant="tonal"
+	>
 
 		<Avatar
 			:userProfile="userProfile"

@@ -32,7 +32,7 @@
 			<span>Home</span>
 		</v-btn>
 		</router-link>
-
+<!-- 
 		<router-link
 			:to="{name:'profile'}"
 			custom
@@ -44,7 +44,7 @@
 			<v-icon>mdi-account</v-icon>
 			<span>Profile</span>
 		</v-btn>
-		</router-link>
+		</router-link> -->
 
 
 

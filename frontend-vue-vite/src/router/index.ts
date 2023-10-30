@@ -27,16 +27,16 @@ const router = createRouter({
 			name: 'login-2fa',
 			component: lazyload('Login2FAView')
 		},
-		{
-			path: '/profile',
-			name: 'profile',
-			component: lazyload('ProfileView')
-		},
 		// {
-		// 	path: '/profile/:id',
+		// 	path: '/profile',
 		// 	name: 'profile',
 		// 	component: lazyload('ProfileView')
 		// },
+		{
+			path: '/profile/:id?',
+			name: 'profile',
+			component: lazyload('ProfileView')
+		},
 		{
 			path: '/game',
 			name: 'game',
@@ -62,7 +62,7 @@ const checkLogIn = () => new Promise((resolve, reject) => {
 				usePlayerStore()
 					.fetchData(token as string)
 					.then((res) => resolve(res))
-					.catch((err) => reject(err))
+					.catch((err : Error) => reject(err))
 			})
 			.catch((err) => reject(err))
 })
@@ -75,16 +75,8 @@ router.beforeEach((to, from, next) => {
 	checkLogIn()
 		.then((_) => {
 			if ('login' == to.name || 'login-2fa' == to.name || 'home' == to.name)
-				next({ name: `profile`, params: {'id': usePlayerStore().$state.user.id}})
-			else {
-				console.log(`route param id: ${to.params.id}`)
-				next()
-			}
-			
-			// next({ name: `profile/${usePlayerStore().$id}` })// change to profile/usePlayerStore().id
-			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ELSE if to.name == 'profile' --> fill watchedUserStore with our data, then call next()
-			// ELSE if to.name == 'profile/:id' --> fill watchedUserStore with user of id data, then call next()
-			
+				next({ name: `profile`})
+			else next()
 		})
 		.catch((_) => {
 			// if token is set redirect to OTP VIEW
@@ -104,3 +96,10 @@ router.beforeEach((to, from, next) => {
 })
 
 export default router
+
+
+			// change to profile/usePlayerStore().id
+			// next({ name: `profile/${usePlayerStore().$id}` })// change to profile/usePlayerStore().id
+			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ELSE if to.name == 'profile' --> fill watchedUserStore with our data, then call next()
+			// ELSE if to.name == 'profile/:id' --> fill watchedUserStore with user of id data, then call next()
+			

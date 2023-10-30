@@ -38,8 +38,6 @@ export default {
 	methods: {
 		getUserProfile() {
 			let profileID : number = Number(this.$route.params.id)
-			// profileID = 99696 // public profile
-			// profileID = 2 // friend profile
 			if (!profileID || profileID == this.userVisitor.id) {
 				this.userProfile = this.userVisitor
 			}
@@ -51,6 +49,11 @@ export default {
 					.catch((err : Error) => console.log(err))
 		},
 	},
+	// watch : {
+	// 	userProfile(newValue : Player) {
+	// 		this.visibility()
+	// 	}
+	// },
 	mounted() {
 		this.getUserProfile()
 	},
