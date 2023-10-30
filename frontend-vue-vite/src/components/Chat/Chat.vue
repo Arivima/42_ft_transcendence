@@ -141,14 +141,8 @@ export default {
 		};
 	},
 	created() {
-		
-		// Initialize and connect to the socket server
 		this.socket = io('ws://localhost:3000',{transports:['websocket']});
-		// this.socket = io('http://localhost:3000');
-
-		// Listen for messages from the server
 		this.socket.on("message", (message) => {
-			// Parse the message
 			const parsedData = JSON.parse(JSON.parse(message).data);
 			if (parsedData.senderID == user.value.id) {
 				parsedData.me = true;
@@ -157,47 +151,18 @@ export default {
 				parsedData.created_at = showTime(parsedData.created_at);
 				this.messages.push(parsedData);
 			}
-			// Add the message to your messages array
 		});
-
-		// @SubscribeMessage("getmessagesprivatechat")
-//   getMessagesPrivateChat(@MessageBody("userId") userId: number, @MessageBody("receiverId") receiverId: number) {
-//     console.log(`DEBUG | chat.controller | getMessagesPrivateChat | userId: ${userId}`);
-//     return this.chatService.getMessagesPrivateChat(userId, receiverId);
-//   }
-	
-
-
-			
 	},
 	methods: {
-		// showTime(date) {
-		// 	let d = new Date(date);
-		// 	let hours = d.getHours();
-		// 	let minutes = d.getMinutes();
-		// 	if (minutes < 10) {
-		// 		minutes = "0" + minutes;
-		// 	}
-		// 	let time = hours + ":" + minutes;
-		// 	return time;
-		// },
 		sendMessage() {
-			// Create a message object
 			const newMessage = { ...this.messageForm };
 			newMessage.receiverId = this.parents[this.activeChat - 1].id;
-			// Send the message to the serverUncaught TypeError: this.socket.emit is not a function
-			console.log("this.socket", this.socket);
 			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
-			// Add the sent message to your messages array
 			newMessage.created_at = showTime(newMessage.created_at);
 			this.messages.push(newMessage);
-			console.log("this.messages", this.messages, newMessage);
-			// Clear the message input field
 			this.messageForm.content = "";
-
 		},
 		activateChat(chatId) {
-
 			// Fetch messages for the selected chat
 			this.fetchMessagesForChat(chatId);
 		},
@@ -210,8 +175,6 @@ export default {
 			this.socket.emit("getmessagesprivatechat", { userId, receiverId }, (response) => {
 				console.log("response", response);
 				this.messages = response
-				console.log("response", this.messages);
-
 			});
 			} catch (error) {
 			console.error("Error emitting 'getmessagesprivatechat':", error);
@@ -219,19 +182,9 @@ export default {
 	},
 
 
-		//  
-		// You should make an API request to fetch messages for the selected chat.
-		// Update this part to make the appropriate API request and update your messages array.
-		// For example:
-		// const response = await axios.get(`http://your-api-endpoint/${chatId}`);
-		// this.messages = response.data.messages;
+
 	async fetchChats() {
 		console.log(`Fetching users messages for chat ID: ${user.value.id}`);
-		// You should make an API request to fetch messages for the selected chat.
-		// Update this part to make the appropriate API request and update your messages array.
-		// For example:
-		// const response = await axios.get(`http://your-api-endpoint/${chatId}`);
-		// this.messages = response.data.messages;
 		},
 	},
 };

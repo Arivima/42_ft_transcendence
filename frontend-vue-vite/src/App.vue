@@ -2,7 +2,6 @@
 
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import TmpTab from './components/TmpTab.vue'
 </script>
 
 <template>
@@ -75,6 +74,7 @@ import TmpTab from './components/TmpTab.vue'
 	outline: solid;
 	outline-color: antiquewhite;
 }
+
 .component {
 	padding: 2%;
 	margin: 2%;
