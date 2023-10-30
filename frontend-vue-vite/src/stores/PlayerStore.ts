@@ -81,7 +81,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
-			achievements: Achievement[]
+			achievements: Achievement[],
+			notifications: {requestorID: number, requestorAvatar: string}[],
 		} => {
 			return {
 				user: emptyUser,
@@ -90,6 +91,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				fetchPlayer: fetchPlayer,
 				fetchAchievements: fetchAchievements,
 				achievements: [],
+				notifications: [],
 				loading: true
 			}
 		},
@@ -100,6 +102,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + token
 				const player = (await axios.get('players/me')).data
 				try {
+					console.log('fetching data in store');
 					this.user = {
 						...player,
 						token: token,
@@ -117,6 +120,9 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						my_friend: true
 					}
 					this.user.avatar = await this.fetchAvatar();
+					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
+					this.user.notificationsSocket?.on('frienship-error', notificationsError.bind(this));
+					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
 					this.friends = this.friends.map((friend) => ({
 						...friend,
@@ -132,6 +138,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						await axios.get(`players/achievements/${this.user.id}`)
 					).data
 					this.loading = false;
+					console.log('loading set to false');
 				} catch (_) {
 					console.log('axios failed inside user store')
 					console.log(this.user)
@@ -183,6 +190,29 @@ async function fetchGames(id: number): Promise<Game[]> {
 	return gamesDateReadable
 }
 
+function fillNotifications(this: any, data: {requests: {requestorID: number, requestorAvatar: string}[]}) {
+	console.log("Ws: findAllFriendships ack");
+	data.requests.forEach((request) => {
+		console.log(`requestorID: ${request.requestorID}, requestorAvatar: ${request.requestorAvatar}`);
+	})
+	this.notifications.splice(0);
+	data.requests.forEach((el) => {
+		this.notifications.push({
+			requestorID: el.requestorID,
+			requestorAvatar: el.requestorAvatar
+		});
+	})
+}
+
+async function notificationsError(this: any, data: {msg: string, requestorID: number, recipientID: number}) {
+	console.log(
+		`frienship-error: {\n
+			msg: ${data.msg},\n
+			requestorID: ${data.requestorID},\n
+			recipientID: ${data.recipientID}\n
+		}`
+	);
+}
 async function fetchPlayer(id: number): Promise<Player> {
 	let player : Player = (await axios.get(`players/${id}`)).data
 	let user : Player = emptyUser

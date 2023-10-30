@@ -58,8 +58,11 @@ const checkLogIn = () => new Promise((resolve, reject) => {
 		axios					//necessario perché se faccio reload perdo il vecchio axios con i defaults
 			.get('players/me', {headers: {Authorization: 'Bearer ' + token.toString()}})
 			.then((res) => {
-				usePlayerStore().fetchData(token as string);
-				resolve(res)
+				console.log("calling userStore.fetchData()")
+				usePlayerStore()
+					.fetchData(token as string)
+					.then((res) => resolve(res))
+					.catch((err) => reject(err))
 			})
 			.catch((err) => reject(err))
 })

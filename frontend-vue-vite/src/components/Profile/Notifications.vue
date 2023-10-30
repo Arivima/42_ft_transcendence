@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 // import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, notifications } = storeToRefs(playerStore)
 
 export default defineComponent({
 	components: {
@@ -14,43 +14,44 @@ export default defineComponent({
 		return {
             user: user,
 			count: 0,
-			notificationList: [
-				{
-					username: 'pippo',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'pluto',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'paperino',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'topolino',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'paperone',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'paperinellaawsefwfefwf',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				}
-			] as FriendRequest[]
+			notificationList: notifications
+			// notificationList: [
+			// 	{
+			// 		username: 'pippo',
+			// 		avatar: user.value.avatar,
+			// 		status: 'pending', // pending | loading | accepted | rejected
+			// 	},
+			// 	{
+			// 		username: 'pluto',
+			// 		avatar: user.value.avatar,
+			// 		status: 'pending', // pending | loading | accepted | rejected
+			// 	},
+			// 	{
+			// 		username: 'paperino',
+			// 		avatar: user.value.avatar,
+			// 		status: 'pending', // pending | loading | accepted | rejected
+			// 	},
+			// 	{
+			// 		username: 'topolino',
+			// 		avatar: user.value.avatar,
+			// 		status: 'pending', // pending | loading | accepted | rejected
+			// 	},
+			// 	{
+			// 		username: 'paperone',
+			// 		avatar: user.value.avatar,
+			// 		status: 'pending', // pending | loading | accepted | rejected
+			// 	},
+			// 	{
+			// 		username: 'paperinellaawsefwfefwf',
+			// 		avatar: user.value.avatar,
+			// 		status: 'pending', // pending | loading | accepted | rejected
+			// 	}
+			// ] as FriendRequest[]
 		}
 	},
 	methods: {
 		setNotificationsCount(){
-			this.count = this.notificationList.length
+			this.count = this.notificationList.length;
 		},
 		acceptFriend(request : FriendRequest){
 			request.status = 'loading'
@@ -71,8 +72,10 @@ export default defineComponent({
 		},
 		deleteRequest(request : FriendRequest){
 			setTimeout(() => {
-				const id = this.notificationList.findIndex(el => el === request);
-				this.notificationList.splice(id, 1);	
+				const id = this.notificationList.findIndex((el: any) => el == request);
+				// const id = this.notificationList.findIndex(el => el === request);
+				this.notificationList.splice(id, 1);
+				// this.notificationList.splice(id, 1);	
 				this.setNotificationsCount()
 			}, 20000);
 		},
@@ -80,7 +83,8 @@ export default defineComponent({
 	watch: {
     },
 	mounted() {
-		this.notificationList = this.notificationList
+		// this.notificationList = this.notificationList
+		this.notificationList = notifications;
 		this.setNotificationsCount()
     }
 })
@@ -112,8 +116,8 @@ export default defineComponent({
 				v-for="(item, index) in notificationList"
 				:key="index"
 				:value="index"
-				:title="item.username"
-				:prepend-avatar="item.avatar"
+				:title="item.requestorID"
+				:prepend-avatar="item.requestorAvatar"
 				density="compact"
 				class="px-2"
 			>
