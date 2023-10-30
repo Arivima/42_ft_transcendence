@@ -11,7 +11,6 @@
 			SearchBar
 		},
 		data: () => ({
-			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
 			badgeColor: 'grey',
 			items: friends.value,
 		}),

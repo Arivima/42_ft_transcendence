@@ -3,7 +3,8 @@ import { usePlayerStore, type Game, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 import { VDataTableServer } from 'vuetify/labs/components'
 
-const { user, fetchGames, fetchPlayer } = storeToRefs(await usePlayerStore())
+const playerStore = usePlayerStore()
+const { fetchGames } = storeToRefs(playerStore)
 const _items_per_page = 5
 
 //TODO
@@ -14,6 +15,12 @@ const _items_per_page = 5
 export default {
 	components: {
 		VDataTableServer
+	},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
 	},
 	data: () => ({
 		games: [] as Game[],
@@ -30,27 +37,8 @@ export default {
 		loading: true,
 		searchedGuest: '',
 		searchedHost: '',
-		userProfile: {} as Player,
-		// user: {
-		// 	id: user.value.id,
-		// 	username: user.value.username
-		// }
 	}),
-	computed: {
-
-	},
-	async mounted() {
-		await this.getUserProfile()
-	},
 	methods: {
-		async getUserProfile() {
-			let profileID : number = Number(this.$route.params.id)
-			profileID = 81841 // TODO change when route update
-			this.userProfile = await fetchPlayer.value(profileID);
-			// fetchPlayer.value(profileID)
-			// 	.then((targetUser : Player) => {this.userProfile = targetUser})
-			// 	.catch((err) => console.log(err))
-		},
 		async fetchData(options: { page: number; itemsPerPage: number }) {
 			this.loading = true
 			const start = (options.page - 1) * options.itemsPerPage
@@ -87,6 +75,10 @@ export default {
 		}
 	},
 	watch: {
+		// TODO ?
+		// userProfile(newValue : Player){
+		// 	this.fetchData()
+		// },
 		searchedGuest: {
 			handler() {
 				this.search = String(Date.now())

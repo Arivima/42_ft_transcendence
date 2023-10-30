@@ -1,37 +1,31 @@
 <script lang="ts">
-import { usePlayerStore, type Player, PlayerStatus } from '@/stores/PlayerStore'
-import { storeToRefs } from 'pinia'
+import { type Player, PlayerStatus } from '@/stores/PlayerStore'
 
-const playerStore = usePlayerStore()
-const { fetchPlayer } = storeToRefs(playerStore)
 
 export default {
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
     data () {
         return {
-			badgeColor: 'grey',
-			userProfile: {} as Player,
-
         }
     },
-    methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 81841 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setBadgeColor()
-				})
-				.catch((err) => console.log(err))
+	computed: {
+		badgeColor() : string {
+			if (this.userProfile.status == PlayerStatus.playing)
+				return 'blue'
+			else if (this.userProfile.status == PlayerStatus.online)
+				return 'green'
+			else
+				return 'grey'
 		},
-        setBadgeColor(){
-			if (this.userProfile.status == PlayerStatus.playing) this.badgeColor = 'blue'
-			else if (this.userProfile.status == PlayerStatus.online) this.badgeColor = 'green'
-			else this.badgeColor = 'grey'
-        },
+	},
+    methods: {
 	},
     mounted (){
-		this.getUserProfile()
     },
 }
 </script>
