@@ -75,12 +75,16 @@ router.beforeEach((to, from, next) => {
 	checkLogIn()
 		.then((_) => {
 			if ('login' == to.name || 'login-2fa' == to.name || 'home' == to.name)
-				next({ name: `profile` })// change to profile/usePlayerStore().id
+				next({ name: `profile`, params: {'id': usePlayerStore().$state.user.id}})
+			else {
+				console.log(`route param id: ${to.params.id}`)
+				next()
+			}
+			
 			// next({ name: `profile/${usePlayerStore().$id}` })// change to profile/usePlayerStore().id
 			//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ELSE if to.name == 'profile' --> fill watchedUserStore with our data, then call next()
 			// ELSE if to.name == 'profile/:id' --> fill watchedUserStore with user of id data, then call next()
 			
-			else next()
 		})
 		.catch((_) => {
 			// if token is set redirect to OTP VIEW

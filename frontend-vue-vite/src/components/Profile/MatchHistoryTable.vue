@@ -45,7 +45,8 @@ export default {
 	methods: {
 		async getUserProfile() {
 			let profileID : number = Number(this.$route.params.id)
-			profileID = 81841 // TODO change when route update
+			console.log(`currently in route profile/${this.$route.params.id}`);
+			profileID = 99696 // TODO change when route update
 			this.userProfile = await fetchPlayer.value(profileID);
 			// fetchPlayer.value(profileID)
 			// 	.then((targetUser : Player) => {this.userProfile = targetUser})

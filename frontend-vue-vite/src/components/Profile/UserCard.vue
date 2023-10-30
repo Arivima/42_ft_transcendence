@@ -34,7 +34,7 @@ export default {
 	methods: {
 		getUserProfile() {
 			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 81841 // TODO change when route update
+			Profileid = 99696 // TODO change when route update
 			fetchPlayer.value(Profileid)
 				.then((targetUser : Player) => {
 					this.userProfile = targetUser;
