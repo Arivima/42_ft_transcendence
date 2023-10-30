@@ -79,6 +79,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			loading: boolean //TODO ? forse rimuovere
 			friends: Player[]
 			fetchGames: (id: number) => Promise<Game[]>
+			fetchPlayer: (id: number) => Promise<Player>
+			fetchAchievements: (id: number) => Promise<Achievement[]>
 			achievements: Achievement[],
 			notifications: {requestorID: number, requestorAvatar: string}[],
 		} => {
@@ -86,6 +88,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				user: emptyUser,
 				friends: [],
 				fetchGames: fetchGames,
+				fetchPlayer: fetchPlayer,
+				fetchAchievements: fetchAchievements,
 				achievements: [],
 				notifications: [],
 				loading: true
@@ -208,4 +212,44 @@ async function notificationsError(this: any, data: {msg: string, requestorID: nu
 			recipientID: ${data.recipientID}\n
 		}`
 	);
+}
+async function fetchPlayer(id: number): Promise<Player> {
+	let player : Player = (await axios.get(`players/${id}`)).data
+	let user : Player = emptyUser
+	try {
+		user = {
+			...player,
+			status:
+				player.playing === undefined
+					? PlayerStatus.offline
+					: player.playing
+					? PlayerStatus.playing
+					: PlayerStatus.online /* playing | online | offline */,
+		}
+		user.avatar = await fetchAvatar(user.avatar);
+	} catch (_) {
+		console.log('axios failed inside user store')
+		console.log(user)
+	}
+	return user
+}
+
+
+async function fetchAchievements(id: number): Promise<Achievement[]> {
+	const achievements : Promise<Achievement[]> = (await axios.get(`players/achievements/${id}`)).data
+	return achievements
+}
+
+async function fetchAvatar(avatar: string): Promise<string> {
+	try {
+		const response = await axios.get(avatar, {
+			responseType: 'arraybuffer'
+		});
+		const contentType = response.headers['content-type'];
+		return `data:${contentType};base64,${Buffer.from(response.data, 'binary').toString('base64')}`;
+	}
+	catch (error) {
+		console.log(`fetchAvatar() Exception: ${error}`)
+		return '';
+	}
 }

@@ -1,13 +1,31 @@
-<!-- Friends -->
+<script lang="ts">
+	import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
+	import { storeToRefs } from 'pinia'
+	import SearchBar from '../Utils/SearchBar.vue'
 
-<style scoped>
-.component {
-	max-width:  100%;
-	max-height:  100%;
-	width: fit-content;
-}
+	const playerStore = usePlayerStore()
+	const { friends } = storeToRefs(playerStore)
 
-</style>
+	export default {
+		components:	{
+			SearchBar
+		},
+		data: () => ({
+			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
+			badgeColor: 'grey',
+			items: friends.value,
+		}),
+		mounted() {
+		},
+		methods : {
+			getBadgeColor(status : PlayerStatus) : string {
+				if (status == PlayerStatus.online) return 'green'
+				else if (status == PlayerStatus.playing) return 'blue'
+				else return 'grey'			
+			}
+		},
+	}
+</script>
 
 <template>
 	<v-card
@@ -62,30 +80,12 @@
 	</v-card>
 </template>
 
-<script lang="ts">
-	import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
-	import { storeToRefs } from 'pinia'
-	import SearchBar from '../Utils/SearchBar.vue'
 
-	const { friends } = storeToRefs(await usePlayerStore())
+<style scoped>
+.component {
+	max-width:  100%;
+	max-height:  100%;
+	width: fit-content;
+}
 
-	export default {
-		components:	{
-			SearchBar
-		},
-		data: () => ({
-			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
-			badgeColor: 'grey',
-			items: friends.value,
-		}),
-		mounted() {
-		},
-		methods : {
-			getBadgeColor(status : PlayerStatus) : string {
-				if (status == PlayerStatus.online) return 'green'
-				else if (status == PlayerStatus.playing) return 'blue'
-				else return 'grey'			
-			}
-		},
-	}
-</script>
+</style>

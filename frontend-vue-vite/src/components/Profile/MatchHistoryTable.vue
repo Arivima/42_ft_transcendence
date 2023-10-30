@@ -1,13 +1,107 @@
-<style scoped>
-.component .v-table {
-	background-color: transparent;
-}
+<script lang="ts">
+import { usePlayerStore, type Game, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
+import { VDataTableServer } from 'vuetify/labs/components'
 
-/* table title row */
-.v-table.v-table--fixed-header > .v-table__wrapper > table > thead > tr > th {
-	background-color: transparent;
+const { user, fetchGames, fetchPlayer } = storeToRefs(await usePlayerStore())
+const _items_per_page = 5
+
+//TODO
+//2.	add toast for data loading error
+//LATER_FOR_FRIENDS_TABLE3.	use web sockets (socket.io)
+//4.	clean the user store
+//TODO FIX and avoid using STORE
+export default {
+	components: {
+		VDataTableServer
+	},
+	data: () => ({
+		games: [] as Game[],
+		itemsPerPage: _items_per_page,
+		search: '',
+		headers: [
+			{ title: 'Date', key: 'dateString', align: 'start' },
+			{ title: 'Host', key: 'host', align: 'start' },
+			{ title: 'Score', key: 'host_score', align: 'start' },
+			{ title: 'Score', key: 'guest_score', align: 'start' },
+			{ title: 'Guest', key: 'guest', align: 'start' }
+		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
+		totalItems: 0,
+		loading: true,
+		searchedGuest: '',
+		searchedHost: '',
+		userProfile: {} as Player,
+		// user: {
+		// 	id: user.value.id,
+		// 	username: user.value.username
+		// }
+	}),
+	computed: {
+
+	},
+	async mounted() {
+		await this.getUserProfile()
+	},
+	methods: {
+		async getUserProfile() {
+			let profileID : number = Number(this.$route.params.id)
+			profileID = 81841 // TODO change when route update
+			this.userProfile = await fetchPlayer.value(profileID);
+			// fetchPlayer.value(profileID)
+			// 	.then((targetUser : Player) => {this.userProfile = targetUser})
+			// 	.catch((err) => console.log(err))
+		},
+		async fetchData(options: { page: number; itemsPerPage: number }) {
+			this.loading = true
+			const start = (options.page - 1) * options.itemsPerPage
+			const end = start + options.itemsPerPage
+			try {
+				// await this.getUserProfile()
+				this.games = await fetchGames.value(this.userProfile.id)
+				this.games = this.games.filter((game) => {
+					if (
+						this.searchedGuest &&
+						false == game.guest.toLowerCase().includes(this.searchedGuest.toLowerCase())
+					)
+						return false
+					if (
+						this.searchedHost &&
+						false == game.host.toLowerCase().includes(this.searchedHost.toLowerCase())
+					)
+						return false
+					return true
+				})
+				this.games.sort((a: Game, b: Game) => {
+					return Date.parse(b.createdAt) - Date.parse(a.createdAt)
+				})
+				this.totalItems = this.games.length
+				this.games = this.games.slice(start, end)
+				this.loading = false
+			} catch (err) {
+				//TODO show toast
+				this.games = []
+				this.totalItems = 0
+				this.loading = false
+				console.log(err)
+			}
+		}
+	},
+	watch: {
+		searchedGuest: {
+			handler() {
+				this.search = String(Date.now())
+			},
+			immediate: true
+		},
+		searchedHost: {
+			handler() {
+				this.search = String(Date.now())
+			},
+			immediate: false
+		}
+	}
 }
-</style>
+</script>
 
 <template>
 	<v-card class="component">
@@ -53,91 +147,13 @@
 	</v-card>
 </template>
 
-<script lang="ts">
-import { usePlayerStore, type Game } from '@/stores/PlayerStore'
-import { storeToRefs } from 'pinia'
-import { VDataTableServer } from 'vuetify/labs/components'
-
-const { user, fetchGames } = storeToRefs(await usePlayerStore())
-const _items_per_page = 5
-
-//TODO
-//2.	add toast for data loading error
-//LATER_FOR_FRIENDS_TABLE3.	use web sockets (socket.io)
-//4.	clean the user store
-//TODO FIX and avoid using STORE
-export default {
-	components: {
-		VDataTableServer
-	},
-	data: () => ({
-		games: [] as Game[],
-		itemsPerPage: _items_per_page,
-		search: '',
-		headers: [
-			{ title: 'Date', key: 'dateString', align: 'start' },
-			{ title: 'Host', key: 'host', align: 'start' },
-			{ title: 'Score', key: 'host_score', align: 'start' },
-			{ title: 'Score', key: 'guest_score', align: 'start' },
-			{ title: 'Guest', key: 'guest', align: 'start' }
-		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
-		totalItems: 0,
-		loading: true,
-		searchedGuest: '',
-		searchedHost: '',
-		user: {
-			id: user.value.id,
-			username: user.value.username
-		}
-	}),
-	methods: {
-		async fetchData(options: { page: number; itemsPerPage: number }) {
-			this.loading = true
-			const start = (options.page - 1) * options.itemsPerPage
-			const end = start + options.itemsPerPage
-			try {
-				this.games = await fetchGames.value(this.user.id)
-				this.games = this.games.filter((game) => {
-					if (
-						this.searchedGuest &&
-						false == game.guest.toLowerCase().includes(this.searchedGuest.toLowerCase())
-					)
-						return false
-					if (
-						this.searchedHost &&
-						false == game.host.toLowerCase().includes(this.searchedHost.toLowerCase())
-					)
-						return false
-					return true
-				})
-				this.games.sort((a: Game, b: Game) => {
-					return Date.parse(b.createdAt) - Date.parse(a.createdAt)
-				})
-				this.totalItems = this.games.length
-				this.games = this.games.slice(start, end)
-				this.loading = false
-			} catch (err) {
-				//TODO show toast
-				this.games = []
-				this.totalItems = 0
-				this.loading = false
-				console.log(err)
-			}
-		}
-	},
-	watch: {
-		searchedGuest: {
-			handler() {
-				this.search = String(Date.now())
-			},
-			immediate: true
-		},
-		searchedHost: {
-			handler() {
-				this.search = String(Date.now())
-			},
-			immediate: false
-		}
-	}
+<style scoped>
+.component .v-table {
+	background-color: transparent;
 }
-</script>
+
+/* table title row */
+.v-table.v-table--fixed-header > .v-table__wrapper > table > thead > tr > th {
+	background-color: transparent;
+}
+</style>

@@ -1,28 +1,32 @@
 <script lang="ts">
-	import { usePlayerStore } from '@/stores/PlayerStore'
+	import { usePlayerStore, type Achievement } from '@/stores/PlayerStore'
 	import { storeToRefs } from 'pinia'
 
-	const { achievements } = storeToRefs(await usePlayerStore())
+	const playerStore = usePlayerStore()
+	const { fetchAchievements } = storeToRefs(playerStore)
 
 	export default {
 		components:	{
 		},
 		data: () => ({
-			achievements: achievements.value,
+			achievements: [] as Achievement[],
 			model: null,
 		}),
 		mounted() {
+			this.getAchievements()
 		},
 		methods : {
-
+			getAchievements() {
+				let Profileid : number = Number(this.$route.params.id)
+				Profileid = 81841 // TODO change when route update
+				fetchAchievements.value(Profileid)
+					.then((targetUser : Achievement[]) => {this.achievements = targetUser})
+					.catch((err) => console.log(err))
+			},
 		},
 	}
 </script>
 
-<!-- TODO add achievements to database -->
-<!-- TODO update pictures -->
-<!-- TODO update names -->
-<!-- TODO update descriptions -->
 <template>
 	<v-card class="component">
 		<v-card-title class="text-overline">Achievements</v-card-title>
