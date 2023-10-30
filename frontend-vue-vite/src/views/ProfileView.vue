@@ -22,34 +22,34 @@ export default {
 			userVisitor: user.value,
 			userVisitorFriends: friends,
 			userProfile: {} as Player,
-			visibility: '', // ('MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile')
 		}
+	},
+	computed: {
+		visibility() : string {
+			if (this.userVisitor.id == this.userProfile.id)
+				return 'MyProfile'
+			else if (this.userVisitorFriends.includes(this.userProfile))
+				return 'FriendProfile'
+			// TODO ADD BLOCKED USER
+			else 
+				return 'PublicProfile'
+		},
 	},
 	methods: {
 		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 99696 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setVisibility()
-				})
-				.catch((err) => console.log(err))
+			let profileID : number = Number(this.$route.params.id)
+			// profileID = 99696 // public profile
+			// profileID = 2 // friend profile
+			if (!profileID || profileID == this.userVisitor.id) {
+				this.userProfile = this.userVisitor
+			}
+			else
+				fetchPlayer.value(profileID)
+					.then((targetUser : Player) => {
+						this.userProfile = targetUser;
+					})
+					.catch((err : Error) => console.log(err))
 		},
-		setVisibility() {
-			console.log('userVisitor : ' + this.userVisitor.id)
-			console.log('userProfile : ' + this.userProfile.id)
-
-			if (this.userVisitor.id == this.userProfile.id)
-				this.visibility = 'MyProfile'
-			else if (this.userVisitorFriends.includes(this.userProfile))
-				this.visibility = 'FriendProfile'
-			// TODO ADD BLOCKED USER
-			else 
-				this.visibility = 'PublicProfile'
-
-			console.log('VISIBILITY : ' + this.visibility)
-		}
 	},
 	mounted() {
 		this.getUserProfile()
@@ -59,52 +59,62 @@ export default {
 
 <template>
 	<div class="profile">
-		<!-- <NavSideBar /> -->
-			<v-card class="parent">
-				<p class="text-overline">Visibility : {{ visibility }}</p>
-				<div class="d-flex flex-row justify-space-between align-start">
-					<v-card class="pa-2 mx-3">
-						<p class="text-overline">Profile : </p>
-						<p class="text-caption">
-							{{ userProfile.username }}
-							| {{ userProfile.id }}
-							| {{ userProfile.firstName }}
-							| {{ userProfile.lastName }}
-						</p>
-					</v-card>
-					<v-card class="pa-2 mx-3">
-						<p class="text-overline">Visitor : </p>
-						<p class="text-caption">
-							{{ userVisitor.username }}
-							| {{ userVisitor.id }}
-							| {{ userVisitor.firstName }}
-							| {{ userVisitor.lastName }}
-						</p>
-					</v-card>
-				</div>
-				<v-card class="child1">
-				<v-card class="child2">
-					<UserCard />
+		<NavSideBar />
+		<v-card class="parent">
+			<p class="text-overline">Visibility : {{ visibility }}</p>
+			<div class="d-flex flex-row justify-space-between align-start">
+				<v-card class="pa-2 mx-3">
+					<p class="text-overline">Profile : </p>
+					<p class="text-caption">
+						{{ userProfile.username }}
+						| {{ userProfile.id }}
+						| {{ userProfile.firstName }}
+						| {{ userProfile.lastName }}
+					</p>
 				</v-card>
-			</v-card>
+				<v-card class="pa-2 mx-3">
+					<p class="text-overline">Visitor : </p>
+					<p class="text-caption">
+						{{ userVisitor.username }}
+						| {{ userVisitor.id }}
+						| {{ userVisitor.firstName }}
+						| {{ userVisitor.lastName }}
+					</p>
+				</v-card>
+			</div>
 			<v-card class="child1">
-				<v-card class="child2">
-					<Achievements
-						v-if="visibility == ('MyProfile' || 'FriendProfile')"
-					></Achievements>
-					<Suspense><MatchHistoryTable
-						v-if="visibility == ('MyProfile' || 'FriendProfile')"
-					></MatchHistoryTable></Suspense>
-				</v-card>
-				<v-card class="child2">
-					<AddFriend
-						v-if="visibility == 'MyProfile'"
-					></AddFriend>
-					<Friends
-						v-if="visibility == ('MyProfile' || 'FriendProfile')"
-					></Friends>
-				</v-card>
+			<v-card class="child2">
+				<UserCard
+					:userProfile="(userProfile as Player)"
+				></UserCard>
 			</v-card>
+		</v-card>
+		<v-card class="child1">
+			<v-card class="child2">
+
+				<Achievements
+					:userProfile="(userProfile as Player)"
+					v-if="visibility == ('MyProfile' || 'FriendProfile')"
+				></Achievements>
+
+				<Suspense><MatchHistoryTable
+					:userProfile="(userProfile as Player)"
+					v-if="visibility == ('MyProfile' || 'FriendProfile')"
+				></MatchHistoryTable></Suspense>
+
+			</v-card>
+			<v-card class="child2">
+
+				<AddFriend
+					v-if="visibility == 'MyProfile'"
+				></AddFriend>
+
+				<Friends
+					v-if="visibility == ('MyProfile')"
+				></Friends>
+
+			</v-card>
+		</v-card>
 		</v-card>
 	</div>
 </template>

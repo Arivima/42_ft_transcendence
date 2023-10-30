@@ -1,27 +1,48 @@
 <script lang="ts">
-	import { usePlayerStore, type Achievement } from '@/stores/PlayerStore'
+	import { usePlayerStore, type Achievement, type Player } from '@/stores/PlayerStore'
 	import { storeToRefs } from 'pinia'
 
 	const playerStore = usePlayerStore()
-	const { fetchAchievements } = storeToRefs(playerStore)
+	const { fetchAchievements, user, achievements } = storeToRefs(playerStore)
 
 	export default {
 		components:	{
 		},
+		props: {
+			userProfile: {
+				type: Object as () => Player,
+				required: true
+			},
+		},
 		data: () => ({
+			userVisitor: user.value as Player,
 			achievements: [] as Achievement[],
 			model: null,
+			loading: false,
 		}),
+		watch : {
+			userProfile(newValue : Player){
+				this.fetchAchievements(newValue.id)
+			},
+		},
 		mounted() {
-			this.getAchievements()
+			this.fetchAchievements(this.userProfile.id)
 		},
 		methods : {
-			getAchievements() {
-				let Profileid : number = Number(this.$route.params.id)
-				Profileid = 81841 // TODO change when route update
-				fetchAchievements.value(Profileid)
-					.then((targetUser : Achievement[]) => {this.achievements = targetUser})
-					.catch((err) => console.log(err))
+			fetchAchievements(id : number) {
+				this.loading = true
+				if (!id || id == this.userVisitor.id)
+					this.achievements = achievements.value //MY PROFILE
+				else
+					fetchAchievements.value(id)
+						.then((userAchievements : Achievement[]) => {
+							this.achievements = userAchievements
+							this.loading = false
+						})
+						.catch((err : Error) => {
+							console.log(err)
+							this.loading = false
+						})
 			},
 		},
 	}

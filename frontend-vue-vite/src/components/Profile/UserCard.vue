@@ -10,7 +10,7 @@ import ActionsFriendProfile from './UserCard/ActionsFriendProfile.vue'
 import ActionsMyProfile from './UserCard/ActionsMyProfile.vue'
 
 const playerStore = usePlayerStore()
-const { user, friends, fetchPlayer } = storeToRefs(playerStore)
+const { user, friends } = storeToRefs(playerStore)
 
 export default {
 	components: {
@@ -21,85 +21,71 @@ export default {
 		ActionsFriendProfile,
 		ActionsMyProfile,
 	},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
 	data() {
 		return {
-			// badgeColor: 'grey',
-			// profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
 			userVisitor: user.value,
 			userVisitorFriends: friends,
-			userProfile: {} as Player,
-			visibility: '', // ('MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile')
 		}
 	},
-	methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 99696 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setVisibility()
-				})
-				.catch((err) => console.log(err))
-		},
-		setVisibility() {
-			console.log('userVisitor : ' + this.userVisitor.id)
-			console.log('userProfile : ' + this.userProfile.id)
-
+	computed: {
+		visibility() : string {
 			if (this.userVisitor.id == this.userProfile.id)
-				this.visibility = 'MyProfile'
+				return 'MyProfile'
 			else if (this.userVisitorFriends.includes(this.userProfile))
-				this.visibility = 'FriendProfile'
+				return 'FriendProfile'
 			// TODO ADD BLOCKED USER
 			else 
-				this.visibility = 'PublicProfile'
-
-			console.log('VISIBILITY : ' + this.visibility)
+				return 'PublicProfile'
 		},
 	},
+	watch : {
+		// TODO ?
+		// 	userProfile(newValue : Player){
+		// 		this.fetchAchievements(newValue.id)
+		// 	},
+	},
+	methods: {
+	},
 	async mounted() {
-		this.getUserProfile()
-
-		// if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
-		// else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
-		// else this.badgeColor = 'grey'
 	}
 }
 </script>
 
 <template>
 	<v-card class="containerContent component" image="cats.jpg" rounded="1" variant="tonal">
-		<!-- <v-card class="itemAvatar" density="comfortable" variant="flat">
-			<v-badge bordered inline :color="badgeColor" :content="user.status">
-				<v-avatar size="130" rounded="1">
-					<v-img cover :src="user.avatar"></v-img>
-				</v-avatar>
-			</v-badge>
-			<div class="backgroundItem ma-3">
-				<v-card-item
-					:title="user.username"
-					:subtitle="user.firstName + ' ' + user.lastName"
-				>
-				</v-card-item>
-			</div>
-		</v-card> -->
 
-		<Avatar></Avatar>
-		<Stats></Stats>
+		<Avatar
+			:userProfile="userProfile"
+		></Avatar>
 
-			<!-- v-show="visibility == 'PublicProfile'" -->
-			<!-- v-show="visibility == 'FriendProfile'" -->
-			<!-- v-show="visibility == 'MyProfile'" -->
+		<Stats
+			:userProfile="userProfile"
+		></Stats>
+
 		<ActionsPublicProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'PublicProfile'"
 		></ActionsPublicProfile>
+
 		<ActionsFriendProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'FriendProfile'"
 		></ActionsFriendProfile>
+
 		<ActionsMyProfile
+			v-if="visibility == 'MyProfile'"
 		></ActionsMyProfile>
+
 		<!-- ADD BLOCKED PROFILE -->
 
 		<!-- // TODO -->
-		<Notifications v-show="visibility == 'MyProfile'"></Notifications>
+		<Notifications v-if="visibility == 'MyProfile'"></Notifications>
 
 	</v-card>
 </template>

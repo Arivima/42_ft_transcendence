@@ -27,7 +27,6 @@ export default {
 </script>
 
 <template>
-	<!-- v-if="`${profile}` === 'MyProfile'" -->
 	<v-card
 		class="itemActions itemActionsMyProfile"
 		density="compact"

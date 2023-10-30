@@ -3,12 +3,17 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { fetchPlayer, fetchGames } = storeToRefs(playerStore)
+const { fetchGames } = storeToRefs(playerStore)
 
 export default {
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
     data () {
         return {
-			userProfile: {} as Player,
 			stats: {
 				loading: false,
 				victories: 0,
@@ -18,16 +23,6 @@ export default {
         }
     },
     methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 99696 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setStats()
-				})
-				.catch((err) => console.log(err))
-		},
 		async setStats() {
 			this.stats.loading = true
 			// TODO : ADD IN DATABASE
@@ -52,7 +47,6 @@ export default {
 		}
 	},
     mounted (){
-		this.getUserProfile()
     },
 }
 </script>
