@@ -1,34 +1,123 @@
-<!-- PROFILE -->
+<script lang="ts">
+import { usePlayerStore, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
 
-<script setup lang="ts">
 import NavSideBar from '../components/NavSideBar.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
+
+
+const playerStore = usePlayerStore()
+const { user, friends, fetchPlayer } = storeToRefs(playerStore)
+
+export default {
+	components : {
+		NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements
+	},
+	data() {
+		return {
+			userVisitor: user.value,
+			userVisitorFriends: friends,
+			userProfile: {} as Player,
+		}
+	},
+	computed: {
+		visibility() : string {
+			if (this.userVisitor.id == this.userProfile.id)
+				return 'MyProfile'
+			else if (this.userVisitorFriends.includes(this.userProfile))
+				return 'FriendProfile'
+			// TODO ADD BLOCKED USER
+			else 
+				return 'PublicProfile'
+		},
+	},
+	methods: {
+		getUserProfile() {
+			let profileID : number = Number(this.$route.params.id)
+			if (!profileID || profileID == this.userVisitor.id) {
+				this.userProfile = this.userVisitor
+			}
+			else
+				fetchPlayer.value(profileID)
+					.then((targetUser : Player) => {
+						this.userProfile = targetUser;
+					})
+					.catch((err : Error) => console.log(err))
+		},
+	},
+	// watch : {
+	// 	userProfile(newValue : Player) {
+	// 		this.visibility()
+	// 	}
+	// },
+	mounted() {
+		this.getUserProfile()
+	},
+}
 </script>
 
 <template>
 	<div class="profile">
 		<NavSideBar />
 		<v-card class="parent">
+			<p class="text-overline">Visibility : {{ visibility }}</p>
+			<div class="d-flex flex-row justify-space-between align-start">
+				<v-card class="pa-2 mx-3">
+					<p class="text-overline">Profile : </p>
+					<p class="text-caption">
+						{{ userProfile.username }}
+						| {{ userProfile.id }}
+						| {{ userProfile.firstName }}
+						| {{ userProfile.lastName }}
+					</p>
+				</v-card>
+				<v-card class="pa-2 mx-3">
+					<p class="text-overline">Visitor : </p>
+					<p class="text-caption">
+						{{ userVisitor.username }}
+						| {{ userVisitor.id }}
+						| {{ userVisitor.firstName }}
+						| {{ userVisitor.lastName }}
+					</p>
+				</v-card>
+			</div>
 			<v-card class="child1">
-				<v-card class="child2">
-					<UserCard />
-				</v-card>
+			<v-card class="child2">
+				<UserCard
+					:userProfile="(userProfile as Player)"
+				></UserCard>
 			</v-card>
-			<v-card class="child1">
-				<v-card class="child2">
-					<Achievements />
-					<Suspense><MatchHistoryTable /></Suspense>
-					<!-- <MatchHistoryServer/>                 -->
-				</v-card>
-				<v-card class="child2">
-					<AddFriend />
-					<Friends />
-				</v-card>
+		</v-card>
+		<v-card class="child1">
+			<v-card class="child2">
+
+				<Achievements
+					:userProfile="(userProfile as Player)"
+					v-if="visibility == ('MyProfile' || 'FriendProfile')"
+				></Achievements>
+
+				<Suspense><MatchHistoryTable
+					:userProfile="(userProfile as Player)"
+					v-if="visibility == ('MyProfile' || 'FriendProfile')"
+				></MatchHistoryTable></Suspense>
+
 			</v-card>
+			<v-card class="child2">
+
+				<AddFriend
+					v-if="visibility == 'MyProfile'"
+				></AddFriend>
+
+				<Friends
+					v-if="visibility == ('MyProfile')"
+				></Friends>
+
+			</v-card>
+		</v-card>
 		</v-card>
 	</div>
 </template>

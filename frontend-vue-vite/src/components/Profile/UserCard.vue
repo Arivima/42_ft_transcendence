@@ -1,194 +1,130 @@
-<!-- Resources -->
-<!-- https://vuetifyjs.com/en/components/badges/ -->
-<!-- https://vuetifyjs.com/en/api/v-badge/#props -->
-
 <script lang="ts">
-import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
+import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import EditUserInfo from '../Utils/EditUserInfo.vue'
-import Dialog2FA from './Dialog2FA.vue'
-import DialogEdit from './DialogEdit.vue'
 
-const { user } = storeToRefs(await usePlayerStore())
+import Notifications from './Notifications.vue'
+import Avatar from './UserCard/Avatar.vue'
+import Stats from './UserCard/Stats.vue'
+import ActionsPublicProfile from './UserCard/ActionsPublicProfile.vue'
+import ActionsFriendProfile from './UserCard/ActionsFriendProfile.vue'
+import ActionsMyProfile from './UserCard/ActionsMyProfile.vue'
+
+const playerStore = usePlayerStore()
+const { user, friends } = storeToRefs(playerStore)
+
 export default {
-	components : {
-		EditUserInfo, Dialog2FA, DialogEdit,
+	components: {
+		Notifications,
+		Avatar,
+		Stats,
+		ActionsPublicProfile,
+		ActionsFriendProfile,
+		ActionsMyProfile,
+	},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
 	},
 	data() {
 		return {
-			user: user,
-			badgeColor: 'grey',
-			enabled2fa: true, /*TODO*/
-			profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
-			stats: {
-				victories: 5,
-				losses: 2,
-				ladder: 2.5
-			},
-			dialogEdit: false,
+			userVisitor: user.value,
+			userVisitorFriends: friends,
 		}
 	},
-	methods : {
+	computed: {
+		visibility() : string {
+			console.log('userVisitor id: ' + this.userVisitor.id )
+			console.log('userProfile id: ' + this.userProfile.id )
+			console.log('typeof userVisitor : ' + this.userVisitor)
+			console.log('typeof userProfile : ' + this.userProfile)
+			console.log('typeof userVisitorFriends : ' + this.userVisitorFriends)
+			console.log('typeof userVisitorFriends[0] : ' + this.userVisitorFriends[0])
+			console.log('are friends : ' + this.userProfile.my_friend)
+			console.log('are friends : ' + this.userProfile.my_friend)
+			
+			let profileType = '';
+			if (this.userVisitor.id == this.userProfile.id)
+				profileType = 'MyProfile'
+			else if (this.userVisitorFriends[this.userProfile.id] )
+				profileType = 'FriendProfile'
+			// TODO ADD BLOCKED USER
+			else 
+				profileType = 'PublicProfile'
+			return profileType
+		},
 	},
-	mounted() {
-		if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
-		else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
-		else this.badgeColor = 'grey'
+	watch : {
+		// TODO ?
+		// 	userProfile(newValue : Player){
+		// 		this.fetchAchievements(newValue.id)
+		// 	},
+	},
+	methods: {
+	},
+	async mounted() {
 	}
 }
 </script>
 
 <template>
-	<v-card class="containerContent component" image="cats.jpg" rounded="1" variant="tonal">
-		<v-card class="itemAvatar" density="comfortable" variant="flat">
-			<v-badge bordered inline :color="badgeColor" :content="user.status">
-				<v-avatar size="130" rounded="1">
-					<v-img cover :src="user.avatar"></v-img>
-				</v-avatar>
-			</v-badge>
-			<div class="backgroundItem ma-3">
-				<v-card-item
-					:title="user.username"
-					:subtitle="user.firstName + ' ' + user.lastName"
-				>
-				</v-card-item>
-			</div>
+	<p class="text-overline">Visibility : {{ visibility }}</p>
+	<div class="d-flex flex-row justify-space-between align-start">
+		<v-card class="pa-2 mx-3">
+			<p class="text-overline">Profile : </p>
+			<p class="text-caption">
+				{{ userProfile.username }}
+				| {{ userProfile.id }}
+				| {{ userProfile.firstName }}
+				| {{ userProfile.lastName }}
+			</p>
 		</v-card>
-
-		<v-card class="itemStats backgroundItem" density="compact" variant="flat">
-			<v-card-title class="text-overline">Stats</v-card-title>
-			<v-card-item
-				prepend-icon="mdi-trophy"
-				:title="String(stats.victories)"
-				subtitle="victories"
-			>
-			</v-card-item>
-
-			<v-card-item
-				class=""
-				prepend-icon="mdi-trophy-broken"
-				:title="String(stats.losses)"
-				subtitle="losses"
-			>
-			</v-card-item>
-
-			<v-card-item
-				class=""
-				prepend-icon="mdi-sword-cross"
-				:title="String(stats.ladder)"
-				subtitle="ladder lvl"
-			>
-			</v-card-item>
+		<v-card class="pa-2 mx-3">
+			<p class="text-overline">Visitor : </p>
+			<p class="text-caption">
+				{{ userVisitor.username }}
+				| {{ userVisitor.id }}
+				| {{ userVisitor.firstName }}
+				| {{ userVisitor.lastName }}
+				| {{ userVisitorFriends }}
+			</p>
 		</v-card>
+	</div>
+	<v-card
+		class="containerContent component"
+		image="cats.jpg"
+		rounded="1"
+		variant="tonal"
+	>
 
-			<!-- v-if="`${profile}` === 'PublicProfile'" -->
-		<v-card
-			class="itemActions itemActionsPublicProfile"
-			density="compact"
-			variant="flat"
-			title="View : Public Profile"
-		>
-			<v-btn
-				value="add"
-				:text="'Add ' + `${user.firstName}` + 'as friend'"
-				to="/game"
-				prepend-icon="mdi-account-plus"
-				block
-			>
-			</v-btn>
-		</v-card>
+		<Avatar
+			:userProfile="userProfile"
+		></Avatar>
 
-			<!-- v-if="`${profile}` === 'FriendProfile'" -->
-		<v-card
-			class="itemActions itemActionsFriendProfile"
-			density="compact"
-			variant="flat"
-			title="View : Friend Profile"
-		>
-				<!-- v-if="`${user.status}` === 'online'" -->
-			<v-btn
-				value="play"
-				:text="'Play with ' + `${user.firstName}`"
-				to="/game"
-				prepend-icon="mdi-controller"
-				block
-			>
-			</v-btn>
-				<!-- v-if="`${user.status}` === 'online'" -->
-			<v-btn
-				value="chat"
-				:text="'Chat with ' + `${user.firstName}`"
-				to="/chat"
-				prepend-icon="mdi-chat"
-				block
-			>
-			</v-btn>
-				<!-- v-if="`${user.status}` === 'playing'" -->
-			<v-btn
-				value="watch"
-				:text="'Watch ' + `${user.firstName}` + '\'s game'"
-				to="/game"
-				prepend-icon="mdi-play"
-				block
-			>
-			</v-btn>
+		<Stats
+			:userProfile="userProfile"
+		></Stats>
 
-			<v-btn
-				value="remove"
-				:text="'Remove ' + `${user.firstName}`"
-				to="/chat"
-				prepend-icon="mdi-account-remove"
-				block
-			>
-			</v-btn>
-			<v-btn
-				value="block"
-				:text="'Block ' + `${user.firstName}`"
-				to="/chat"
-				prepend-icon="mdi-account-cancel"
-				block
-			>
-			</v-btn>
-		</v-card>
+		<ActionsPublicProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'PublicProfile'"
+		></ActionsPublicProfile>
 
-			<!-- v-if="`${profile}` === 'MyProfile'" -->
-		<v-card
-			class="itemActions itemActionsMyProfile"
-			density="compact"
-			variant="flat"
-			width="fit-content"
-			title="View : My Profile"
-		>
-			<v-btn
-				value="enable2FA"
-				v-show="!user.twofaSecret"
-				prepend-icon="mdi-shield-lock"
-				class="ma-0 mb-1"
-				block
-			>
-				Enable 2FA
-				<Dialog2FA mode="enable"></Dialog2FA>
-			</v-btn>
-			<v-btn
-				value="disable2FA"
-				v-show="user.twofaSecret"
-				prepend-icon="mdi-shield-remove-outline"
-				class="ma-0 mb-1"
-				block
-			>
-				Disable 2FA
-				<Dialog2FA mode="disable"></Dialog2FA>
-			</v-btn>
-			<v-btn
-				value="editProfile"
-				prepend-icon="mdi-pencil"
-				class="ma-0 mb-1"
-				block
-			>
-				Edit profile
-				<DialogEdit ></DialogEdit>
-			</v-btn>
-		</v-card>
+		<ActionsFriendProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'FriendProfile'"
+		></ActionsFriendProfile>
+
+		<ActionsMyProfile
+			v-if="visibility == 'MyProfile'"
+		></ActionsMyProfile>
+
+		<!-- ADD BLOCKED PROFILE -->
+
+		<!-- // TODO -->
+		<Notifications v-if="visibility == 'MyProfile'"></Notifications>
+
 	</v-card>
 </template>
 
@@ -202,35 +138,6 @@ export default {
 	/* justify-items: stretch; */
 	/* height: 100%; */
 	/* width: 100%; */
-}
-
-.itemAvatar {
-	display: flex;
-	flex-direction: column;
-	margin: 1%;
-	padding: 1%;
-	/* outline: solid; */
-	/* background-color: aquamarine; */
-	background-color: transparent;
-}
-.itemStats {
-	display: flex;
-	flex-direction: column;
-	margin: 1%;
-	padding: 1%;
-	outline: solid;
-	outline-color: antiquewhite;
-	/* background-color: rgb(36, 176, 129); */
-	background-color: transparent;
-}
-.itemActions {
-	display: flex;
-	flex-direction: column;
-	margin: 1%;
-	padding: 1%;
-	/* outline: solid; */
-	/* background-color: rgb(13, 114, 78); */
-	background-color: transparent;
 }
 
 .containerContent .v-btn {
@@ -255,14 +162,5 @@ export default {
 	width: fit-content;
 	outline: solid;
 	outline-color: antiquewhite;
-}
-
-.itemAvatar .v-avatar {
-	outline: solid;
-	outline-color: antiquewhite;
-}
-
-.itemAvatar .v-badge__badge {
-	color: antiquewhite !important;
 }
 </style>

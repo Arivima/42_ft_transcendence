@@ -1,28 +1,53 @@
 <script lang="ts">
-	import { usePlayerStore } from '@/stores/PlayerStore'
+	import { usePlayerStore, type Achievement, type Player } from '@/stores/PlayerStore'
 	import { storeToRefs } from 'pinia'
 
-	const { achievements } = storeToRefs(await usePlayerStore())
+	const playerStore = usePlayerStore()
+	const { fetchAchievements, user, achievements } = storeToRefs(playerStore)
 
 	export default {
 		components:	{
 		},
+		props: {
+			userProfile: {
+				type: Object as () => Player,
+				required: true
+			},
+		},
 		data: () => ({
-			achievements: achievements.value,
+			userVisitor: user.value as Player,
+			achievements: [] as Achievement[],
 			model: null,
+			loading: false,
 		}),
+		watch : {
+			userProfile(newValue : Player){
+				this.fetchAchievements(newValue.id)
+			},
+		},
 		mounted() {
+			this.fetchAchievements(this.userProfile.id)
 		},
 		methods : {
-
+			fetchAchievements(id : number) {
+				this.loading = true
+				if (!id || id == this.userVisitor.id)
+					this.achievements = achievements.value //MY PROFILE
+				else
+					fetchAchievements.value(id)
+						.then((userAchievements : Achievement[]) => {
+							this.achievements = userAchievements
+							this.loading = false
+						})
+						.catch((err : Error) => {
+							console.log(err)
+							this.loading = false
+						})
+			},
 		},
 	}
 </script>
 
-<!-- TODO add achievements to database -->
-<!-- TODO update pictures -->
-<!-- TODO update names -->
-<!-- TODO update descriptions -->
 <template>
 	<v-card class="component">
 		<v-card-title class="text-overline">Achievements</v-card-title>

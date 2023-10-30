@@ -2,7 +2,7 @@ import { fileURLToPath, URL } from 'node:url'
 
 import vue from '@vitejs/plugin-vue'
 import { defineConfig, loadEnv } from 'vite'
-
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // https://vitejs.dev/config/
 export default defineConfig(({command, mode}) => {
@@ -19,6 +19,7 @@ export default defineConfig(({command, mode}) => {
       },
     },
     plugins: [
+      nodePolyfills(),
       vue(),
     ],
     resolve: {

@@ -52,12 +52,19 @@ kill: fclean
 	done;
 	docker system prune -a -f
 
-env:
-	@printf $(BOLDCYAN)"Makefile: Setting-up env files\n"$(RESET)
-	cp './env/.env_backend-nest' './backend-nest/.env' 
-	cp './env/.env_backend-nest_prisma' './backend-nest/prisma/.env' 
-	cp './env/.env_frontend-vue-vite' './frontend-vue-vite/.env'
+env_local:
+	@printf $(BOLDCYAN)"Makefile: Setting-up env files for a local build\n"$(RESET)
+	./env/docker_env local
 	@printf $(BOLDCYAN)"\n"$(RESET)
+
+env_docker:
+	@printf $(BOLDCYAN)"Makefile: Setting-up env files for a docker build\n"$(RESET)
+	./env/docker_env docker
+	@printf $(BOLDCYAN)"\n"$(RESET)
+
+local: env_local up
+
+docker: env_docker up
 
 start: env connect 
 

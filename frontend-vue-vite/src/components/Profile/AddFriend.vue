@@ -1,13 +1,19 @@
-<!-- Friends -->
+<script lang="ts">
+	import SearchBar from '../Utils/SearchBar.vue'
 
-<style scoped>
-.component {
-	max-width:  100%;
-	max-height:  100%;
-	width: fit-content;
-}
+	export default {
+		components:	{
+			SearchBar
+		},
+		data: () => ({
+			showBar: false,
+		}),
+		mounted() {
+		},
+	}
+</script>
+  
 
-</style>
 
 <template>
 	<v-card
@@ -36,20 +42,13 @@
 		</v-card-item>
 
 	</v-card>
-  </template>
-  
-<script lang="ts">
-	import SearchBar from '../Utils/SearchBar.vue'
+</template>
 
-	export default {
-		components:	{
-			SearchBar
-		},
-		data: () => ({
-			showBar: false,
-		}),
-		mounted() {
-		},
-	}
-</script>
-  
+<style scoped>
+.component {
+	max-width:  100%;
+	max-height:  100%;
+	width: fit-content;
+}
+
+</style>

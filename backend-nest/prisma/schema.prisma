@@ -130,10 +130,10 @@ model Subscribed {
 }
 
 model	BeFriends {
-	are_friends				Boolean
-	pending_friendship		Boolean
-	requestor_blacklisted	Boolean
-	recipient_blacklisted	Boolean
+	are_friends				Boolean	@default(false)
+	pending_friendship		Boolean	@default(true)
+	requestor_blacklisted	Boolean	@default(false)
+	recipient_blacklisted	Boolean	@default(false)
 
 	requestor				Player @relation("SendFriendship", fields: [requestorID], references: [id])
 	requestorID				Int
