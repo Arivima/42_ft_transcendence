@@ -25,9 +25,9 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	constructor(
 		private readonly frienshipsService: FrienshipsService,
 		private readonly jwtService: JwtService
-		) {
-			this.clients = new Map<number, Socket>();
-		}
+	) {
+		this.clients = new Map<number, Socket>();
+	}
 
 	//TODO add JWT guard -- && understand how to reuse the jwt guard and check wether we are on http or websockets
 	@Public()
@@ -52,13 +52,14 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			const requestor = await this.frienshipsService.createFrienshipRequest(userID, recipientID);
 			
 			// https://socket.io/docs/v3/rooms/#default-room
-			this.server.to(`Socket#${this.clients[recipientID]}`).emit('newFriendShipRequest', {
+			this.server.to(`${this.clients[recipientID].id}`).emit('newFriendShipRequest', {
 				requestorID: requestor.requestorID,
+				requestorUsername: requestor.requestorUsername,
 				requestorAvatar: requestor.requestorAvatar
 			})
 		}
 		catch(error) {
-			this.server.to(`Socket#${this.clients[recipientID]}`).emit('frienship-error', {
+			this.server.to(`${this.clients[recipientID].id}`).emit('frienship-error', {
 				msg: error.toString(),
 				requestorID: userID,
 				recipientID: recipientID,
@@ -72,18 +73,12 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			@MessageBody('id') userID: number,
 			@ConnectedSocket() socket: Socket
 	) {
-		console.log('Ws: findAllFrienshipRequests EVENT');
-		console.log(`socket: ${socket.id}`);
 		try {
 			const friendshipRequests = await this.frienshipsService.findAllFrienshipRequests(userID);
 
 			this.server.to(`${socket.id}`).emit('friendship-requests', {
 				requests: friendshipRequests
 			});
-			friendshipRequests.forEach((el) => {
-				console.log(`request from ${el.requestorID}`);
-			})
-			console.log("findAllFrienshipRequests data sent")
 		}
 		catch(error) {
 			this.server.to(`${socket.id}`).emit('frienship-error', {
@@ -91,7 +86,6 @@ export class FrienshipsGateway implements OnGatewayConnection {
 				requestorID: userID,
 				recipientID: NaN
 			});
-			console.log("findAllFrienshipRequests Error sent")
 		}
 	}
 
@@ -106,26 +100,26 @@ export class FrienshipsGateway implements OnGatewayConnection {
 					.updateFrienshipRequest(updateFrienshipDto);
 
 			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.requestorID]}`)
+				.to(`${this.clients[updateFrienshipDto.requestorID].id}`)
 				.emit('update-friendship-request', {
 					...updatedRecord
 			});
 			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.recipientID]}`)
+				.to(`${this.clients[updateFrienshipDto.recipientID].id}`)
 				.emit('update-friendship-request', {
 				...updatedRecord
 			});
 		}
 		catch (error) {
 			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.requestorID]}`)
+				.to(`${this.clients[updateFrienshipDto.requestorID].id}`)
 				.emit('friendship-error', {
 					msg: error.toString(),
 					requestorID: updateFrienshipDto.requestorID,
 					recipientID: updateFrienshipDto.recipientID
 			});
 			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.recipientID]}`)
+				.to(`${this.clients[updateFrienshipDto.recipientID].id}`)
 				.emit('friendship-error', {
 					msg: error.toString(),
 					requestorID: updateFrienshipDto.requestorID,

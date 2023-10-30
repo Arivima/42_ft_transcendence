@@ -15,38 +15,6 @@ export default defineComponent({
             user: user,
 			count: 0,
 			notificationList: notifications
-			// notificationList: [
-			// 	{
-			// 		username: 'pippo',
-			// 		avatar: user.value.avatar,
-			// 		status: 'pending', // pending | loading | accepted | rejected
-			// 	},
-			// 	{
-			// 		username: 'pluto',
-			// 		avatar: user.value.avatar,
-			// 		status: 'pending', // pending | loading | accepted | rejected
-			// 	},
-			// 	{
-			// 		username: 'paperino',
-			// 		avatar: user.value.avatar,
-			// 		status: 'pending', // pending | loading | accepted | rejected
-			// 	},
-			// 	{
-			// 		username: 'topolino',
-			// 		avatar: user.value.avatar,
-			// 		status: 'pending', // pending | loading | accepted | rejected
-			// 	},
-			// 	{
-			// 		username: 'paperone',
-			// 		avatar: user.value.avatar,
-			// 		status: 'pending', // pending | loading | accepted | rejected
-			// 	},
-			// 	{
-			// 		username: 'paperinellaawsefwfefwf',
-			// 		avatar: user.value.avatar,
-			// 		status: 'pending', // pending | loading | accepted | rejected
-			// 	}
-			// ] as FriendRequest[]
 		}
 	},
 	methods: {
@@ -116,7 +84,7 @@ export default defineComponent({
 				v-for="(item, index) in notificationList"
 				:key="index"
 				:value="index"
-				:title="item.requestorID"
+				:title="item.requestorUsername"
 				:prepend-avatar="item.requestorAvatar"
 				density="compact"
 				class="px-2"
