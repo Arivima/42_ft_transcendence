@@ -47,7 +47,11 @@ export default {
 		}
 	},
     mounted (){
+		this.setStats();
     },
+	// beforeUpdate() {
+	// 	this.setStats();
+	// },
 }
 </script>
 

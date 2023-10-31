@@ -1,29 +1,52 @@
 <script lang="ts">
-	import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
-	import { storeToRefs } from 'pinia'
-	import SearchBar from '../Utils/SearchBar.vue'
+import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
+import SearchBar from '../Utils/SearchBar.vue'
 
-	const playerStore = usePlayerStore()
-	const { friends } = storeToRefs(playerStore)
+const playerStore = usePlayerStore()
+const { friends } = storeToRefs(playerStore)
 
-	export default {
-		components:	{
-			SearchBar
-		},
-		data: () => ({
-			badgeColor: 'grey',
-			items: friends.value,
-		}),
-		mounted() {
-		},
-		methods : {
-			getBadgeColor(status : PlayerStatus) : string {
-				if (status == PlayerStatus.online) return 'green'
-				else if (status == PlayerStatus.playing) return 'blue'
-				else return 'grey'			
-			}
-		},
-	}
+export default {
+	components:	{
+		SearchBar
+	},
+	data: () => ({
+		badgeColor: 'grey',
+		items: friends.value as Player[],
+	}),
+	methods : {
+		getBadgeColor(status : PlayerStatus) : string {
+			console.log('| Friends | methods | getBadgeColor()')
+			if (status == PlayerStatus.online) return 'green'
+			else if (status == PlayerStatus.playing) return 'blue'
+			else return 'grey'			
+		}
+	},
+	beforeCreate() {
+		console.log('| Friends | beforeCreate()')
+	},
+	created() {
+		console.log('| Friends | created()')
+	},
+	beforeMount() {
+		console.log('| Friends | beforeMount()')
+	},
+	mounted() {
+		console.log('| Friends | mounted()')
+	},
+	beforeUpdate() {
+		console.log('| Friends | beforeUpdate()')
+	},
+	updated() {
+		console.log('| Friends | updated()')
+	},
+	beforeUnmount() {
+		console.log('| Friends | beforeUnmount()')
+	},
+	unmounted() {
+		console.log('| Friends | unmounted()')
+	},
+}
 </script>
 
 <template>
@@ -41,12 +64,13 @@
 		>
 			<template v-slot:default="{ item }">
 				<v-list-item
-					:title="`${item.username}`" 
-					:subtitle="`${item.status}`"
-					:to="{ name: 'profile' }"
+					:title="item.username" 
+					:subtitle="item.status"
+					:to="{ name: 'profile', params: { id: item.id } }"
 					class=" ma-1 pa-2 rounded-pill"
-					variant="elevated"
+					variant="text"
 				>
+				
 					<template v-slot:prepend>
 						<v-badge dot :color="getBadgeColor(item.status)">
 							<v-avatar

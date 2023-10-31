@@ -128,6 +128,9 @@ export class PlayersService {
 		const friends = [];
 		for (const friendID of friendsIDs) {
 			friends.push(await this.findOne(friendID));
+			// const friend = await this.findOne(friendID);
+			// friend.avatar = `/players/avatar/${friendID}`;
+			// friends.push();
 		}
 
 		return friends;

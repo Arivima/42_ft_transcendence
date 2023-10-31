@@ -4,8 +4,6 @@ import * as dotenv from 'dotenv';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 
-// import { CorsOptions } from '@nestjs/platform-express/interfaces/cors-options.interface';
-
 dotenv.config({ path: '../.env' });
 
 async function bootstrap() {
@@ -37,6 +35,7 @@ async function bootstrap() {
 		.build();
 	const document = SwaggerModule.createDocument(app, config);
 	SwaggerModule.setup('api', app, document);
+	// app.useWebSocketAdapter(new WsAdapter(app));
 
 	await app.listen(3000);
 }

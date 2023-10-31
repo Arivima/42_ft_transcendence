@@ -52,12 +52,11 @@ export default {
 		class="itemActions itemActionsFriendProfile"
 		density="compact"
 		variant="flat"
-		title="View : Friend Profile"
 	>
 		<!-- v-if="`${userProfile.status}` === 'online'" -->
 		<v-btn
 			:text="'Play with ' + `${userProfile.firstName}`"
-			to="/game"
+			:to="{ name: 'profile', params: { id: userProfile.id } }"
 			prepend-icon="mdi-controller"
 			block
 		>
@@ -65,7 +64,7 @@ export default {
 		<!-- v-if="`${userProfile.status}` === 'online'" -->
 		<v-btn
 			:text="'Chat with ' + `${userProfile.firstName}`"
-			to="/chat"
+			:to="{ name: 'profile', params: { id: userProfile.id } }"
 			prepend-icon="mdi-chat"
 			block
 		>
@@ -73,7 +72,7 @@ export default {
 		<!-- v-if="`${userProfile.status}` === 'playing'" -->
 		<v-btn
 			:text="'Watch ' + `${userProfile.firstName}` + '\'s game'"
-			to="/game"
+			:to="{ name: 'profile', params: { id: userProfile.id } }"
 			prepend-icon="mdi-play"
 			block
 		>
