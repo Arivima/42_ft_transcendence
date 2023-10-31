@@ -32,7 +32,6 @@ export default {
 		density="compact"
 		variant="flat"
 		width="fit-content"
-		title="View : My Profile"
 	>
 		<v-btn
 			value="enable2FA"

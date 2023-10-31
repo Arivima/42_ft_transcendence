@@ -50,11 +50,34 @@ export default defineComponent({
 	},
 	watch: {
     },
+
+	beforeCreate() {
+		console.log('| Notifications | beforeCreate()')
+	},
+	created() {
+		console.log('| Notifications | created()')
+	},
+	beforeMount() {
+		console.log('| Notifications | beforeMount()')
+	},
 	mounted() {
+		console.log('| Notifications | mounted()')
 		// this.notificationList = this.notificationList
 		this.notificationList = notifications;
 		this.setNotificationsCount()
-    }
+    },
+	beforeUpdate() {
+		console.log('| Notifications | beforeUpdate()')
+	},
+	updated() {
+		console.log('| Notifications | updated()')
+	},
+	beforeUnmount() {
+		console.log('| Notifications | beforeUnmount()')
+	},
+	unmounted() {
+		console.log('| Notifications | unmounted()')
+	},
 })
 </script>
 

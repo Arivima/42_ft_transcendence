@@ -1,6 +1,7 @@
 <script lang="ts">
 import { usePlayerStore, type Game, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
+import { VCardText } from 'vuetify/components'
 import { VDataTableServer } from 'vuetify/labs/components'
 
 const playerStore = usePlayerStore()
@@ -14,8 +15,9 @@ const _items_per_page = 5
 //TODO FIX and avoid using STORE
 export default {
 	components: {
-		VDataTableServer
-	},
+    VDataTableServer,
+    VCardText
+},
 	props: {
 		userProfile: {
 			type: Object as () => Player,
@@ -40,6 +42,7 @@ export default {
 	}),
 	methods: {
 		async fetchData(options: { page: number; itemsPerPage: number }) {
+			console.log('| MatchHistoyTable | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
 			this.loading = true
 			const start = (options.page - 1) * options.itemsPerPage
 			const end = start + options.itemsPerPage
@@ -75,10 +78,10 @@ export default {
 		}
 	},
 	watch: {
-		// TODO ?
-		// userProfile(newValue : Player){
-		// 	this.fetchData()
-		// },
+		userProfile(newValue : Player){
+			console.log('| MatchHistoyTable | watch | userProfile : new value : ' + newValue.username)
+			this.fetchData({page: 1 , itemsPerPage :  this.itemsPerPage})
+		},
 		searchedGuest: {
 			handler() {
 				this.search = String(Date.now())
@@ -91,7 +94,31 @@ export default {
 			},
 			immediate: false
 		}
-	}
+	},
+	beforeCreate() {
+		console.log('| MatchHistoyTable | beforeCreate()')
+	},
+	created() {
+		console.log('| MatchHistoyTable | created()')
+	},
+	beforeMount() {
+		console.log('| MatchHistoyTable | beforeMount()')
+	},
+	mounted() {
+		console.log('| MatchHistoyTable | mounted()')
+	},
+	beforeUpdate() {
+		console.log('| MatchHistoyTable | beforeUpdate()')
+	},
+	updated() {
+		console.log('| MatchHistoyTable | updated()')
+	},
+	beforeUnmount() {
+		console.log('| MatchHistoyTable | beforeUnmount()')
+	},
+	unmounted() {
+		console.log('| MatchHistoyTable | unmounted()')
+	},
 }
 </script>
 
@@ -108,32 +135,32 @@ export default {
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
-			class="elevation-1"
+			class="elevation-1 text-caption"
 			@update:options="fetchData"
+
+			density="compact"
+			hover
 		>
 			<template v-slot:tfoot>
-				<tr style="display: flex; width: 200%">
-					<td>
+				<div class="d-flex">
 						<v-text-field
 							v-model="searchedHost"
 							hide-details
-							placeholder="host..."
-							class="ma-2"
+							placeholder="search host"
+							class="mr-1 mt-1 text-caption"
 							type="string"
 							density="compact"
+							
 						></v-text-field>
-					</td>
-					<td>
 						<v-text-field
 							v-model="searchedGuest"
 							hide-details
-							placeholder="guest..."
-							class="ma-2"
+							placeholder="search guest"
+							class="ml-1 mt-1 text-caption "
 							type="string"
 							density="compact"
 						></v-text-field>
-					</td>
-				</tr>
+				</div>
 			</template>
 		</v-data-table-server>
 	</v-card>

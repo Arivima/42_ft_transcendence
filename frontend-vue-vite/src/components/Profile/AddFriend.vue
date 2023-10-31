@@ -1,15 +1,37 @@
 <script lang="ts">
-	import SearchBar from '../Utils/SearchBar.vue'
+import SearchBar from '../Utils/SearchBar.vue'
 
-	export default {
-		components:	{
-			SearchBar
-		},
-		data: () => ({
-			showBar: false,
-		}),
-		mounted() {
-		},
+export default {
+	components:	{
+		SearchBar
+	},
+	data: () => ({
+		showBar: false,
+	}),
+	beforeCreate() {
+	console.log('| AddFriends | beforeCreate()')
+	},
+	created() {
+		console.log('| AddFriends | created()')
+	},
+	beforeMount() {
+		console.log('| AddFriends | beforeMount()')
+	},
+	mounted() {
+		console.log('| AddFriends | mounted()')
+	},
+	beforeUpdate() {
+		console.log('| AddFriends | beforeUpdate()')
+	},
+	updated() {
+		console.log('| AddFriends | updated()')
+	},
+	beforeUnmount() {
+		console.log('| AddFriends | beforeUnmount()')
+	},
+	unmounted() {
+		console.log('| AddFriends | unmounted()')
+	},
 	}
 </script>
   

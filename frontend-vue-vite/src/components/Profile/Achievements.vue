@@ -1,50 +1,74 @@
 <script lang="ts">
-	import { usePlayerStore, type Achievement, type Player } from '@/stores/PlayerStore'
-	import { storeToRefs } from 'pinia'
+import { usePlayerStore, type Achievement, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
 
-	const playerStore = usePlayerStore()
-	const { fetchAchievements, user, achievements } = storeToRefs(playerStore)
+const playerStore = usePlayerStore()
+const { fetchAchievements, user, achievements } = storeToRefs(playerStore)
 
-	export default {
-		components:	{
+export default {
+	components:	{
+	},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
 		},
-		props: {
-			userProfile: {
-				type: Object as () => Player,
-				required: true
-			},
+	},
+	data: () => ({
+		userVisitor: user.value as Player,
+		achievements: [] as Achievement[],
+		model: null,
+		loading: false,
+	}),
+	watch : {
+		userProfile(newValue : Player){
+			console.log('| Achievements | watch | userProfile : new value : ' + newValue.username)
+			this.fetchAchievements(newValue.id)
 		},
-		data: () => ({
-			userVisitor: user.value as Player,
-			achievements: [] as Achievement[],
-			model: null,
-			loading: false,
-		}),
-		watch : {
-			userProfile(newValue : Player){
-				this.fetchAchievements(newValue.id)
-			},
+	},
+	methods : {
+		fetchAchievements(id : number) {
+			console.log('| Achievements | methods | fetchAchievements()')
+			this.loading = true
+			if (!id || id == this.userVisitor.id)
+				this.achievements = achievements.value //MY PROFILE
+			else
+				fetchAchievements.value(id)
+					.then((userAchievements : Achievement[]) => {
+						this.achievements = userAchievements
+						this.loading = false
+					})
+					.catch((err : Error) => {
+						console.log(err)
+						this.loading = false
+					})
 		},
-		mounted() {
-			this.fetchAchievements(this.userProfile.id)
-		},
-		methods : {
-			fetchAchievements(id : number) {
-				this.loading = true
-				if (!id || id == this.userVisitor.id)
-					this.achievements = achievements.value //MY PROFILE
-				else
-					fetchAchievements.value(id)
-						.then((userAchievements : Achievement[]) => {
-							this.achievements = userAchievements
-							this.loading = false
-						})
-						.catch((err : Error) => {
-							console.log(err)
-							this.loading = false
-						})
-			},
-		},
+	},
+	beforeCreate() {
+	console.log('| Achievements | beforeCreate()')
+	},
+	created() {
+		console.log('| Achievements | created()')
+	},
+	beforeMount() {
+		console.log('| Achievements | beforeMount()')
+		this.fetchAchievements(this.userProfile.id)
+	},
+	mounted() {
+		console.log('| Achievements | mounted()')
+	},
+	beforeUpdate() {
+		console.log('| Achievements | beforeUpdate()')
+	},
+	updated() {
+		console.log('| Achievements | updated()')
+	},
+	beforeUnmount() {
+		console.log('| Achievements | beforeUnmount()')
+	},
+	unmounted() {
+		console.log('| Achievements | unmounted()')
+	},
 	}
 </script>
 

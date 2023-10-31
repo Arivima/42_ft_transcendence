@@ -1,14 +1,49 @@
-<!-- APP -->
-
-<script setup lang="ts">
+<script lang="ts">
 import { RouterView } from 'vue-router'
-import TmpTab from './components/TmpTab.vue'
+
+export default {
+	components : {
+	},
+	data() {
+		return {
+		}
+	},
+	computed: {
+	},
+	methods: {
+	},
+
+	beforeCreate() {
+		console.log('| APP | beforeCreate()')
+	},
+	created() {
+		console.log('| APP | created()')
+	},
+	beforeMount() {
+		console.log('| APP | beforeMount()')
+	},
+	mounted() {
+		console.log('| APP | mounted()')
+	},
+	beforeUpdate() {
+		console.log('| APP | beforeUpdate()')
+	},
+	updated() {
+		console.log('| APP | updated()')
+	},
+	beforeUnmount() {
+		console.log('| APP | beforeUnmount()')
+	},
+	unmounted() {
+		console.log('| APP | unmounted()')
+	},
+}
 </script>
 
 <template>
 	<v-app>
 		<v-main>
-				<RouterView></RouterView>
+			<RouterView></RouterView>
 		</v-main>
 	</v-app>
 </template>

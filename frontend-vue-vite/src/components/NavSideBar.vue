@@ -1,25 +1,18 @@
 <!-- TODO
 - overall size on the page
-- bigger avatar and icons
-- script link to database to show user info
 -->
 
 <script lang="ts">
-import { usePlayerStore } from '@/stores/PlayerStore'
+import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
-const playerStore = await usePlayerStore()
+const playerStore = usePlayerStore()
 const { user } = storeToRefs(playerStore)
 
 export default {
 	data() {
 		return {
-			user: {
-				username: user.value.username,
-				firstName: user.value.firstName,
-				familyName: user.value.lastName,
-				avatar: user.value.avatar,
-			},
+			user: user.value as Player
 		}
 	},
 	methods : {
@@ -33,9 +26,6 @@ export default {
 				console.log(err)
 			}
 		}
-	},
-	async mounted() {
-
 	},
 }
 </script>

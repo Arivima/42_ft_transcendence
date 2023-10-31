@@ -35,7 +35,6 @@ export default {
 		class="itemActions itemActionsPublicProfile"
 		density="compact"
 		variant="flat"
-		title="View : Public Profile"
 	>
 		<v-btn
 			value="add"

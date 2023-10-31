@@ -15,6 +15,7 @@ export default {
     },
 	computed: {
 		badgeColor() : string {
+			console.log('| Avatar | computed : badgeColor')
 			if (this.userProfile.status == PlayerStatus.playing)
 				return 'blue'
 			else if (this.userProfile.status == PlayerStatus.online)
@@ -22,11 +23,16 @@ export default {
 			else
 				return 'grey'
 		},
+		avatar() : string {
+			console.log('| Avatar | computed : avatar')
+			return this.userProfile.avatar
+		},
 	},
-    methods: {
+	watch : {
+		userProfile(newValue : Player) {
+			console.log('| Avatar | watch | userProfile : new value : ' + newValue.username)
+		},
 	},
-    mounted (){
-    },
 }
 </script>
 
@@ -34,7 +40,7 @@ export default {
 		<v-card class="itemAvatar" density="comfortable" variant="flat">
 			<v-badge bordered inline :color="badgeColor" :content="userProfile.status">
 				<v-avatar size="130" rounded="1">
-					<v-img cover :src="userProfile.avatar"></v-img>
+					<v-img cover :src="avatar"></v-img>
 				</v-avatar>
 			</v-badge>
 			<div class="backgroundItem ma-3">

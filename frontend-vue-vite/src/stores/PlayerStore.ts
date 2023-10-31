@@ -80,6 +80,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			friends: Player[]
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
+			fetchFriends: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
 			achievements: Achievement[],
 			notifications: {requestorID: number, requestorAvatar: string}[],
@@ -89,6 +90,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				friends: [],
 				fetchGames: fetchGames,
 				fetchPlayer: fetchPlayer,
+				fetchFriends: fetchFriends,
 				fetchAchievements: fetchAchievements,
 				achievements: [],
 				notifications: [],
@@ -97,12 +99,12 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		},
 		actions: {
 			async fetchData(token: string) {
+				console.log("/Store/ usePlayerStore.fetchData()")
 				if (false == this.loading)
 					return this.user
 				axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + token
 				const player = (await axios.get('players/me')).data
 				try {
-					console.log('fetching data in store');
 					this.user = {
 						...player,
 						token: token,
@@ -134,11 +136,14 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 								: PlayerStatus.online /* playing | online | offline */,
 						my_friend: true
 					}))
+					// this.friends.forEach(async (friend) => {
+					// 	friend.avatar = await fetchAvatar(friend.avatar);
+					// })
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
 					).data
 					this.loading = false;
-					console.log('loading set to false');
+					console.log('/Store/ usePlayerStore.fetchData() : loading set to false');
 				} catch (_) {
 					console.log('axios failed inside user store')
 					console.log(this.user)
@@ -148,6 +153,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			async fetchAvatar(): Promise<string> {
+				console.log("/Store/ usePlayerStore.fetchAvatar()");
 				try {
 					const response = await axios.get(this.user.avatar, {
 						responseType: 'arraybuffer'
@@ -161,12 +167,27 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				}
 			},
 
+			visibility(id : number) : string {
+				console.log("/Store/ usePlayerStore.visibility()");
+				
+				let profileType = 'PublicProfile';
+				for (const friend of this.friends) {
+					if (friend.id == id)
+						profileType = 'FriendProfile'
+				}
+				// TODO ADD BLOCKED USER
+				if (id == this.user.id)
+					profileType = 'MyProfile'
+				return profileType
+			},
 
 			getToken(): string | null {
+				console.log("/Store/ usePlayerStore.getToken()");
 				return this.user.token;
 			},
 
 			async logout(): Promise<void> {
+				console.log("/Store/ usePlayerStore.logout()");
 				await axios.delete('auth/42')
 				localStorage.removeItem(import.meta.env.JWT_KEY);
 				this.user = emptyUser
@@ -175,6 +196,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 	});
 
 async function fetchGames(id: number): Promise<Game[]> {
+	console.log("/Store/ fetchGames()");
 	const games = (await axios.get(`players/games/${id}`, { params: { limit: Infinity } })).data
 
 	const gamesDateReadable = games.map((game: any) => {
@@ -191,7 +213,7 @@ async function fetchGames(id: number): Promise<Game[]> {
 }
 
 function fillNotifications(this: any, data: {requests: {requestorID: number, requestorAvatar: string}[]}) {
-	console.log("Ws: findAllFriendships ack");
+	console.log("/Store/ fillNotifications() Ws: findAllFriendships ack");
 	data.requests.forEach((request) => {
 		console.log(`requestorID: ${request.requestorID}, requestorAvatar: ${request.requestorAvatar}`);
 	})
@@ -205,6 +227,7 @@ function fillNotifications(this: any, data: {requests: {requestorID: number, req
 }
 
 async function notificationsError(this: any, data: {msg: string, requestorID: number, recipientID: number}) {
+	console.log("/Store/ notificationsError()");
 	console.log(
 		`frienship-error: {\n
 			msg: ${data.msg},\n
@@ -214,6 +237,7 @@ async function notificationsError(this: any, data: {msg: string, requestorID: nu
 	);
 }
 async function fetchPlayer(id: number): Promise<Player> {
+	console.log("/Store/ fetchPlayer()");
 	let player : Player = (await axios.get(`players/${id}`)).data
 	let user : Player = emptyUser
 	try {
@@ -234,13 +258,20 @@ async function fetchPlayer(id: number): Promise<Player> {
 	return user
 }
 
+async function fetchFriends(id: number): Promise<Player[]> {
+	console.log("/Store/ fetchFriends()");
+	const friends : Promise<Player[]> = (await axios.get(`players/friends/${id}`)).data
+	return friends
+}
 
 async function fetchAchievements(id: number): Promise<Achievement[]> {
+	console.log("/Store/ fetchAchievements()");
 	const achievements : Promise<Achievement[]> = (await axios.get(`players/achievements/${id}`)).data
 	return achievements
 }
 
 async function fetchAvatar(avatar: string): Promise<string> {
+	console.log("/Store/ fetchAvatar()");
 	try {
 		const response = await axios.get(avatar, {
 			responseType: 'arraybuffer'
