@@ -12,41 +12,30 @@ export default defineComponent({
 	},
 	data() {
 		return {
-            user: user,
-			count: 0,
+			user: user,
 			notificationList: notifications
 		}
 	},
 	methods: {
-		setNotificationsCount(){
-			this.count = this.notificationList.length;
-		},
 		acceptFriend(request : FriendRequest){
 			request.status = 'loading'
-			setTimeout(() => {
-				// axios.post(friendship/accept)
-				//(this delete the entry from the request list)
-				// if ok
-				request.status = 'accepted'
-			}, 5000);
-			this.deleteRequest(request)
+
+			playerStore.sendFriendshipConsent(request.requestorID);
 		},
 		rejectFriend(request : FriendRequest){
 			request.status = 'loading'
-			setTimeout(() => {
-				request.status = 'rejected'
-			}, 5000);
-			this.deleteRequest(request)
+
+			playerStore.sendFriendshipRejection(request.requestorID);
 		},
-		deleteRequest(request : FriendRequest){
-			setTimeout(() => {
-				const id = this.notificationList.findIndex((el: any) => el == request);
-				// const id = this.notificationList.findIndex(el => el === request);
-				this.notificationList.splice(id, 1);
-				// this.notificationList.splice(id, 1);	
-				this.setNotificationsCount()
-			}, 20000);
-		},
+		// deleteRequest(request : FriendRequest){
+		// 	setTimeout(() => {
+		// 		const id = this.notificationList.findIndex((el: any) => el == request);
+		// 		// const id = this.notificationList.findIndex(el => el === request);
+		// 		this.notificationList.splice(id, 1);
+		// 		// this.notificationList.splice(id, 1);	
+		// 		//DELETED this.setNotificationsCount()
+		// 	}, 20000);
+		// },
 	},
 	watch: {
     },
@@ -86,7 +75,7 @@ export default defineComponent({
 	<v-menu max-height="150" :close-on-content-click=Boolean(false)>
 		<template v-slot:activator="{ props }">
 			<v-badge
-				:content=count
+				:content=notificationList.length
 				color="error"
 			>
 				<v-btn

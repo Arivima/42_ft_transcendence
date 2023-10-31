@@ -281,12 +281,12 @@ INSERT INTO "BeFriends" (
 	"recipientID"
 )
 VALUES (
+	false,
 	true,
 	false,
 	false,
-	false,
-	99696,
-	2
+	2,
+	99696
 )
 ON CONFLICT DO NOTHING;
 

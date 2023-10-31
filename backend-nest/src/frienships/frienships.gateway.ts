@@ -95,36 +95,43 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		@MessageBody() updateFrienshipDto: UpdateFrienshipDto,
 	) {
 		try {
+			console.log('updateFrienshipRequest --INIT')
 			const updatedRecord
 				= await this.frienshipsService
 					.updateFrienshipRequest(updateFrienshipDto);
 
-			this.server
-				.to(`${this.clients[updateFrienshipDto.requestorID].id}`)
-				.emit('update-friendship-request', {
+			if (this.clients.has(Number(updateFrienshipDto.requestorID)))
+				this.server
+					.to(`${this.clients[Number(updateFrienshipDto.requestorID)].id}`)
+					.emit('update-friendship-request', {
+						...updatedRecord
+				});
+			if (this.clients.has(Number(updateFrienshipDto.recipientID))) {
+				console.log("SENDING ACK TO RECIPIENT")
+				this.server
+					.to(`${this.clients[Number(updateFrienshipDto.recipientID)].id}`)
+					.emit('update-friendship-request', {
 					...updatedRecord
-			});
-			this.server
-				.to(`${this.clients[updateFrienshipDto.recipientID].id}`)
-				.emit('update-friendship-request', {
-				...updatedRecord
-			});
+				});
+			}
+			console.log('updateFrienshipRequest --END')
 		}
 		catch (error) {
-			this.server
-				.to(`${this.clients[updateFrienshipDto.requestorID].id}`)
-				.emit('friendship-error', {
-					msg: error.toString(),
-					requestorID: updateFrienshipDto.requestorID,
-					recipientID: updateFrienshipDto.recipientID
-			});
-			this.server
-				.to(`${this.clients[updateFrienshipDto.recipientID].id}`)
-				.emit('friendship-error', {
-					msg: error.toString(),
-					requestorID: updateFrienshipDto.requestorID,
-					recipientID: updateFrienshipDto.recipientID
-			});
+			throw error;
+			// this.server
+			// 	.to(`${this.clients[Number(updateFrienshipDto.requestorID)].id}`)
+			// 	.emit('friendship-error', {
+			// 		msg: error.toString(),
+			// 		requestorID: updateFrienshipDto.requestorID,
+			// 		recipientID: updateFrienshipDto.recipientID
+			// });
+			// this.server
+			// 	.to(`${this.clients[Number(updateFrienshipDto.recipientID)].id}`)
+			// 	.emit('friendship-error', {
+			// 		msg: error.toString(),
+			// 		requestorID: updateFrienshipDto.requestorID,
+			// 		recipientID: updateFrienshipDto.recipientID
+			// });
 		}
 	}
 }

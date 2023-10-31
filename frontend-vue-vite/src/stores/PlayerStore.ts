@@ -24,9 +24,10 @@ export enum PlayerStatus {
 }
 
 export interface FriendRequest {
-	username: string
-	avatar: string
-	status: string
+	requestorID: number
+	requestorUsername: string
+	requestorAvatar: string
+	status: 'loading' | 'accepted' | 'rejected'
 }
 
 export interface Player {
@@ -83,7 +84,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			fetchFriends: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
 			achievements: Achievement[],
-			notifications: {requestorID: number, requestorAvatar: string}[],
+			notifications: {requestorID: number, requestorUsername: string, requestorAvatar: string}[],
 		} => {
 			return {
 				user: emptyUser,
@@ -98,6 +99,59 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			}
 		},
 		actions: {
+
+			sendFriendshipConsent(requestorID: number) {
+				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
+					bearerID: this.user.id,
+					recipientID: this.user.id,
+					requestorID: requestorID,
+					are_friends: true,
+					pending_friendship: false,
+					requestor_blacklisted: false,
+					recipient_blacklisted: false,
+				});
+			},
+
+			sendFriendshipRejection(requestorID: number) {
+				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
+					bearerID: this.user.id,
+					recipientID: this.user.id,
+					requestorID: requestorID,
+					are_friends: false,
+					pending_friendship: false,
+					requestor_blacklisted: false,
+					recipient_blacklisted: false,
+				});
+			},
+
+			updateNotifications(
+				data: {
+					are_friends: boolean,
+					pending_friendship: boolean,
+					requestor_blacklisted: boolean,
+					recipient_blacklisted: boolean,
+					requestorID: number,
+					recipientID: number,
+				}
+			)
+			{
+				console.log('update-friendship-request emitted from the server');
+				if (true == data.are_friends)
+				{
+					if (this.user.id == data.recipientID)
+					{
+						console.log('deleting friendship')
+						const requestID = this.notifications.findIndex((request) =>
+							data.requestorID == request.requestorID
+						);
+
+						if (-1 != requestID)
+							this.notifications.splice(requestID, 1);
+					}
+				}
+			},
+			
+
 			async fetchData(token: string) {
 				console.log("/Store/ usePlayerStore.fetchData()")
 				if (false == this.loading)
@@ -124,6 +178,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.avatar = await this.fetchAvatar();
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', notificationsError.bind(this));
+					this.user.notificationsSocket?.on('update-friendship-request', this.updateNotifications.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
 					this.friends = this.friends.map((friend) => ({
@@ -212,16 +267,22 @@ async function fetchGames(id: number): Promise<Game[]> {
 	return gamesDateReadable
 }
 
-function fillNotifications(this: any, data: {requests: {requestorID: number, requestorAvatar: string}[]}) {
+function fillNotifications(this: any, data: {requests: {requestorID: number, requestorUsername: string, requestorAvatar: string}[]}) {
 	console.log("/Store/ fillNotifications() Ws: findAllFriendships ack");
 	data.requests.forEach((request) => {
-		console.log(`requestorID: ${request.requestorID}, requestorAvatar: ${request.requestorAvatar}`);
+		console.log(`
+			requestorUsername: ${request.requestorUsername},
+			requestorID: ${request.requestorID},
+			requestorAvatar: ${request.requestorAvatar}
+		`);
 	})
 	this.notifications.splice(0);
 	data.requests.forEach((el) => {
 		this.notifications.push({
 			requestorID: el.requestorID,
-			requestorAvatar: el.requestorAvatar
+			requestorUsername: el.requestorUsername,
+			requestorAvatar: el.requestorAvatar,
+			status: 'pending'
 		});
 	})
 }

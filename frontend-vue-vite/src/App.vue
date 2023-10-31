@@ -110,6 +110,7 @@ export default {
 	outline: solid;
 	outline-color: antiquewhite;
 }
+
 .component {
 	padding: 2%;
 	margin: 2%;
