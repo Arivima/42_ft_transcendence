@@ -134,19 +134,16 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			)
 			{
 				console.log('update-friendship-request emitted from the server');
-				if (true == data.are_friends)
+				if (this.user.id == data.recipientID && false == data.pending_friendship)
 				{
-					if (this.user.id == data.recipientID)
-					{
-						console.log('deleting friendship')
-						const requestID = this.notifications.findIndex((request) =>
-							data.requestorID == request.requestorID
-						);
-
-						if (-1 != requestID)
-							this.notifications.splice(requestID, 1);
-					}
+					const requestID = this.notifications.findIndex((request) =>
+						data.requestorID == request.requestorID
+					);
+						
+					if (-1 != requestID)
+						this.notifications.splice(requestID, 1);
 				}
+				//TODO handle all other kinds of update events: blocked user, etc. (look into db table to think about all possibilities)
 			},
 			
 
@@ -175,8 +172,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					}
 					this.user.avatar = await this.fetchAvatar();
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
-					this.user.notificationsSocket?.on('frienship-error', notificationsError.bind(this));
 					this.user.notificationsSocket?.on('update-friendship-request', this.updateNotifications.bind(this));
+					this.user.notificationsSocket?.on('frienship-error', notificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
 					this.friends = this.friends.map((friend) => ({
