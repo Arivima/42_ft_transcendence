@@ -53,7 +53,7 @@ export default defineComponent({
 		console.log('| Notifications | mounted()')
 		// this.notificationList = this.notificationList
 		this.notificationList = notifications;
-		this.setNotificationsCount()
+		// this.setNotificationsCount()
     },
 	beforeUpdate() {
 		console.log('| Notifications | beforeUpdate()')
