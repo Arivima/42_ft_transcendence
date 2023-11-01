@@ -52,15 +52,17 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			const requestor = await this.frienshipsService.createFrienshipRequest(userID, recipientID);
 			
 			// https://socket.io/docs/v3/rooms/#default-room
-			this.server.to(`${this.clients[recipientID].id}`).emit('newFriendShipRequest', {
+			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('new-friendship-request', {
 				requestorID: requestor.requestorID,
 				requestorUsername: requestor.requestorUsername,
 				requestorAvatar: requestor.requestorAvatar
 			})
 		}
 		catch(error) {
-			this.server.to(`${this.clients[recipientID].id}`).emit('frienship-error', {
-				msg: error.toString(),
+			const msg: string = `new-friendship-request: ${error.toString()}`;
+
+			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('frienship-error', {
+				msg: msg,
 				requestorID: userID,
 				recipientID: recipientID,
 			})
@@ -71,18 +73,20 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	@SubscribeMessage('findAllFrienshipRequests')
 	async findAllFrienshipRequests(
 			@MessageBody('id') userID: number,
-			@ConnectedSocket() socket: Socket
+			@ConnectedSocket() requestorSocket: Socket
 	) {
 		try {
 			const friendshipRequests = await this.frienshipsService.findAllFrienshipRequests(userID);
 
-			this.server.to(`${socket.id}`).emit('friendship-requests', {
+			this.server.to(`${requestorSocket.id}`).emit('friendship-requests', {
 				requests: friendshipRequests
 			});
 		}
 		catch(error) {
-			this.server.to(`${socket.id}`).emit('frienship-error', {
-				msg: error.toString(),
+			const msg: string = `friendship-requests: ${error.toString()}`;
+
+			this.server.to(`${requestorSocket.id}`).emit('frienship-error', {
+				msg: msg,
 				requestorID: userID,
 				recipientID: NaN
 			});
@@ -94,44 +98,43 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	async updateFrienshipRequest(
 		@MessageBody() updateFrienshipDto: UpdateFrienshipDto,
 	) {
+
 		try {
-			console.log('updateFrienshipRequest --INIT')
 			const updatedRecord
 				= await this.frienshipsService
 					.updateFrienshipRequest(updateFrienshipDto);
 
-			if (this.clients.has(Number(updateFrienshipDto.requestorID)))
+			if (this.clients.has(Number(updateFrienshipDto.requestorID))) {
 				this.server
-					.to(`${this.clients[Number(updateFrienshipDto.requestorID)].id}`)
+					.to(`${this.clients.get(Number(updateFrienshipDto.requestorID)).id}`)
 					.emit('update-friendship-request', {
 						...updatedRecord
 				});
+			}
 			if (this.clients.has(Number(updateFrienshipDto.recipientID))) {
-				console.log("SENDING ACK TO RECIPIENT")
 				this.server
-					.to(`${this.clients[Number(updateFrienshipDto.recipientID)].id}`)
+					.to(`${this.clients.get(Number(updateFrienshipDto.recipientID)).id}`)
 					.emit('update-friendship-request', {
 					...updatedRecord
 				});
 			}
-			console.log('updateFrienshipRequest --END')
 		}
 		catch (error) {
-			throw error;
-			// this.server
-			// 	.to(`${this.clients[Number(updateFrienshipDto.requestorID)].id}`)
-			// 	.emit('friendship-error', {
-			// 		msg: error.toString(),
-			// 		requestorID: updateFrienshipDto.requestorID,
-			// 		recipientID: updateFrienshipDto.recipientID
-			// });
-			// this.server
-			// 	.to(`${this.clients[Number(updateFrienshipDto.recipientID)].id}`)
-			// 	.emit('friendship-error', {
-			// 		msg: error.toString(),
-			// 		requestorID: updateFrienshipDto.requestorID,
-			// 		recipientID: updateFrienshipDto.recipientID
-			// });
+			const msg: string = `update-friendship-request: ${error.toString()}`;
+			this.server
+				.to(`${this.clients.get(Number(updateFrienshipDto.requestorID)).id}`)
+				.emit('friendship-error', {
+					msg: msg,
+					requestorID: updateFrienshipDto.requestorID,
+					recipientID: updateFrienshipDto.recipientID
+			});
+			this.server
+				.to(`${this.clients.get(Number(updateFrienshipDto.recipientID)).id}`)
+				.emit('friendship-error', {
+					msg: msg,
+					requestorID: updateFrienshipDto.requestorID,
+					recipientID: updateFrienshipDto.recipientID
+			});
 		}
 	}
 }
