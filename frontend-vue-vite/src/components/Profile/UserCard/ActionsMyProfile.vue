@@ -6,6 +6,7 @@ import DialogEdit from '../DialogEdit.vue'
 
 const playerStore = usePlayerStore()
 const { user } = storeToRefs(playerStore)
+const debug = false
 
 export default {
 	components: {
@@ -14,15 +15,15 @@ export default {
 	},
     data () {
         return {
-			user: user,
 			loading: false,
         }
     },
-    methods: {
-
+	computed : {
+		twofaSecret() : string {
+			if (debug) console.log('| ActionsMyProfile | computed | twofaSecret')
+			return user.value.twofaSecret
+		}
 	},
-    mounted (){
-    },
 }
 </script>
 
@@ -35,7 +36,7 @@ export default {
 	>
 		<v-btn
 			value="enable2FA"
-			v-show="!user.twofaSecret"
+			v-show="!twofaSecret"
 			prepend-icon="mdi-shield-lock"
 			class="ma-0 mb-1"
 			block
@@ -45,7 +46,7 @@ export default {
 		</v-btn>
 		<v-btn
 			value="disable2FA"
-			v-show="user.twofaSecret"
+			v-show="twofaSecret"
 			prepend-icon="mdi-shield-remove-outline"
 			class="ma-0 mb-1"
 			block

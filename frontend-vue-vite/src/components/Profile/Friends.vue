@@ -5,6 +5,7 @@ import SearchBar from '../Utils/SearchBar.vue'
 
 const playerStore = usePlayerStore()
 const { friends } = storeToRefs(playerStore)
+const debug = false
 
 export default {
 	components:	{
@@ -16,35 +17,35 @@ export default {
 	}),
 	methods : {
 		getBadgeColor(status : PlayerStatus) : string {
-			console.log('| Friends | methods | getBadgeColor()')
+			if (debug) console.log('| Friends | methods | getBadgeColor()')
 			if (status == PlayerStatus.online) return 'green'
 			else if (status == PlayerStatus.playing) return 'blue'
 			else return 'grey'			
 		}
 	},
 	beforeCreate() {
-		console.log('| Friends | beforeCreate()')
+		if (debug) console.log('| Friends | beforeCreate()')
 	},
 	created() {
-		console.log('| Friends | created()')
+		if (debug) console.log('| Friends | created(' + (this.items.length) + ')')
 	},
 	beforeMount() {
-		console.log('| Friends | beforeMount()')
+		if (debug) console.log('| Friends | beforeMount(' + (this.items.length) + ')')
 	},
 	mounted() {
-		console.log('| Friends | mounted()')
+		if (debug) console.log('| Friends | mounted(' + (this.items.length) + ')')
 	},
 	beforeUpdate() {
-		console.log('| Friends | beforeUpdate()')
+		if (debug) console.log('| Friends | beforeUpdate(' + (this.items.length) + ')')
 	},
 	updated() {
-		console.log('| Friends | updated()')
+		if (debug) console.log('| Friends | updated(' + (this.items.length) + ')')
 	},
 	beforeUnmount() {
-		console.log('| Friends | beforeUnmount()')
+		if (debug) console.log('| Friends | beforeUnmount(' + (this.items.length) + ')')
 	},
 	unmounted() {
-		console.log('| Friends | unmounted()')
+		if (debug) console.log('| Friends | unmounted(' + (this.items.length) + ')')
 	},
 }
 </script>
@@ -70,11 +71,10 @@ export default {
 					class=" ma-1 pa-2 rounded-pill"
 					variant="text"
 				>
-				
 					<template v-slot:prepend>
 						<v-badge dot :color="getBadgeColor(item.status)">
 							<v-avatar
-								:image="`${item.avatar}`" 
+								:image="item.avatar" 
 							>
 							</v-avatar>
 						</v-badge>

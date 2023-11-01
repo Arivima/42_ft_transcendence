@@ -1,6 +1,12 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import axios from 'axios'
+import { usePlayerStore } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
+
+const playerStore = usePlayerStore()
+const { user } = storeToRefs(playerStore)
+const debug = true
 
 export default defineComponent({
 	components: {
@@ -60,26 +66,37 @@ export default defineComponent({
 			this.errorUsername = true
 			this.errorMessageUsername = message
 		},
-		sendUsername(){
+		// NEW
+		async sendUsername(){
+			if (debug) console.log('| DialogEdit | methods | sendUsername()')
 			this.loadingUsername = true
 
 			axios
-				.put(`players/me/username`, {
-						data : {
+				.patch(`players/me`, 
+						 {
 							username : this.username
 						}
-					}
+					
 				)
-				.then(() => {
+				.then(async () => {
+					// await playerStore.updateUsername()
+					// .then(() =>
+					// 	())
+					// .catch((error : any)  => {
+					// 	this.displayErrorUsername('Error: Server internal error.')
+					// 	console.log(error)
+					// })
 					this.displaySuccessUsername("Successfully uploaded a new username !")
+					this.loadingUsername = false
 				})
-				.catch((error) => {
+				.catch((error : any) => {
 					this.displayErrorUsername('Error: Server internal error.')
 					console.log(error)
 				})
 				.finally(() => (this.loadingUsername = false))
 		},
 		sendAvatar(){
+			if (debug) console.log('| DialogEdit | methods | sendAvatar()')
 			this.loadingAvatar = true
 
 			let formData = new FormData();
@@ -93,6 +110,7 @@ export default defineComponent({
 					}
 				)
 				.then(() => {
+					playerStore.updateAvatar()
 					this.displaySuccessAvatar("Successfully uploaded a new avatar picture !")
 				})
 				.catch((error) => {

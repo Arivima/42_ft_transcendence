@@ -11,6 +11,7 @@ import ActionsMyProfile from './UserCard/ActionsMyProfile.vue'
 
 const playerStore = usePlayerStore()
 const { user, friends } = storeToRefs(playerStore)
+const debug = false
 
 export default {
 	components: {
@@ -35,47 +36,47 @@ export default {
 	},
 	computed: {
 		visibility() : string {
-			console.log('| UserCard | computed : visibility')
+			if (debug) console.log('| UserCard | computed : visibility')
 			let profileType = playerStore.visibility(this.userProfile.id);
 			return profileType
 		},
 	},
 	watch : {
 		userVisitor(newValue : Player) {
-			console.log('| UserCard | watch | userVisitor : new value : ' + newValue.username)
+			if (debug) console.log('| UserCard | watch | userVisitor : new value : ' + newValue.username)
 		},
 		userVisitorFriends(newValue : Player[]) {
-			console.log('| UserCard | watch | userVisitorFriends : new length : ' + newValue.length)
+			if (debug) console.log('| UserCard | watch | userVisitorFriends : new length : ' + newValue.length)
 		},
 		userProfile(newValue : Player) {
-			console.log('| UserCard | watch | userProfile : new value : ' + newValue.username)
+			if (debug) console.log('| UserCard | watch | userProfile : new value : ' + newValue.username)
 		},
 	},
 	methods: {
 	},
 	beforeCreate() {
-		console.log('| UserCard | beforeCreate()')
+		if (debug) console.log('| UserCard | beforeCreate()')
 	},
 	created() {
-		console.log('| UserCard | created()')
+		if (debug) console.log('| UserCard | created(' + (this.userProfile.id) + ')')
 	},
 	beforeMount() {
-		console.log('| UserCard | beforeMount()')
+		if (debug) console.log('| UserCard | beforeMount(' + (this.userProfile.id) + ')')
 	},
 	mounted() {
-		console.log('| UserCard | mounted()')
+		if (debug) console.log('| UserCard | mounted(' + (this.userProfile.id) + ')')
 	},
 	beforeUpdate() {
-		console.log('| UserCard | beforeUpdate()')
+		if (debug) console.log('| UserCard | beforeUpdate(' + (this.userProfile.id) + ')')
 	},
 	updated() {
-		console.log('| UserCard | updated()')
+		if (debug) console.log('| UserCard | updated(' + (this.userProfile.id) + ')')
 	},
 	beforeUnmount() {
-		console.log('| UserCard | beforeUnmount()')
+		if (debug) console.log('| UserCard | beforeUnmount(' + (this.userProfile.id) + ')')
 	},
 	unmounted() {
-		console.log('| UserCard | unmounted()')
+		if (debug) console.log('| UserCard | unmounted(' + (this.userProfile.id) + ')')
 	},
 }
 </script>

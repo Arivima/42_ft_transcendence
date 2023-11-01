@@ -1,5 +1,6 @@
 <script lang="ts">
 import SearchBar from '../Utils/SearchBar.vue'
+const debug = false
 
 export default {
 	components:	{
@@ -9,28 +10,28 @@ export default {
 		showBar: false,
 	}),
 	beforeCreate() {
-	console.log('| AddFriends | beforeCreate()')
+	if (debug) console.log('| AddFriends | beforeCreate()')
 	},
 	created() {
-		console.log('| AddFriends | created()')
+		if (debug) console.log('| AddFriends | created()')
 	},
 	beforeMount() {
-		console.log('| AddFriends | beforeMount()')
+		if (debug) console.log('| AddFriends | beforeMount()')
 	},
 	mounted() {
-		console.log('| AddFriends | mounted()')
+		if (debug) console.log('| AddFriends | mounted()')
 	},
 	beforeUpdate() {
-		console.log('| AddFriends | beforeUpdate()')
+		if (debug) console.log('| AddFriends | beforeUpdate()')
 	},
 	updated() {
-		console.log('| AddFriends | updated()')
+		if (debug) console.log('| AddFriends | updated()')
 	},
 	beforeUnmount() {
-		console.log('| AddFriends | beforeUnmount()')
+		if (debug) console.log('| AddFriends | beforeUnmount()')
 	},
 	unmounted() {
-		console.log('| AddFriends | unmounted()')
+		if (debug) console.log('| AddFriends | unmounted()')
 	},
 	}
 </script>

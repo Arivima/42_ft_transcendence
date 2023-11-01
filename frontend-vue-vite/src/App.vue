@@ -1,5 +1,6 @@
 <script lang="ts">
 import { RouterView } from 'vue-router'
+const debug = false
 
 export default {
 	components : {
@@ -14,28 +15,28 @@ export default {
 	},
 
 	beforeCreate() {
-		console.log('| APP | beforeCreate()')
+		if (debug) console.log('| APP | beforeCreate()')
 	},
 	created() {
-		console.log('| APP | created()')
+		if (debug) console.log('| APP | created()')
 	},
 	beforeMount() {
-		console.log('| APP | beforeMount()')
+		if (debug) console.log('| APP | beforeMount()')
 	},
 	mounted() {
-		console.log('| APP | mounted()')
+		if (debug) console.log('| APP | mounted()')
 	},
 	beforeUpdate() {
-		console.log('| APP | beforeUpdate()')
+		if (debug) console.log('| APP | beforeUpdate()')
 	},
 	updated() {
-		console.log('| APP | updated()')
+		if (debug) console.log('| APP | updated()')
 	},
 	beforeUnmount() {
-		console.log('| APP | beforeUnmount()')
+		if (debug) console.log('| APP | beforeUnmount()')
 	},
 	unmounted() {
-		console.log('| APP | unmounted()')
+		if (debug) console.log('| APP | unmounted()')
 	},
 }
 </script>
