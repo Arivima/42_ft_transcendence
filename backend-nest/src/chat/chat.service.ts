@@ -9,38 +9,31 @@ export class ChatService {
   constructor(private readonly prisma: PrismaService) {}
 
   create(createChatDto: CreateChatDto) {
-    
     console.log(`DEBUG | chat.service | create | senderID: ${Number(createChatDto.senderID)}, receiverID: ${Number(createChatDto.receiverID)}`);
     createChatDto.senderID = Number(createChatDto.senderID);
     createChatDto.receiverID = Number(createChatDto.receiverID);
-    // let res = this.prisma.message.create({
-    //   data: {
-    //     content: createChatDto.content,
-    //     timestamp: createChatDto.created_at,
-    //     sender: {
-    //         connect: {
-    //             id: createChatDto.senderID
-    //         }
-    //     },
-    //     receiver: {
-    //         connect: {
-    //             id: createChatDto.receiverID
-    //         }
-    //     },
-    //     receivers: {
-    //         connect: {
-    //           groupID: 0
-    //         }
-    //     },
-    
-    //   },
-    // });
-    // res.then((res) => {
-    //   console.log(`DEBUG | chat.service | create | res: ${res}`);
-    //   return res;
+    console.log(`DEBUG | chat.service | create | createChatDto: ${createChatDto.createdAt}`);
+    let res = this.prisma.message.create({
+      data: {
+        content: createChatDto.content,
+        timestamp: createChatDto.createdAt,
+        sender: {
+            connect: {
+                id: createChatDto.senderID
+            }
+        },
+        receiver: {
+            connect: {
+                id: createChatDto.receiverID
+            }
+        }
+      },
+    });
+    res.then((res) => {
+      console.log(`DEBUG | chat.service | create | res: ${res}`);
+      return res;
 
-    // });
-    // console.log(`DEBUG | chat.service | create | res: ${res}`);
+    });
   }
 
   findAll() {
@@ -61,7 +54,52 @@ export class ChatService {
         ],
       },
     });
-  }  
+  }
+
+  async getParents(userId: number) {
+    const user = await this.prisma.player.findUnique({
+      where: { id: userId },
+      include: {
+        sentFriendshipRequests: {
+          where: { are_friends: true },
+          select: { recipient: true },
+        },
+        founded_channels: {
+          include: {
+            messages: {
+              take: 1,
+              orderBy: { timestamp: 'desc' },
+            },
+          },
+        },
+      },
+    });
+  
+    const friends = user.sentFriendshipRequests.map((friendship) => ({
+      id: friendship.recipient.id,
+      name: friendship.recipient.username,
+    }));
+  
+    const roomsWithLastMessage = user.founded_channels.map((room) => ({
+      id: room.groupID,
+      name: room.name,
+      lastMessage: room.messages.length > 0 ? room.messages[0].timestamp : null,
+    }));
+  
+    const sortedData = [...friends, ...roomsWithLastMessage].sort((a, b) => {
+      if (!('lastMessage' in a) && !('lastMessage' in b)) {
+        return 0;
+      } else if (!('lastMessage' in a)) {
+        return 1;
+      } else if (!('lastMessage' in b)) {
+        return -1;
+      } else {
+        return ((b.lastMessage as Date) || new Date(0)).getTime() - ((a.lastMessage as Date) || new Date(0)).getTime();
+      }
+    });
+  
+    return sortedData;
+  }
 
   async getMessagesPrivateChat(me: number, friend: number) {
     console.log(`DEBUG | chat.service | getMessagesPrivateChat | me: ${me} | friend: ${friend}`);
