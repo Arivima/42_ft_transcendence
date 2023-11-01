@@ -13,6 +13,7 @@ import Notifications from '@/components/Profile/Notifications.vue'
 
 const playerStore = usePlayerStore()
 const { user, friends, fetchPlayer } = storeToRefs(playerStore)
+const debug = false
 
 export default {
 	components : {
@@ -28,14 +29,14 @@ export default {
 	},
 	computed: {
 		visibility() : string {
-			console.log('| ProfileView | computed | visibility')
+			if (debug) console.log('| ProfileView | computed | visibility')
 			let profileType = playerStore.visibility(this.userProfile.id);
 			return profileType
 		},
 	},
 	methods: {
 		fetchUserProfile() {
-			console.log('| ProfileView | methods | fetchUserProfile()')
+			if (debug) console.log('| ProfileView | methods | fetchUserProfile()')
 			let profileID : number = Number(this.$route.params.id)
 			if (!profileID || profileID == this.userVisitor.id) {
 				this.userProfile = this.userVisitor
@@ -50,41 +51,41 @@ export default {
 	},
 	watch : {
 		userVisitor(newValue : Player) {
-			console.log('| ProfileView | watch | userVisitor : new value : ' + newValue.username)
+			if (debug) console.log('| ProfileView | watch | userVisitor : new value : ' + newValue.username)
 		},
 		userVisitorFriends(newValue : Player[]) {
-			console.log('| ProfileView | watch | userVisitorFriends : new length : ' + newValue.length)
+			if (debug) console.log('| ProfileView | watch | userVisitorFriends : new length : ' + newValue.length)
 		},
 		userProfile(newValue : Player) {
-			console.log('| ProfileView | watch | userProfile : new value : ' + newValue.username)
+			if (debug) console.log('| ProfileView | watch | userProfile : new value : ' + newValue.username)
 		},
 	},
 	
 	beforeCreate() {
-		console.log('| ProfileView | beforeCreate()')
+		if (debug) console.log('| ProfileView | beforeCreate()')
 	},
 	created() {
-		console.log('| ProfileView | created()')
+		if (debug) console.log('| ProfileView | created(' + (this.userProfile.id) + ')')
 		this.fetchUserProfile()
 	},
 	beforeMount() {
-		console.log('| ProfileView | beforeMount()')
+		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile.id) + ')')
 	},
 	mounted() {
-		console.log('| ProfileView | mounted()')
+		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile.id) + ')')
 	},
 	beforeUpdate() {
-		console.log('| ProfileView | beforeUpdate()')
+		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile.id) + ')')
 		this.fetchUserProfile()
 	},
 	updated() {
-		console.log('| ProfileView | updated()')
+		if (debug) console.log('| ProfileView | updated(' + (this.userProfile.id) + ')')
 	},
 	beforeUnmount() {
-		console.log('| ProfileView | beforeUnmount()')
+		if (debug) console.log('| ProfileView | beforeUnmount(' + (this.userProfile.id) + ')')
 	},
 	unmounted() {
-		console.log('| ProfileView | unmounted()')
+		if (debug) console.log('| ProfileView | unmounted(' + (this.userProfile.id) + ')')
 	},
 }
 </script>

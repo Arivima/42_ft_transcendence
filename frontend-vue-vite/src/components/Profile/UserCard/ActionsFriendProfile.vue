@@ -3,6 +3,7 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
+const debug = false
 
 export default {
 	props: {

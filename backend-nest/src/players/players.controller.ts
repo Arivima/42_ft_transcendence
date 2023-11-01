@@ -58,6 +58,14 @@ export class PlayersController {
 		return player;
 	}
 
+	// NEW
+	// @Get('username/:id')
+	// async getUsername(@Param('id') id: string, @Res() res: Response) : Promise<string> {
+	// 	const username = await this.playersService.findOneUsername(Number(id));
+	// 	console.log('DEBUG | Players.controller | getUsername |USERNAME : ' + username)
+	// 	return username;
+	// }
+
 	@Get('avatar/:id')
 	async getAvatar(@Param('id') id: string, @Res() res: Response) {
 		const filePath = path.join(

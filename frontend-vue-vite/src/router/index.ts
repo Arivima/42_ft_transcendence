@@ -4,6 +4,7 @@ import axios from 'axios'
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
+const debug = false
 
 function lazyload(view: any) {
 	return () => import(`@/views/${view}.vue`)
@@ -46,7 +47,7 @@ const router = createRouter({
 })
 
 const checkLogIn = () => new Promise((resolve, reject) => {
-	console.log('*Router* checkLogIn()')
+	if (debug) console.log('*Router* checkLogIn()')
 	const token = localStorage.getItem(import.meta.env.JWT_KEY);
 
 	if (!token) reject('token not found')
@@ -63,7 +64,7 @@ const checkLogIn = () => new Promise((resolve, reject) => {
 })
 
 router.beforeEach((to, from, next) => {
-	console.log('*Router* beforeEach() | path :' + to.path)
+	if (debug) console.log('*Router* beforeEach() | path :' + to.path)
 	if (to.query.token) {
 		localStorage.setItem(import.meta.env.JWT_KEY, to.query.token as string);
 		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + to.query.token as string

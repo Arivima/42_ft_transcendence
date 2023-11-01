@@ -4,6 +4,7 @@ import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
 const { fetchAchievements, user, achievements } = storeToRefs(playerStore)
+const debug = false
 
 export default {
 	components:	{
@@ -22,13 +23,13 @@ export default {
 	}),
 	watch : {
 		userProfile(newValue : Player){
-			console.log('| Achievements | watch | userProfile : new value : ' + newValue.username)
+			if (debug) console.log('| Achievements | watch | userProfile : new value : ' + newValue.username)
 			this.fetchAchievements(newValue.id)
 		},
 	},
 	methods : {
 		fetchAchievements(id : number) {
-			console.log('| Achievements | methods | fetchAchievements()')
+			if (debug) console.log('| Achievements | methods | fetchAchievements()')
 			this.loading = true
 			if (!id || id == this.userVisitor.id)
 				this.achievements = achievements.value //MY PROFILE
@@ -45,29 +46,29 @@ export default {
 		},
 	},
 	beforeCreate() {
-	console.log('| Achievements | beforeCreate()')
+	if (debug) console.log('| Achievements | beforeCreate()')
 	},
 	created() {
-		console.log('| Achievements | created()')
+		if (debug) console.log('| Achievements | created(' + (this.userProfile.id) + ')')
 	},
 	beforeMount() {
-		console.log('| Achievements | beforeMount()')
+		if (debug) console.log('| Achievements | beforeMount(' + (this.userProfile.id) + ')')
 		this.fetchAchievements(this.userProfile.id)
 	},
 	mounted() {
-		console.log('| Achievements | mounted()')
+		if (debug) console.log('| Achievements | mounted(' + (this.userProfile.id) + ')')
 	},
 	beforeUpdate() {
-		console.log('| Achievements | beforeUpdate()')
+		if (debug) console.log('| Achievements | beforeUpdate(' + (this.userProfile.id) + ')')
 	},
 	updated() {
-		console.log('| Achievements | updated()')
+		if (debug) console.log('| Achievements | updated(' + (this.userProfile.id) + ')')
 	},
 	beforeUnmount() {
-		console.log('| Achievements | beforeUnmount()')
+		if (debug) console.log('| Achievements | beforeUnmount(' + (this.userProfile.id) + ')')
 	},
 	unmounted() {
-		console.log('| Achievements | unmounted()')
+		if (debug) console.log('| Achievements | unmounted(' + (this.userProfile.id) + ')')
 	},
 	}
 </script>

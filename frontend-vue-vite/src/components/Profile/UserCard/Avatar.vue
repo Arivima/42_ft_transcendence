@@ -1,5 +1,6 @@
 <script lang="ts">
 import { type Player, PlayerStatus } from '@/stores/PlayerStore'
+const debug = false
 
 
 export default {
@@ -15,7 +16,7 @@ export default {
     },
 	computed: {
 		badgeColor() : string {
-			console.log('| Avatar | computed : badgeColor')
+			if (debug) console.log('| Avatar | computed : badgeColor')
 			if (this.userProfile.status == PlayerStatus.playing)
 				return 'blue'
 			else if (this.userProfile.status == PlayerStatus.online)
@@ -24,13 +25,13 @@ export default {
 				return 'grey'
 		},
 		avatar() : string {
-			console.log('| Avatar | computed : avatar')
+			if (debug) console.log('| Avatar | computed : avatar')
 			return this.userProfile.avatar
 		},
 	},
 	watch : {
 		userProfile(newValue : Player) {
-			console.log('| Avatar | watch | userProfile : new value : ' + newValue.username)
+			if (debug) console.log('| Avatar | watch | userProfile : new value : ' + newValue.username)
 		},
 	},
 }

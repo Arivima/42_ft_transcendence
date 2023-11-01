@@ -1,5 +1,6 @@
 <script lang="ts">
 import { type Player } from '@/stores/PlayerStore'
+const debug = false
 
 export default {
 	props: {
