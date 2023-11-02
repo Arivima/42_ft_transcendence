@@ -64,10 +64,10 @@ model Message {
 
 	sender				Player					@relation("Sent", fields: [senderID], references: [id])
 	senderID			Int
-	receiver			Player					@relation("Recipient", fields: [receiverID], references: [id])
-	receiverID			Int
-	receivers			ChatRoom				@relation("RecipientS", fields: [receiverSID], references: [groupID])
-	receiverSID			Int
+	receiver			Player	?				@relation("Recipient", fields: [receiverID], references: [id])
+	receiverID			Int	?
+	receivers			ChatRoom	?			@relation("RecipientS", fields: [receiverSID], references: [groupID])
+	receiverSID			Int	?
 }
 
 model ChatRoom {

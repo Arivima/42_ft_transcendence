@@ -2,6 +2,7 @@
 import { defineComponent } from 'vue'
 import { VOtpInput } from 'vuetify/labs/VOtpInput'
 import axios from 'axios'
+const debug = false
 
 export default defineComponent({
 	components: {

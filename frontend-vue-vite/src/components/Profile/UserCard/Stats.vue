@@ -1,14 +1,20 @@
 <script lang="ts">
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
+import { usePlayerStore, type Player, type Game } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { fetchPlayer, fetchGames } = storeToRefs(playerStore)
+const { fetchGames } = storeToRefs(playerStore)
+const debug = false
 
 export default {
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
     data () {
         return {
-			userProfile: {} as Player,
 			stats: {
 				loading: false,
 				victories: 0,
@@ -18,42 +24,65 @@ export default {
         }
     },
     methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 81841 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setStats()
-				})
-				.catch((err) => console.log(err))
-		},
-		async setStats() {
+		fetchStats() {
+		if (debug) console.log('| Stats | methods | fetchStats()')
 			this.stats.loading = true
 			// TODO : ADD IN DATABASE
-			try {
-				const games = await fetchGames.value(this.userProfile.id)
-				for (const game of games) {
-					if (game.host == this.userProfile.username) {
-						if (game.host_score > game.guest_score) this.stats.victories++
-						else this.stats.losses++
-						this.stats.ladder += game.host_score - game.guest_score
-					} else {
-						if (game.host_score > game.guest_score) this.stats.losses++
-						else this.stats.victories++
-						this.stats.ladder += game.guest_score - game.host_score
-					}
-				}
-				this.stats.loading = false
-			} catch (err) {
-				console.error(err)
-				this.stats.loading = false
-			}
+
+			fetchGames.value(this.userProfile.id)
+					.then((games : Game[]) => {
+						this.stats.victories = this.stats.losses = this.stats.ladder = 0
+						for (const game of games) {
+							if (game.host == this.userProfile.username) {
+								if (game.host_score > game.guest_score) this.stats.victories++
+								else if (game.host_score < game.guest_score) this.stats.losses++
+								this.stats.ladder += (game.host_score - game.guest_score)
+							} else {
+								if (game.host_score > game.guest_score) this.stats.losses++
+								else if (game.host_score < game.guest_score) this.stats.victories++
+								this.stats.ladder += (game.guest_score - game.host_score)
+							}
+						}
+						this.stats.loading = false
+					})
+					.catch((err : Error) => {
+						console.log(err)
+						this.stats.loading = false
+					})
 		}
 	},
-    mounted (){
-		this.getUserProfile()
+	watch: {
+		userProfile(newValue : Player){
+			if (debug) console.log('| Stats | watch | userProfile : new value : ' + newValue.username)
+			this.fetchStats()
+		},
+	},
+	beforeCreate() {
+		if (debug) console.log('| Stats | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| Stats | created(' + (this.userProfile.id) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| Stats | beforeMount(' + (this.userProfile.id) + ')')
+	},
+	mounted() {
+		if (debug) console.log('| Stats | mounted(' + (this.userProfile.id) + ')')
+		this.fetchStats();
     },
+	beforeUpdate() {
+		if (debug) console.log('| Stats | beforeUpdate(' + (this.userProfile.id) + ')')
+		// this.fetchStats();
+	},
+	updated() {
+		if (debug) console.log('| Stats | updated(' + (this.userProfile.id) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| Stats | beforeUnmount(' + (this.userProfile.id) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| Stats | unmounted(' + (this.userProfile.id) + ')')
+	},
 }
 </script>
 

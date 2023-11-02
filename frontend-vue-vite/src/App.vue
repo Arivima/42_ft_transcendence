@@ -1,14 +1,50 @@
-<!-- APP -->
-
-<script setup lang="ts">
+<script lang="ts">
 import { RouterView } from 'vue-router'
-import TmpTab from './components/TmpTab.vue'
+const debug = false
+
+export default {
+	components : {
+	},
+	data() {
+		return {
+		}
+	},
+	computed: {
+	},
+	methods: {
+	},
+
+	beforeCreate() {
+		if (debug) console.log('| APP | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| APP | created()')
+	},
+	beforeMount() {
+		if (debug) console.log('| APP | beforeMount()')
+	},
+	mounted() {
+		if (debug) console.log('| APP | mounted()')
+	},
+	beforeUpdate() {
+		if (debug) console.log('| APP | beforeUpdate()')
+	},
+	updated() {
+		if (debug) console.log('| APP | updated()')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| APP | beforeUnmount()')
+	},
+	unmounted() {
+		if (debug) console.log('| APP | unmounted()')
+	},
+}
 </script>
 
 <template>
 	<v-app>
 		<v-main>
-				<RouterView></RouterView>
+			<RouterView></RouterView>
 		</v-main>
 	</v-app>
 </template>
@@ -75,6 +111,7 @@ import TmpTab from './components/TmpTab.vue'
 	outline: solid;
 	outline-color: antiquewhite;
 }
+
 .component {
 	padding: 2%;
 	margin: 2%;

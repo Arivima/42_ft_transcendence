@@ -5,84 +5,71 @@ import { storeToRefs } from 'pinia'
 // import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, notifications } = storeToRefs(playerStore)
+const debug = false
 
 export default defineComponent({
 	components: {
 	},
 	data() {
 		return {
-            user: user,
-			count: 0,
-			notificationList: [
-				{
-					username: 'pippo',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'pluto',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'paperino',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'topolino',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'paperone',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				},
-				{
-					username: 'paperinellaawsefwfefwf',
-					avatar: user.value.avatar,
-					status: 'pending', // pending | loading | accepted | rejected
-				}
-			] as FriendRequest[]
+			user: user.value,
+			notificationList: notifications
 		}
 	},
 	methods: {
-		setNotificationsCount(){
-			this.count = this.notificationList.length
-		},
 		acceptFriend(request : FriendRequest){
+			if (debug) console.log('| Notifications | methods | acceptFriend()' + request)
 			request.status = 'loading'
-			setTimeout(() => {
-				// axios.post(friendship/accept)
-				//(this delete the entry from the request list)
-				// if ok
-				request.status = 'accepted'
-			}, 5000);
-			this.deleteRequest(request)
+
+			playerStore.sendFriendshipConsent(request.requestorID);
 		},
 		rejectFriend(request : FriendRequest){
+			if (debug) console.log('| Notifications | methods | rejectFriend()' + request)
 			request.status = 'loading'
-			setTimeout(() => {
-				request.status = 'rejected'
-			}, 5000);
-			this.deleteRequest(request)
+
+			playerStore.sendFriendshipRejection(request.requestorID);
 		},
-		deleteRequest(request : FriendRequest){
-			setTimeout(() => {
-				const id = this.notificationList.findIndex(el => el === request);
-				this.notificationList.splice(id, 1);	
-				this.setNotificationsCount()
-			}, 20000);
-		},
+		// deleteRequest(request : FriendRequest){
+		// 	setTimeout(() => {
+		// 		const id = this.notificationList.findIndex((el: any) => el == request);
+		// 		// const id = this.notificationList.findIndex(el => el === request);
+		// 		this.notificationList.splice(id, 1);
+		// 		// this.notificationList.splice(id, 1);	
+		// 		//DELETED this.setNotificationsCount()
+		// 	}, 20000);
+		// },
 	},
 	watch: {
     },
+
+	beforeCreate() {
+		if (debug) console.log('| Notifications | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| Notifications | created(' + (this.user.id) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| Notifications | beforeMount(' + (this.user.id) + ')')
+	},
 	mounted() {
-		this.notificationList = this.notificationList
-		this.setNotificationsCount()
-    }
+		if (debug) console.log('| Notifications | mounted(' + (this.user.id) + ')')
+		// this.notificationList = this.notificationList
+		this.notificationList = notifications;
+		// this.setNotificationsCount()
+    },
+	beforeUpdate() {
+		if (debug) console.log('| Notifications | beforeUpdate(' + (this.user.id) + ')')
+	},
+	updated() {
+		if (debug) console.log('| Notifications | updated(' + (this.user.id) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| Notifications | beforeUnmount(' + (this.user.id) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| Notifications | unmounted(' + (this.user.id) + ')')
+	},
 })
 </script>
 
@@ -91,7 +78,7 @@ export default defineComponent({
 	<v-menu max-height="150" :close-on-content-click=Boolean(false)>
 		<template v-slot:activator="{ props }">
 			<v-badge
-				:content=count
+				:content=notificationList.length
 				color="error"
 			>
 				<v-btn
@@ -112,8 +99,8 @@ export default defineComponent({
 				v-for="(item, index) in notificationList"
 				:key="index"
 				:value="index"
-				:title="item.username"
-				:prepend-avatar="item.avatar"
+				:title="item.requestorUsername"
+				:prepend-avatar="item.requestorAvatar"
 				density="compact"
 				class="px-2"
 			>

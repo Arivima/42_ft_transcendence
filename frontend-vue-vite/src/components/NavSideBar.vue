@@ -1,29 +1,39 @@
 <!-- TODO
 - overall size on the page
-- bigger avatar and icons
-- script link to database to show user info
 -->
 
 <script lang="ts">
-import { usePlayerStore } from '@/stores/PlayerStore'
+import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
+import Avatar from './Profile/UserCard/Avatar.vue'
 
-const playerStore = await usePlayerStore()
+const playerStore = usePlayerStore()
 const { user } = storeToRefs(playerStore)
+const debug = true
 
 export default {
 	data() {
 		return {
-			user: {
-				username: user.value.username,
-				firstName: user.value.firstName,
-				familyName: user.value.lastName,
-				avatar: user.value.avatar,
-			},
+		}
+	},
+	computed: {
+		user() : Player {
+		if (debug) console.log('| NavSideBar | computed | user(' + user.value.id + ')')
+			return user.value
+		},
+		avatar() : string {
+			if (debug) console.log('| NavSideBar | computed | avatar()')
+			return user.value.avatar
+		},
+		// NEW
+		username() : string {
+			if (debug) console.log('| NavSideBar | computed | username(' + user.value.username + ')')
+			return user.value.username
 		}
 	},
 	methods : {
 		async logOut() {
+			if (debug) console.log('| NavSideBar | methods | logOut()')
 			try {
 				await playerStore.logout()
 				this.$router.go(0)
@@ -34,8 +44,29 @@ export default {
 			}
 		}
 	},
-	async mounted() {
-
+	beforeCreate() {
+		if (debug) console.log('| NavSideBar | beforeCreate()' )
+	},
+	created() {
+		if (debug) console.log('| NavSideBar | created(' + (user.value.id) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| NavSideBar | beforeMount(' + (user.value.id) + ')')
+	},
+	mounted() {
+		if (debug) console.log('| NavSideBar | mounted(' + (user.value.id) + ')')
+	},
+	beforeUpdate() {
+		if (debug) console.log('| NavSideBar | beforeUpdate(' + (user.value.id) + ')')
+	},
+	updated() {
+		if (debug) console.log('| NavSideBar | updated(' + (user.value.id) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| NavSideBar | beforeUnmount(' + (user.value.id) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| NavSideBar | unmounted(' + (user.value.id) + ')')
 	},
 }
 </script>
@@ -44,13 +75,14 @@ export default {
 	<v-navigation-drawer expand-on-hover rail permanent class="NavSideBar rounded ma-2">
 		<v-list>
 			<v-list-item
-				:prepend-avatar="user.avatar"
+				:prepend-avatar="avatar"
 				:title="user.firstName"
-				:subtitle="user.username"
+				:subtitle="username"
 				:to="{ name: 'profile' }"
 				rounded
 				class="mx-2 px-2"
-			></v-list-item>
+			>
+		</v-list-item>
 		</v-list>
 		<v-divider></v-divider>
 		<v-list class="navContent ">

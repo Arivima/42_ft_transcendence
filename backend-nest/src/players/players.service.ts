@@ -69,6 +69,17 @@ export class PlayersService {
 		return JSON.stringify(player) == '{}' ? null : player;
 	}
 
+	// NEW
+	// async findOneUsername(id: number): Promise<string> {
+	// 	const player = {
+	// 		...(await this.prisma.player.findUnique({
+	// 			where: { id },
+	// 		})),
+	// 	};
+
+	// 	return JSON.stringify(player) == '{}' ? '' : player.username;
+	// }
+
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
 		return await this.prisma.player.update({
 			where: { id },
@@ -128,6 +139,9 @@ export class PlayersService {
 		const friends = [];
 		for (const friendID of friendsIDs) {
 			friends.push(await this.findOne(friendID));
+			// const friend = await this.findOne(friendID);
+			// friend.avatar = `/players/avatar/${friendID}`;
+			// friends.push();
 		}
 
 		return friends;

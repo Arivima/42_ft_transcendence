@@ -1,30 +1,53 @@
 <script lang="ts">
-	import { usePlayerStore, PlayerStatus } from '@/stores/PlayerStore'
-	import { storeToRefs } from 'pinia'
-	import SearchBar from '../Utils/SearchBar.vue'
+import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
+import SearchBar from '../Utils/SearchBar.vue'
 
-	const playerStore = usePlayerStore()
-	const { friends } = storeToRefs(playerStore)
+const playerStore = usePlayerStore()
+const { friends } = storeToRefs(playerStore)
+const debug = false
 
-	export default {
-		components:	{
-			SearchBar
-		},
-		data: () => ({
-			profile: 'FriendProfile' /* FriendProfile | MyProfile | PublicProfile */,
-			badgeColor: 'grey',
-			items: friends.value,
-		}),
-		mounted() {
-		},
-		methods : {
-			getBadgeColor(status : PlayerStatus) : string {
-				if (status == PlayerStatus.online) return 'green'
-				else if (status == PlayerStatus.playing) return 'blue'
-				else return 'grey'			
-			}
-		},
-	}
+export default {
+	components:	{
+		SearchBar
+	},
+	data: () => ({
+		badgeColor: 'grey',
+		items: friends.value as Player[],
+	}),
+	methods : {
+		getBadgeColor(status : PlayerStatus) : string {
+			if (debug) console.log('| Friends | methods | getBadgeColor()')
+			if (status == PlayerStatus.online) return 'green'
+			else if (status == PlayerStatus.playing) return 'blue'
+			else return 'grey'			
+		}
+	},
+	beforeCreate() {
+		if (debug) console.log('| Friends | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| Friends | created(' + (this.items.length) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| Friends | beforeMount(' + (this.items.length) + ')')
+	},
+	mounted() {
+		if (debug) console.log('| Friends | mounted(' + (this.items.length) + ')')
+	},
+	beforeUpdate() {
+		if (debug) console.log('| Friends | beforeUpdate(' + (this.items.length) + ')')
+	},
+	updated() {
+		if (debug) console.log('| Friends | updated(' + (this.items.length) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| Friends | beforeUnmount(' + (this.items.length) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| Friends | unmounted(' + (this.items.length) + ')')
+	},
+}
 </script>
 
 <template>
@@ -42,16 +65,16 @@
 		>
 			<template v-slot:default="{ item }">
 				<v-list-item
-					:title="`${item.username}`" 
-					:subtitle="`${item.status}`"
-					:to="{ name: 'profile' }"
+					:title="item.username" 
+					:subtitle="item.status"
+					:to="{ name: 'profile', params: { id: item.id } }"
 					class=" ma-1 pa-2 rounded-pill"
-					variant="elevated"
+					variant="text"
 				>
 					<template v-slot:prepend>
 						<v-badge dot :color="getBadgeColor(item.status)">
 							<v-avatar
-								:image="`${item.avatar}`" 
+								:image="item.avatar" 
 							>
 							</v-avatar>
 						</v-badge>

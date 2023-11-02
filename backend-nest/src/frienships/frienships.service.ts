@@ -18,6 +18,7 @@ export class FrienshipsService {
 			},
 			select: {
 				id: true,
+				username: true,
 				avatar: true
 			}
 		});
@@ -31,6 +32,7 @@ export class FrienshipsService {
 
 		return {
 			requestorID: requestor.id,
+			requestorUsername: requestor.username,
 			requestorAvatar: requestor.avatar
 		};
 	}
@@ -56,12 +58,14 @@ export class FrienshipsService {
 				},
 				select: {
 					id: true,
+					username: true,
 					avatar: true
 				}
 			});
 			if (null != recordFound)
 				requestors.push({
 					requestorID: recordFound.id,
+					requestorUsername: recordFound.username,
 					requestorAvatar: recordFound.avatar
 				});
 		}

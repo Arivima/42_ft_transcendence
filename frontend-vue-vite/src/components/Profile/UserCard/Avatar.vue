@@ -1,38 +1,39 @@
 <script lang="ts">
-import { usePlayerStore, type Player, PlayerStatus } from '@/stores/PlayerStore'
-import { storeToRefs } from 'pinia'
+import { type Player, PlayerStatus } from '@/stores/PlayerStore'
+const debug = false
 
-const playerStore = usePlayerStore()
-const { fetchPlayer } = storeToRefs(playerStore)
 
 export default {
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
     data () {
         return {
-			badgeColor: 'grey',
-			userProfile: {} as Player,
-
         }
     },
-    methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 81841 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setBadgeColor()
-				})
-				.catch((err) => console.log(err))
+	computed: {
+		badgeColor() : string {
+			if (debug) console.log('| Avatar | computed : badgeColor')
+			if (this.userProfile.status == PlayerStatus.playing)
+				return 'blue'
+			else if (this.userProfile.status == PlayerStatus.online)
+				return 'green'
+			else
+				return 'grey'
 		},
-        setBadgeColor(){
-			if (this.userProfile.status == PlayerStatus.playing) this.badgeColor = 'blue'
-			else if (this.userProfile.status == PlayerStatus.online) this.badgeColor = 'green'
-			else this.badgeColor = 'grey'
-        },
+		avatar() : string {
+			if (debug) console.log('| Avatar | computed : avatar')
+			return this.userProfile.avatar
+		},
 	},
-    mounted (){
-		this.getUserProfile()
-    },
+	watch : {
+		userProfile(newValue : Player) {
+			if (debug) console.log('| Avatar | watch | userProfile : new value : ' + newValue.username)
+		},
+	},
 }
 </script>
 
@@ -40,7 +41,7 @@ export default {
 		<v-card class="itemAvatar" density="comfortable" variant="flat">
 			<v-badge bordered inline :color="badgeColor" :content="userProfile.status">
 				<v-avatar size="130" rounded="1">
-					<v-img cover :src="userProfile.avatar"></v-img>
+					<v-img cover :src="avatar"></v-img>
 				</v-avatar>
 			</v-badge>
 			<div class="backgroundItem ma-3">

@@ -5,8 +5,13 @@ import { UpdateFrienshipDto } from './dto/update-frienship.dto';
 import { Socket, Server } from 'socket.io';
 import { Player } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
+import { Public } from 'src/auth/decorators/auth.public.decorator';
 
-@WebSocketGateway()
+@WebSocketGateway({
+	cors: {
+		origin: process.env.FRONTEND_URL,
+	},
+})
 export class FrienshipsGateway implements OnGatewayConnection {
 
 	@WebSocketServer()
@@ -20,20 +25,23 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	constructor(
 		private readonly frienshipsService: FrienshipsService,
 		private readonly jwtService: JwtService
-		) {
-			this.clients = new Map<number, Socket>();
-		}
+	) {
+		this.clients = new Map<number, Socket>();
+	}
 
 	//TODO add JWT guard -- && understand how to reuse the jwt guard and check wether we are on http or websockets
+	@Public()
 	async handleConnection(client: Socket, ...args: any[]) {
 		const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
 			secret: process.env.JWT_SECRET
 		});
 		
+		console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
 		// https://socket.io/docs/v4/client-options/#auth
 		this.clients.set(Number(user.sub), client);
 	}
-
+	
+	@Public()
 	@SubscribeMessage('createFrienshipRequest')
 	async createFrienshipRequest(
 		@MessageBody('id') userID: number,
@@ -44,73 +52,86 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			const requestor = await this.frienshipsService.createFrienshipRequest(userID, recipientID);
 			
 			// https://socket.io/docs/v3/rooms/#default-room
-			this.server.to(`Socket#${this.clients[recipientID]}`).emit('newFriendShipRequest', {
+			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('new-friendship-request', {
 				requestorID: requestor.requestorID,
+				requestorUsername: requestor.requestorUsername,
 				requestorAvatar: requestor.requestorAvatar
 			})
 		}
 		catch(error) {
-			this.server.to(`Socket#${this.clients[recipientID]}`).emit('frienship-error', {
-				msg: error.toString(),
+			const msg: string = `new-friendship-request: ${error.toString()}`;
+
+			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('frienship-error', {
+				msg: msg,
 				requestorID: userID,
 				recipientID: recipientID,
 			})
 		}
 	}
 
+	@Public()
 	@SubscribeMessage('findAllFrienshipRequests')
 	async findAllFrienshipRequests(
 			@MessageBody('id') userID: number,
-			@ConnectedSocket() socket: Socket
+			@ConnectedSocket() requestorSocket: Socket
 	) {
 		try {
 			const friendshipRequests = await this.frienshipsService.findAllFrienshipRequests(userID);
 
-			this.server.to(`Socket#${socket.id}`).emit('friendship-requests', {
+			this.server.to(`${requestorSocket.id}`).emit('friendship-requests', {
 				requests: friendshipRequests
 			});
 		}
 		catch(error) {
-			this.server.to(`Socket#${socket.id}`).emit('frienship-error', {
-				msg: error.toString(),
+			const msg: string = `friendship-requests: ${error.toString()}`;
+
+			this.server.to(`${requestorSocket.id}`).emit('frienship-error', {
+				msg: msg,
 				requestorID: userID,
 				recipientID: NaN
 			});
 		}
 	}
 
+	@Public()
 	@SubscribeMessage('updateFrienshipRequest')
 	async updateFrienshipRequest(
 		@MessageBody() updateFrienshipDto: UpdateFrienshipDto,
 	) {
+
 		try {
 			const updatedRecord
 				= await this.frienshipsService
 					.updateFrienshipRequest(updateFrienshipDto);
 
-			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.requestorID]}`)
-				.emit('update-friendship-request', {
+			if (this.clients.has(Number(updateFrienshipDto.requestorID))) {
+				this.server
+					.to(`${this.clients.get(Number(updateFrienshipDto.requestorID)).id}`)
+					.emit('update-friendship-request', {
+						...updatedRecord
+				});
+			}
+			if (this.clients.has(Number(updateFrienshipDto.recipientID))) {
+				this.server
+					.to(`${this.clients.get(Number(updateFrienshipDto.recipientID)).id}`)
+					.emit('update-friendship-request', {
 					...updatedRecord
-			});
-			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.recipientID]}`)
-				.emit('update-friendship-request', {
-				...updatedRecord
-			});
+				});
+			}
 		}
 		catch (error) {
+			const msg: string = `update-friendship-request: ${error.toString()}`;
 			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.requestorID]}`)
+				.to(`${this.clients.get(Number(updateFrienshipDto.requestorID)).id}`)
 				.emit('friendship-error', {
-					msg: error.toString(),
+					msg: msg,
 					requestorID: updateFrienshipDto.requestorID,
 					recipientID: updateFrienshipDto.recipientID
 			});
 			this.server
-				.to(`Socket#${this.clients[updateFrienshipDto.recipientID]}`)
+				.to(`${this.clients.get(Number(updateFrienshipDto.recipientID)).id}`)
 				.emit('friendship-error', {
-					msg: error.toString(),
+					msg: msg,
 					requestorID: updateFrienshipDto.requestorID,
 					recipientID: updateFrienshipDto.recipientID
 			});

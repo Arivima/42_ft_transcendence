@@ -3,26 +3,27 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { fetchPlayer, user } = storeToRefs(playerStore)
+const debug = false
 
 export default {
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
     data () {
         return {
-			user: user,
-			userProfile: {} as Player,
 			loading: false,
         }
     },
+	watch : {
+		// TODO reload ?
+		// userProfile(newValue : Player){
+		// 	this.fetchAchievements(newValue.id)
+		// },
+	},
     methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 1 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-				})
-				.catch((err) => console.log(err))
-		},
 		removeFromFriends(){
 			this.loading = true
 			setTimeout(() => {
@@ -43,23 +44,20 @@ export default {
 		},
 	},
     mounted (){
-		this.getUserProfile()
     },
 }
 </script>
 
 <template>
-	<!-- v-if="`${profile}` === 'FriendProfile'" -->
 	<v-card
 		class="itemActions itemActionsFriendProfile"
 		density="compact"
 		variant="flat"
-		title="View : Friend Profile"
 	>
 		<!-- v-if="`${userProfile.status}` === 'online'" -->
 		<v-btn
 			:text="'Play with ' + `${userProfile.firstName}`"
-			to="/game"
+			:to="{ name: 'profile', params: { id: userProfile.id } }"
 			prepend-icon="mdi-controller"
 			block
 		>
@@ -67,7 +65,7 @@ export default {
 		<!-- v-if="`${userProfile.status}` === 'online'" -->
 		<v-btn
 			:text="'Chat with ' + `${userProfile.firstName}`"
-			to="/chat"
+			:to="{ name: 'profile', params: { id: userProfile.id } }"
 			prepend-icon="mdi-chat"
 			block
 		>
@@ -75,7 +73,7 @@ export default {
 		<!-- v-if="`${userProfile.status}` === 'playing'" -->
 		<v-btn
 			:text="'Watch ' + `${userProfile.firstName}` + '\'s game'"
-			to="/game"
+			:to="{ name: 'profile', params: { id: userProfile.id } }"
 			prepend-icon="mdi-play"
 			block
 		>

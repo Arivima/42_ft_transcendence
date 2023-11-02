@@ -1,28 +1,21 @@
 <script lang="ts">
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
-import { storeToRefs } from 'pinia'
-
-const playerStore = usePlayerStore()
-const { fetchPlayer } = storeToRefs(playerStore)
+import { type Player } from '@/stores/PlayerStore'
+const debug = false
 
 export default {
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
     data () {
         return {
-			userProfile: {} as Player,
 			loading: false,
 			state: 'default'
         }
     },
     methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 2 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-				})
-				.catch((err) => console.log(err))
-		},
 		addAsFriend(){
 			this.loading = true
 			setTimeout(() => {
@@ -34,18 +27,15 @@ export default {
 		},
 	},
     mounted (){
-		this.getUserProfile()
     },
 }
 </script>
 
 <template>
-	<!-- v-if="`${profile}` === 'PublicProfile'" -->
 	<v-card
 		class="itemActions itemActionsPublicProfile"
 		density="compact"
 		variant="flat"
-		title="View : Public Profile"
 	>
 		<v-btn
 			value="add"

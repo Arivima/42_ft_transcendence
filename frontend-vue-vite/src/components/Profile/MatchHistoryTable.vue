@@ -1,10 +1,14 @@
 <script lang="ts">
 import { usePlayerStore, type Game, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
+import { VCardText } from 'vuetify/components'
 import { VDataTableServer } from 'vuetify/labs/components'
 
-const { user, fetchGames, fetchPlayer } = storeToRefs(await usePlayerStore())
+const playerStore = usePlayerStore()
+const { fetchGames } = storeToRefs(playerStore)
 const _items_per_page = 5
+
+const debug = false
 
 //TODO
 //2.	add toast for data loading error
@@ -13,7 +17,14 @@ const _items_per_page = 5
 //TODO FIX and avoid using STORE
 export default {
 	components: {
-		VDataTableServer
+    VDataTableServer,
+    VCardText
+},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
 	},
 	data: () => ({
 		games: [] as Game[],
@@ -30,28 +41,10 @@ export default {
 		loading: true,
 		searchedGuest: '',
 		searchedHost: '',
-		userProfile: {} as Player,
-		// user: {
-		// 	id: user.value.id,
-		// 	username: user.value.username
-		// }
 	}),
-	computed: {
-
-	},
-	async mounted() {
-		await this.getUserProfile()
-	},
 	methods: {
-		async getUserProfile() {
-			let profileID : number = Number(this.$route.params.id)
-			profileID = 81841 // TODO change when route update
-			this.userProfile = await fetchPlayer.value(profileID);
-			// fetchPlayer.value(profileID)
-			// 	.then((targetUser : Player) => {this.userProfile = targetUser})
-			// 	.catch((err) => console.log(err))
-		},
 		async fetchData(options: { page: number; itemsPerPage: number }) {
+			if (debug) console.log('| MatchHistoyTable | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
 			this.loading = true
 			const start = (options.page - 1) * options.itemsPerPage
 			const end = start + options.itemsPerPage
@@ -87,6 +80,10 @@ export default {
 		}
 	},
 	watch: {
+		userProfile(newValue : Player){
+			if (debug) console.log('| MatchHistoyTable | watch | userProfile : new value : ' + newValue.username)
+			this.fetchData({page: 1 , itemsPerPage :  this.itemsPerPage})
+		},
 		searchedGuest: {
 			handler() {
 				this.search = String(Date.now())
@@ -99,7 +96,31 @@ export default {
 			},
 			immediate: false
 		}
-	}
+	},
+	beforeCreate() {
+		if (debug) console.log('| MatchHistoyTable | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| MatchHistoyTable | created(' + (this.userProfile.id) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| MatchHistoyTable | beforeMount(' + (this.userProfile.id) + ')')
+	},
+	mounted() {
+		if (debug) console.log('| MatchHistoyTable | mounted(' + (this.userProfile.id) + ')')
+	},
+	beforeUpdate() {
+		if (debug) console.log('| MatchHistoyTable | beforeUpdate(' + (this.userProfile.id) + ')')
+	},
+	updated() {
+		if (debug) console.log('| MatchHistoyTable | updated(' + (this.userProfile.id) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| MatchHistoyTable | beforeUnmount(' + (this.userProfile.id) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| MatchHistoyTable | unmounted(' + (this.userProfile.id) + ')')
+	},
 }
 </script>
 
@@ -116,32 +137,32 @@ export default {
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
-			class="elevation-1"
+			class="elevation-1 text-caption"
 			@update:options="fetchData"
+
+			density="compact"
+			hover
 		>
 			<template v-slot:tfoot>
-				<tr style="display: flex; width: 200%">
-					<td>
+				<div class="d-flex">
 						<v-text-field
 							v-model="searchedHost"
 							hide-details
-							placeholder="host..."
-							class="ma-2"
+							placeholder="search host"
+							class="mr-1 mt-1 text-caption"
 							type="string"
 							density="compact"
+							
 						></v-text-field>
-					</td>
-					<td>
 						<v-text-field
 							v-model="searchedGuest"
 							hide-details
-							placeholder="guest..."
-							class="ma-2"
+							placeholder="search guest"
+							class="ml-1 mt-1 text-caption "
 							type="string"
 							density="compact"
 						></v-text-field>
-					</td>
-				</tr>
+				</div>
 			</template>
 		</v-data-table-server>
 	</v-card>

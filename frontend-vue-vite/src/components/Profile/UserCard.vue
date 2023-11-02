@@ -10,7 +10,8 @@ import ActionsFriendProfile from './UserCard/ActionsFriendProfile.vue'
 import ActionsMyProfile from './UserCard/ActionsMyProfile.vue'
 
 const playerStore = usePlayerStore()
-const { user, friends, fetchPlayer } = storeToRefs(playerStore)
+const { user, friends } = storeToRefs(playerStore)
+const debug = false
 
 export default {
 	components: {
@@ -21,86 +22,98 @@ export default {
 		ActionsFriendProfile,
 		ActionsMyProfile,
 	},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
+		},
+	},
 	data() {
 		return {
-			// badgeColor: 'grey',
-			// profile: 'MyProfile' /* FriendProfile | MyProfile | PublicProfile */,
-			userVisitor: user.value,
-			userVisitorFriends: friends,
-			userProfile: {} as Player,
-			visibility: '', // ('MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile')
+			userVisitor: user.value as Player,
+			userVisitorFriends: friends.value as Player[],
 		}
 	},
-	methods: {
-		getUserProfile() {
-			let Profileid : number = Number(this.$route.params.id)
-			Profileid = 81841 // TODO change when route update
-			fetchPlayer.value(Profileid)
-				.then((targetUser : Player) => {
-					this.userProfile = targetUser;
-					this.setVisibility()
-				})
-				.catch((err) => console.log(err))
-		},
-		setVisibility() {
-			console.log('userVisitor : ' + this.userVisitor.id)
-			console.log('userProfile : ' + this.userProfile.id)
-
-			if (this.userVisitor.id == this.userProfile.id)
-				this.visibility = 'MyProfile'
-			else if (this.userVisitorFriends.includes(this.userProfile))
-				this.visibility = 'FriendProfile'
-			// TODO ADD BLOCKED USER
-			else 
-				this.visibility = 'PublicProfile'
-
-			console.log('VISIBILITY : ' + this.visibility)
+	computed: {
+		visibility() : string {
+			if (debug) console.log('| UserCard | computed : visibility')
+			let profileType = playerStore.visibility(this.userProfile.id);
+			return profileType
 		},
 	},
-	async mounted() {
-		this.getUserProfile()
-
-		// if (this.user.status == PlayerStatus.playing) this.badgeColor = 'blue'
-		// else if (this.user.status == PlayerStatus.online) this.badgeColor = 'green'
-		// else this.badgeColor = 'grey'
-	}
+	watch : {
+		userVisitor(newValue : Player) {
+			if (debug) console.log('| UserCard | watch | userVisitor : new value : ' + newValue.username)
+		},
+		userVisitorFriends(newValue : Player[]) {
+			if (debug) console.log('| UserCard | watch | userVisitorFriends : new length : ' + newValue.length)
+		},
+		userProfile(newValue : Player) {
+			if (debug) console.log('| UserCard | watch | userProfile : new value : ' + newValue.username)
+		},
+	},
+	methods: {
+	},
+	beforeCreate() {
+		if (debug) console.log('| UserCard | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| UserCard | created(' + (this.userProfile.id) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| UserCard | beforeMount(' + (this.userProfile.id) + ')')
+	},
+	mounted() {
+		if (debug) console.log('| UserCard | mounted(' + (this.userProfile.id) + ')')
+	},
+	beforeUpdate() {
+		if (debug) console.log('| UserCard | beforeUpdate(' + (this.userProfile.id) + ')')
+	},
+	updated() {
+		if (debug) console.log('| UserCard | updated(' + (this.userProfile.id) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| UserCard | beforeUnmount(' + (this.userProfile.id) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| UserCard | unmounted(' + (this.userProfile.id) + ')')
+	},
 }
 </script>
 
 <template>
-	<v-card class="containerContent component" image="cats.jpg" rounded="1" variant="tonal">
-		<!-- <v-card class="itemAvatar" density="comfortable" variant="flat">
-			<v-badge bordered inline :color="badgeColor" :content="user.status">
-				<v-avatar size="130" rounded="1">
-					<v-img cover :src="user.avatar"></v-img>
-				</v-avatar>
-			</v-badge>
-			<div class="backgroundItem ma-3">
-				<v-card-item
-					:title="user.username"
-					:subtitle="user.firstName + ' ' + user.lastName"
-				>
-				</v-card-item>
-			</div>
-		</v-card> -->
+	<p class="text-overline text-end mx-3 pa-0 "> {{ visibility }}</p>
 
-		<Avatar></Avatar>
-		<Stats></Stats>
+	<v-card
+		class="containerContent component"
+		image="cats.jpg"
+		rounded="1"
+		variant="tonal"
+	>
 
-			<!-- v-show="visibility == 'PublicProfile'" -->
-			<!-- v-show="visibility == 'FriendProfile'" -->
-			<!-- v-show="visibility == 'MyProfile'" -->
+		<Avatar
+			:userProfile="userProfile"
+		></Avatar>
+
+		<Stats
+			:userProfile="userProfile"
+		></Stats>
+
 		<ActionsPublicProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'PublicProfile'"
 		></ActionsPublicProfile>
+
 		<ActionsFriendProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'FriendProfile'"
 		></ActionsFriendProfile>
+
 		<ActionsMyProfile
+			v-if="visibility == 'MyProfile'"
 		></ActionsMyProfile>
+
 		<!-- ADD BLOCKED PROFILE -->
-
-		<!-- // TODO -->
-		<Notifications v-show="visibility == 'MyProfile'"></Notifications>
-
 	</v-card>
 </template>
 
@@ -140,3 +153,22 @@ export default {
 	outline-color: antiquewhite;
 }
 </style>
+
+
+<!-- <div class="d-flex flex-row justify-end align-start">
+	<v-card class="pa-2 mx-3">
+		<p class="text-overline">Profile : </p>
+		<p class="text-caption">
+			{{ userProfile.username }}
+			| {{ userProfile.id }}
+		</p>
+	</v-card>
+	<v-card class="pa-2 mx-3">
+		<p class="text-overline">Visitor : </p>
+		<p class="text-caption">
+			{{ userVisitor.username }}
+			| {{ userVisitor.id }}
+		</p>
+
+	</v-card>
+</div> -->

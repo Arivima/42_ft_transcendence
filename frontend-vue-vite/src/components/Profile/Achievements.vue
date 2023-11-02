@@ -1,29 +1,75 @@
 <script lang="ts">
-	import { usePlayerStore, type Achievement } from '@/stores/PlayerStore'
-	import { storeToRefs } from 'pinia'
+import { usePlayerStore, type Achievement, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
 
-	const playerStore = usePlayerStore()
-	const { fetchAchievements } = storeToRefs(playerStore)
+const playerStore = usePlayerStore()
+const { fetchAchievements, user, achievements } = storeToRefs(playerStore)
+const debug = false
 
-	export default {
-		components:	{
+export default {
+	components:	{
+	},
+	props: {
+		userProfile: {
+			type: Object as () => Player,
+			required: true
 		},
-		data: () => ({
-			achievements: [] as Achievement[],
-			model: null,
-		}),
-		mounted() {
-			this.getAchievements()
+	},
+	data: () => ({
+		userVisitor: user.value as Player,
+		achievements: [] as Achievement[],
+		model: null,
+		loading: false,
+	}),
+	watch : {
+		userProfile(newValue : Player){
+			if (debug) console.log('| Achievements | watch | userProfile : new value : ' + newValue.username)
+			this.fetchAchievements(newValue.id)
 		},
-		methods : {
-			getAchievements() {
-				let Profileid : number = Number(this.$route.params.id)
-				Profileid = 81841 // TODO change when route update
-				fetchAchievements.value(Profileid)
-					.then((targetUser : Achievement[]) => {this.achievements = targetUser})
-					.catch((err) => console.log(err))
-			},
+	},
+	methods : {
+		fetchAchievements(id : number) {
+			if (debug) console.log('| Achievements | methods | fetchAchievements()')
+			this.loading = true
+			if (!id || id == this.userVisitor.id)
+				this.achievements = achievements.value //MY PROFILE
+			else
+				fetchAchievements.value(id)
+					.then((userAchievements : Achievement[]) => {
+						this.achievements = userAchievements
+						this.loading = false
+					})
+					.catch((err : Error) => {
+						console.log(err)
+						this.loading = false
+					})
 		},
+	},
+	beforeCreate() {
+	if (debug) console.log('| Achievements | beforeCreate()')
+	},
+	created() {
+		if (debug) console.log('| Achievements | created(' + (this.userProfile.id) + ')')
+	},
+	beforeMount() {
+		if (debug) console.log('| Achievements | beforeMount(' + (this.userProfile.id) + ')')
+		this.fetchAchievements(this.userProfile.id)
+	},
+	mounted() {
+		if (debug) console.log('| Achievements | mounted(' + (this.userProfile.id) + ')')
+	},
+	beforeUpdate() {
+		if (debug) console.log('| Achievements | beforeUpdate(' + (this.userProfile.id) + ')')
+	},
+	updated() {
+		if (debug) console.log('| Achievements | updated(' + (this.userProfile.id) + ')')
+	},
+	beforeUnmount() {
+		if (debug) console.log('| Achievements | beforeUnmount(' + (this.userProfile.id) + ')')
+	},
+	unmounted() {
+		if (debug) console.log('| Achievements | unmounted(' + (this.userProfile.id) + ')')
+	},
 	}
 </script>
 
