@@ -12,22 +12,27 @@ export default {
 			required: true
 		},
 	},
-    data () {
-        return {
+	data () {
+		return {
 			stats: {
 				loading: false,
 				victories: 0,
 				losses: 0,
 				ladder: 0
 			},
-        }
-    },
-    methods: {
+		}
+	},
+	methods: {
+
+		//! BUG --> this.userProfile.id UNDEFINED
 		async setStats() {
+			console.log(`BUG | Stats.vue | setStats`)
+			console.log(`this.userProfile.id = ${this.userProfile.id}, type: ${typeof this.userProfile.id}`);
+
 			this.stats.loading = true
 			// TODO : ADD IN DATABASE
 			try {
-				const games = await fetchGames.value(this.userProfile.id)
+				const games = (await fetchGames.value(this.userProfile.id)).data;
 				for (const game of games) {
 					if (game.host == this.userProfile.username) {
 						if (game.host_score > game.guest_score) this.stats.victories++
@@ -46,8 +51,9 @@ export default {
 			}
 		}
 	},
-    mounted (){
-		this.setStats();
+    async mounted (){
+		console.log(`Stats | mounted | this.userProfile.id = ${this.userProfile.id}`);
+		await this.setStats();
     },
 	// beforeUpdate() {
 	// 	this.setStats();

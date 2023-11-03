@@ -139,7 +139,7 @@ export class PlayersService {
 	// TODO make achievementName unique
 
 	async getAllAchievements(userID: number): Promise<(Player & Connection)[]> {
-        console.log(`DEBUG | Players.Service | getAllAchievements | userID: ${userID}`);
+		console.log(`DEBUG | Players.Service | getAllAchievements | userID: ${userID}`);
 		const achievementNames = await this.prisma.achieved.findMany({
 			where: {
 				playerID: userID,
@@ -192,6 +192,7 @@ export class PlayersService {
 			guest_score: number;
 		}[]
 	> {
+		console.log(`DEBUG | Players.Service | getAllGames | userID: ${userID}`);
 		const gamesAsHost = await this.prisma.plays.findMany({
 			where: {
 				hostID: userID,

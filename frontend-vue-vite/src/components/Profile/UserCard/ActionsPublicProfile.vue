@@ -1,5 +1,9 @@
 <script lang="ts">
-import { type Player } from '@/stores/PlayerStore'
+import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
+
+const playerStore = usePlayerStore()
+const { user, friends } = storeToRefs(playerStore)
 
 export default {
 	props: {
@@ -16,13 +20,9 @@ export default {
     },
     methods: {
 		addAsFriend(){
-			this.loading = true
-			setTimeout(() => {
-				// axios.post(friendship/request)
-				// if ok
-				this.loading = false
-				this.state = 'pending'
-			}, 5000);
+			console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
+			playerStore.sendFriendshipRequest(Number(this.userProfile.id));
+			this.state = 'pending';
 		},
 	},
     mounted (){

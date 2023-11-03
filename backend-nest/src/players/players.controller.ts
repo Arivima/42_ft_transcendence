@@ -100,6 +100,7 @@ export class PlayersController {
 
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
+		console.log(`CONTROLLER - getGames: id param = ${id}`);
 		return this.playersService.getAllGames(
 			Number(id),
 			limit ? Number(limit) : undefined,

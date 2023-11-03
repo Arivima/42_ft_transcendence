@@ -89,7 +89,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			return {
 				user: emptyUser,
 				friends: [],
-				fetchGames: fetchGames,
+				fetchGames: fetchGames.bind(this),
 				fetchPlayer: fetchPlayer,
 				fetchFriends: fetchFriends,
 				fetchAchievements: fetchAchievements,
@@ -99,6 +99,13 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			}
 		},
 		actions: {
+
+			sendFriendshipRequest(recipientID: number) {
+				this.user.notificationsSocket?.emit('createFrienshipRequest', {
+					id: this.user.id,
+					recipientID: recipientID
+				});
+			},
 
 			sendFriendshipConsent(requestorID: number) {
 				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
@@ -249,6 +256,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 async function fetchGames(id: number): Promise<Game[]> {
 	console.log("/Store/ fetchGames()");
+	console.log(`id: ${id}`)
 	const games = (await axios.get(`players/games/${id}`, { params: { limit: Infinity } })).data
 
 	const gamesDateReadable = games.map((game: any) => {
