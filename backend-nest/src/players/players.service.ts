@@ -69,6 +69,17 @@ export class PlayersService {
 		return JSON.stringify(player) == '{}' ? null : player;
 	}
 
+	// NEW
+	// async findOneUsername(id: number): Promise<string> {
+	// 	const player = {
+	// 		...(await this.prisma.player.findUnique({
+	// 			where: { id },
+	// 		})),
+	// 	};
+
+	// 	return JSON.stringify(player) == '{}' ? '' : player.username;
+	// }
+
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
 		return await this.prisma.player.update({
 			where: { id },

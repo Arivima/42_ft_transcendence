@@ -13,7 +13,8 @@ export class Chat {
 // 	receivers			ChatRoom				@relation("RecipientS", fields: [receiverSID], references: [groupID])
 // 	receiverSID			Int
 	content: string;
-	created_at: Date;
+	createdAt: Date;
 	senderID: number;
-	receiverID: number;
+	receiverID: number | null;
+	receiversID: number[] | null;
 }

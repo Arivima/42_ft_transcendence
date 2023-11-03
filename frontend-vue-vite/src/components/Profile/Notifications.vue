@@ -6,23 +6,26 @@ import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
 const { user, notifications } = storeToRefs(playerStore)
+const debug = false
 
 export default defineComponent({
 	components: {
 	},
 	data() {
 		return {
-			user: user,
+			user: user.value,
 			notificationList: notifications
 		}
 	},
 	methods: {
 		acceptFriend(request : FriendRequest){
+			if (debug) console.log('| Notifications | methods | acceptFriend()' + request)
 			request.status = 'loading'
 
 			playerStore.sendFriendshipConsent(request.requestorID);
 		},
 		rejectFriend(request : FriendRequest){
+			if (debug) console.log('| Notifications | methods | rejectFriend()' + request)
 			request.status = 'loading'
 
 			playerStore.sendFriendshipRejection(request.requestorID);
@@ -41,31 +44,31 @@ export default defineComponent({
     },
 
 	beforeCreate() {
-		console.log('| Notifications | beforeCreate()')
+		if (debug) console.log('| Notifications | beforeCreate()')
 	},
 	created() {
-		console.log('| Notifications | created()')
+		if (debug) console.log('| Notifications | created(' + (this.user.id) + ')')
 	},
 	beforeMount() {
-		console.log('| Notifications | beforeMount()')
+		if (debug) console.log('| Notifications | beforeMount(' + (this.user.id) + ')')
 	},
 	mounted() {
-		console.log('| Notifications | mounted()')
+		if (debug) console.log('| Notifications | mounted(' + (this.user.id) + ')')
 		// this.notificationList = this.notificationList
 		this.notificationList = notifications;
 		// this.setNotificationsCount()
     },
 	beforeUpdate() {
-		console.log('| Notifications | beforeUpdate()')
+		if (debug) console.log('| Notifications | beforeUpdate(' + (this.user.id) + ')')
 	},
 	updated() {
-		console.log('| Notifications | updated()')
+		if (debug) console.log('| Notifications | updated(' + (this.user.id) + ')')
 	},
 	beforeUnmount() {
-		console.log('| Notifications | beforeUnmount()')
+		if (debug) console.log('| Notifications | beforeUnmount(' + (this.user.id) + ')')
 	},
 	unmounted() {
-		console.log('| Notifications | unmounted()')
+		if (debug) console.log('| Notifications | unmounted(' + (this.user.id) + ')')
 	},
 })
 </script>

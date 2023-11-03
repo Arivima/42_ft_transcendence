@@ -14,7 +14,8 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	1,
 	'pippo',
-	'https://www.ventennipaperoni.com/wp-content/uploads/2020/03/volto-pippo-e1584113937806.jpg', 'pippo',
+	'public/upload/pippo.jpg',
+	'pippo',
 	'pippi',
 	'https://api.intra.42.fr/v2/users/mmarinell'
 )
@@ -35,7 +36,7 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	2,
 	'pluto',
-	'https://store.modamerceria.it/8021-thickbox_default/pluto-disney-applicazione-patch-ricamata-e-termoadesiva.jpg',
+	'public/upload/pluto.jpg',
 	'pluto',
 	'plutini',
 	'https://api.intra.42.fr/v2/users/mmarinell'
@@ -57,7 +58,7 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	3,
 	'paperino',
-	'https://store.modamerceria.it/8023/zio-paperino-disney-applicazione-patch-ricamata-e-termoadesiva.jpg',
+	'public/upload/paperino.jpg',
 	'paperino',
 	'de paperini',
 	'https://api.intra.42.fr/v2/users/mmarinell'

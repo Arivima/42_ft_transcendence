@@ -8,6 +8,8 @@ const playerStore = usePlayerStore()
 const { fetchGames } = storeToRefs(playerStore)
 const _items_per_page = 5
 
+const debug = false
+
 //TODO
 //2.	add toast for data loading error
 //LATER_FOR_FRIENDS_TABLE3.	use web sockets (socket.io)
@@ -42,7 +44,7 @@ export default {
 	}),
 	methods: {
 		async fetchData(options: { page: number; itemsPerPage: number }) {
-			console.log('| MatchHistoyTable | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
+			if (debug) console.log('| MatchHistoyTable | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
 			this.loading = true
 			const start = (options.page - 1) * options.itemsPerPage
 			const end = start + options.itemsPerPage
@@ -79,7 +81,7 @@ export default {
 	},
 	watch: {
 		userProfile(newValue : Player){
-			console.log('| MatchHistoyTable | watch | userProfile : new value : ' + newValue.username)
+			if (debug) console.log('| MatchHistoyTable | watch | userProfile : new value : ' + newValue.username)
 			this.fetchData({page: 1 , itemsPerPage :  this.itemsPerPage})
 		},
 		searchedGuest: {
@@ -96,28 +98,28 @@ export default {
 		}
 	},
 	beforeCreate() {
-		console.log('| MatchHistoyTable | beforeCreate()')
+		if (debug) console.log('| MatchHistoyTable | beforeCreate()')
 	},
 	created() {
-		console.log('| MatchHistoyTable | created()')
+		if (debug) console.log('| MatchHistoyTable | created(' + (this.userProfile.id) + ')')
 	},
 	beforeMount() {
-		console.log('| MatchHistoyTable | beforeMount()')
+		if (debug) console.log('| MatchHistoyTable | beforeMount(' + (this.userProfile.id) + ')')
 	},
 	mounted() {
-		console.log('| MatchHistoyTable | mounted()')
+		if (debug) console.log('| MatchHistoyTable | mounted(' + (this.userProfile.id) + ')')
 	},
 	beforeUpdate() {
-		console.log('| MatchHistoyTable | beforeUpdate()')
+		if (debug) console.log('| MatchHistoyTable | beforeUpdate(' + (this.userProfile.id) + ')')
 	},
 	updated() {
-		console.log('| MatchHistoyTable | updated()')
+		if (debug) console.log('| MatchHistoyTable | updated(' + (this.userProfile.id) + ')')
 	},
 	beforeUnmount() {
-		console.log('| MatchHistoyTable | beforeUnmount()')
+		if (debug) console.log('| MatchHistoyTable | beforeUnmount(' + (this.userProfile.id) + ')')
 	},
 	unmounted() {
-		console.log('| MatchHistoyTable | unmounted()')
+		if (debug) console.log('| MatchHistoyTable | unmounted(' + (this.userProfile.id) + ')')
 	},
 }
 </script>
