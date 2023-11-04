@@ -86,7 +86,7 @@ export default {
 
 	<v-card
 		class="containerContent component"
-		image="cats.jpg"
+		image="http://localhost:8080/cats.jpg"
 		rounded="1"
 		variant="tonal"
 	>

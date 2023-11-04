@@ -10,6 +10,10 @@ export default defineConfig(({command, mode}) => {
   return {
     server: {
       host: "0.0.0.0",
+      fs: {
+        strict: true,
+        allow: ['src', 'public', 'index.html', 'README.md', 'node_modules']
+      },
       hmr: {
         clientPort: 8080,
       },

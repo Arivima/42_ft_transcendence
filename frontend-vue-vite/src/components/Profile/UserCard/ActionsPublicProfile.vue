@@ -23,7 +23,7 @@ export default {
 		addAsFriend(){
 			console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
 			playerStore.sendFriendshipRequest(Number(this.userProfile.id));
-			this.state = 'pending';
+			// this.state = 'pending';//! WAS MODIFIED
 		},
 	},
     mounted (){

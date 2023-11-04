@@ -48,9 +48,11 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		@MessageBody('recipientID') recipientID: number,
 		@ConnectedSocket() socket: Socket
 	) {
+		console.log(`GATEWAY | createFrienshipRequest`);
 		try {
 			const requestor = await this.frienshipsService.createFrienshipRequest(userID, recipientID);
 			
+			console.log(`friendship created`);
 			// https://socket.io/docs/v3/rooms/#default-room
 			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('new-friendship-request', {
 				requestorID: requestor.requestorID,

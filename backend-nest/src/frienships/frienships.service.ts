@@ -10,6 +10,7 @@ export class FrienshipsService {
 
 	constructor(private readonly prisma: PrismaService) {}
 
+	//TODO CONTINUAREEEE
 	async createFrienshipRequest(userID : number, recipientID: number): Promise<SendFriendshipRequestDto> {
 		
 		const requestor = await this.prisma.player.findUnique({
@@ -22,18 +23,41 @@ export class FrienshipsService {
 				avatar: true
 			}
 		});
-
-		await this.prisma.beFriends.create({
-			data: {
-				requestorID: userID,
-				recipientID: recipientID
+		const friendship = await this.prisma.beFriends.findUnique({
+			where: {
+				requestorID_recipientID: {
+					requestorID: userID,
+					recipientID: recipientID
+				},
 			},
-		})
+		});
+
+		if (null == friendship) {
+			await this.prisma.beFriends.create({
+				data: {
+					requestorID: userID,
+					recipientID: recipientID
+				},
+			})
+		}
+		else if (false == friendship.pending_friendship) {
+			await this.prisma.beFriends.update({
+				where: {
+					requestorID_recipientID: {
+						requestorID: userID,
+						recipientID: recipientID
+					},
+				},
+				data: {
+					pending_friendship: true,
+				},
+			})
+		}
 
 		return {
 			requestorID: requestor.id,
 			requestorUsername: requestor.username,
-			requestorAvatar: requestor.avatar
+			requestorAvatar: `players/avatar/${requestor.id}`
 		};
 	}
 
@@ -66,7 +90,7 @@ export class FrienshipsService {
 				requestors.push({
 					requestorID: recordFound.id,
 					requestorUsername: recordFound.username,
-					requestorAvatar: recordFound.avatar
+					requestorAvatar: `players/avatar/${recordFound.id}`
 				});
 		}
 		return requestors;

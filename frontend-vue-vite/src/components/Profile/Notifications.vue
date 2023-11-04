@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { usePlayerStore, type FriendRequest } from '@/stores/PlayerStore'
+import { usePlayerStore, type FriendRequest, type FriendRequestStatus } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 // import axios from 'axios'
 
@@ -18,13 +18,13 @@ export default defineComponent({
 		}
 	},
 	methods: {
-		acceptFriend(request : FriendRequest){
+		acceptFriend(request : (FriendRequest & FriendRequestStatus)){
 			if (debug) console.log('| Notifications | methods | acceptFriend()' + request)
 			request.status = 'loading'
 
 			playerStore.sendFriendshipConsent(request.requestorID);
 		},
-		rejectFriend(request : FriendRequest){
+		rejectFriend(request : (FriendRequest & FriendRequestStatus)){
 			if (debug) console.log('| Notifications | methods | rejectFriend()' + request)
 			request.status = 'loading'
 

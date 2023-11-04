@@ -10,3 +10,14 @@
 4. make achievement name unique in db
 4. make avatar NOT unique in db
 5. remove @Protected() decorator on 2fa remove endpoint in back
+
+
+1. "files in public directory are served from the root path..." -- when starting vite
+1 Fix vue static files served -- DONE
+1 avatar in notification -- DONE
+	- fetch avatar from endpoint url -- DONE
+
+2 reject notification as deletion of record
+	- modify create friendship request
+3 clean friendships
+1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
