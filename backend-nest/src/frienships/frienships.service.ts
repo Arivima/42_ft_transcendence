@@ -10,7 +10,6 @@ export class FrienshipsService {
 
 	constructor(private readonly prisma: PrismaService) {}
 
-	//TODO CONTINUAREEEE
 	async createFrienshipRequest(userID : number, recipientID: number): Promise<SendFriendshipRequestDto> {
 		
 		const requestor = await this.prisma.player.findUnique({
@@ -32,28 +31,26 @@ export class FrienshipsService {
 			},
 		});
 
-		if (null == friendship) {
-			await this.prisma.beFriends.create({
-				data: {
-					requestorID: userID,
-					recipientID: recipientID
-				},
-			})
+		/**
+		 * A friendship request may only be sent when the friendship
+		 * relation instance does not exist
+		 * 
+		 * A friendship relation instance might exist when:
+		 *	1. the friendship request is pending
+		 *	2. a user blocked another user
+		 */
+		if (friendship) {
+			if (friendship.recipient_blacklisted || friendship.requestor_blacklisted)
+				throw Error('friendships requests cannot be among blocked users (both ways)');
+			throw Error('friendship request already exist');
 		}
-		else if (false == friendship.pending_friendship) {
-			await this.prisma.beFriends.update({
-				where: {
-					requestorID_recipientID: {
-						requestorID: userID,
-						recipientID: recipientID
-					},
-				},
-				data: {
-					pending_friendship: true,
-				},
-			})
-		}
-
+		
+		await this.prisma.beFriends.create({
+			data: {
+				requestorID: userID,
+				recipientID: recipientID
+			},
+		})
 		return {
 			requestorID: requestor.id,
 			requestorUsername: requestor.username,
@@ -112,4 +109,64 @@ export class FrienshipsService {
 			}
 		});
 	}
+
+	async deleteFrienshipRequest(requestorID: number, recipientID: number) {
+
+		if (undefined == requestorID)
+			throw Error('Could not find friendhip');
+
+		const friendship = await this.prisma.beFriends.findUnique({
+			where: {
+				requestorID_recipientID: {
+					requestorID,
+					recipientID
+				}
+			}
+		});
+
+		if (friendship.requestor_blacklisted || friendship.recipient_blacklisted)
+			throw Error("Cannot delete friendship among blocked users")
+		
+		await this.prisma.beFriends.delete({
+			where: {
+				requestorID_recipientID: {
+					requestorID,
+					recipientID
+				}
+			}
+		});
+	}
+
+	//Helpers
+
+	async getFriendship(userID: number, friendID: number): Promise<number[]> {
+		if (
+			await this.prisma.beFriends.findUnique({
+				where: {
+					requestorID_recipientID: {
+						requestorID: userID,
+						recipientID: friendID
+					}
+				}
+			})
+		) {
+			return [userID, friendID];
+		}
+		else if (
+			await this.prisma.beFriends.findUnique({
+				where: {
+					requestorID_recipientID: {
+						requestorID: friendID,
+						recipientID: userID
+					}
+				}
+			})
+		) {
+			return [friendID, userID];
+		}
+		else {
+			return [];
+		}
+	}
+
 }

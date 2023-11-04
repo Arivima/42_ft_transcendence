@@ -100,12 +100,6 @@ export class PlayersController {
 		return this.playersService.getAllFriends(Number(id));
 	}
 
-	@Get('me/addFriend/:id')
-	sendFrendship(@Param('id') recipientID: string, @Request() req)
-	{
-		this.playersService.sendFriendship(Number(req.user.sub), Number(recipientID));
-	}
-
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
 		console.log(`CONTROLLER - getGames: id param = ${id}`);

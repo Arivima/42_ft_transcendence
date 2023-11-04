@@ -69,17 +69,6 @@ export class PlayersService {
 		return JSON.stringify(player) == '{}' ? null : player;
 	}
 
-	// NEW
-	// async findOneUsername(id: number): Promise<string> {
-	// 	const player = {
-	// 		...(await this.prisma.player.findUnique({
-	// 			where: { id },
-	// 		})),
-	// 	};
-
-	// 	return JSON.stringify(player) == '{}' ? '' : player.username;
-	// }
-
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
 		return await this.prisma.player.update({
 			where: { id },
@@ -97,18 +86,8 @@ export class PlayersService {
 		}
 	}
 
-	async sendFriendship(userID: number, recipientID: number)
-	{
-		this.prisma.beFriends.create({
-			data: {
-				requestorID: userID,
-				recipientID: recipientID
-			},
-		})
-	}
-
 	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
-        console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
+		console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
 				requestorID: userID,
@@ -135,13 +114,13 @@ export class PlayersService {
 		for (const friend of friendsAsRecipientIDs) {
 			friendsIDs.push(friend.requestorID);
 		}
-        console.log(`DEBUG | Players.Service | getAllFriends | friendsIDs: ${friendsIDs}`);
+		console.log(`DEBUG | Players.Service | getAllFriends | friendsIDs: ${friendsIDs}`);
 		const friends = [];
 		for (const friendID of friendsIDs) {
-			friends.push(await this.findOne(friendID));
-			// const friend = await this.findOne(friendID);
-			// friend.avatar = `/players/avatar/${friendID}`;
-			// friends.push();
+			// friends.push(await this.findOne(friendID));
+			const friend = await this.findOne(friendID);
+			friend.avatar = `/players/avatar/${friendID}`;
+			friends.push(friend);
 		}
 
 		return friends;

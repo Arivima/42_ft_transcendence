@@ -35,6 +35,11 @@ export interface FriendRequestStatus {
 	status: 'loading' | 'accepted' | 'rejected'
 }
 
+export interface FriendshipReject {
+	requestorID: number,
+	recipientID: number
+}
+
 export interface FriendRequestUpdate {
 	are_friends: boolean,
 	pending_friendship: boolean,
@@ -140,16 +145,20 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				});
 			},
 
-			sendFriendshipRejection(requestorID: number) {
-				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
-					bearerID: this.user.id,
-					recipientID: this.user.id,
-					requestorID: requestorID,
-					are_friends: false,
-					pending_friendship: false,
-					requestor_blacklisted: false,
-					recipient_blacklisted: false,
+			sendFriendshipRejection(friendID: number) {
+				this.user.notificationsSocket?.emit('rejectFrienship', {
+					userID: this.user.id,
+					friendID
 				});
+				// this.user.notificationsSocket?.emit('updateFrienshipRequest', {
+				// 	bearerID: this.user.id,
+				// 	recipientID: this.user.id,
+				// 	requestorID: requestorID,
+				// 	are_friends: false,
+				// 	pending_friendship: false,
+				// 	requestor_blacklisted: false,
+				// 	recipient_blacklisted: false,
+				// });
 			},
 
 			// NEW
@@ -192,6 +201,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.avatar = await fetchAvatar('/players/avatar/' + this.user.id);
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
 					this.user.notificationsSocket?.on('new-friendship-request', handleNewRequest.bind(this));
+					this.user.notificationsSocket?.on('reject-friendship-request', handleFriendshipReject.bind(this))
 					this.user.notificationsSocket?.on('update-friendship-request', updateNotifications.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
@@ -207,7 +217,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						my_friend: true,
 					}))
 					this.friends.forEach(async (friend) => {
-						friend.avatar = await fetchAvatar('/players/avatar/'+ friend.id);
+						friend.avatar = await fetchAvatar(friend.avatar);//'/players/avatar/'+ friend.id);
 					})
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
@@ -346,6 +356,33 @@ async function handleNewRequest(this: any, data: FriendRequest) {
 			requestorAvatar: await fetchAvatar(data.requestorAvatar),
 			status: 'pending'
 		});
+	}
+}
+function handleFriendshipReject(
+	this: any,
+	data: FriendshipReject
+)
+{
+	if (data.recipientID == this.user.id)
+	{
+		const index = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => {
+				return data.requestorID == request.requestorID
+			}
+		)
+
+		if (-1 != index)
+			this.notifications.splice(index, 1);
+	}
+	else {
+		const index = this.friends.findIndex(
+			(friend: Player) => {
+				return data.recipientID == friend.id
+			}
+		)
+
+		if (-1 != index)
+			this.friends.splice(index, 1);
 	}
 }
 

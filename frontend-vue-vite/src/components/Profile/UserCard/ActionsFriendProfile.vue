@@ -25,13 +25,7 @@ export default {
 	},
     methods: {
 		removeFromFriends(){
-			this.loading = true
-			setTimeout(() => {
-				// axios.post(friendship/request)
-				// if ok
-				this.loading = false
-				// push to reload the whole page to see the new state of the relationship
-			}, 5000);
+			playerStore.sendFriendshipRejection(this.userProfile.id);
 		},
 		BlockUser(){
 			this.loading = true

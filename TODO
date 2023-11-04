@@ -12,12 +12,31 @@
 5. remove @Protected() decorator on 2fa remove endpoint in back
 
 
-1. "files in public directory are served from the root path..." -- when starting vite
+1. "files in public directory are served from the root path..." -- when starting vite DONE
 1 Fix vue static files served -- DONE
 1 avatar in notification -- DONE
 	- fetch avatar from endpoint url -- DONE
 
+
+DONE
+Rejection means removal of friend or rejection of request
+	- call action when clicking "remove" button
+	- call action when rejecting request
+understand who is the requestor and who the recipient
+
+As a new friendship is accepted, add automatically to friends
+
+Rethink updateFriendship event
+
+DONE
 2 reject notification as deletion of record
 	- modify create friendship request
+
 3 clean friendships
 1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
+
+Make everything reactive through websockets
+- online status
+- adding or removing to friends
+
+IMPLEMENT BLOCKING OF USERS

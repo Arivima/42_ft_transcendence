@@ -50,9 +50,11 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	) {
 		console.log(`GATEWAY | createFrienshipRequest`);
 		try {
+			//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
+			//TODO otherwise, anyone connected can act upon anyone friendships
+			// if (client.handshake.auth)
 			const requestor = await this.frienshipsService.createFrienshipRequest(userID, recipientID);
-			
-			console.log(`friendship created`);
+
 			// https://socket.io/docs/v3/rooms/#default-room
 			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('new-friendship-request', {
 				requestorID: requestor.requestorID,
@@ -78,6 +80,9 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			@ConnectedSocket() requestorSocket: Socket
 	) {
 		try {
+			//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
+			//TODO otherwise, anyone connected can act upon anyone friendships
+			// if (client.handshake.auth)
 			const friendshipRequests = await this.frienshipsService.findAllFrienshipRequests(userID);
 
 			this.server.to(`${requestorSocket.id}`).emit('friendship-requests', {
@@ -95,6 +100,16 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		}
 	}
 
+	/**
+	 * a friendship must either be pending or "are_friends" is true
+	 * if any of the user is blacklisted, the are_friends fielf must be false and pending must be false,
+	 * when a friendship is rejected, the record is removed
+	 * A record cannot be removed if any of the users is blacklisted
+	 * 
+	 * All these rules must be written as constraints in postgre (maybe not the last rule)
+	 * Therefore, this function will automatically fail if any of the rules are violated.
+	 */
+	//TODO add constraints in db for frienship fields (when a user is blacklisted pending cannot be true, when pending is true friend cannot be, etc.)
 	@Public()
 	@SubscribeMessage('updateFrienshipRequest')
 	async updateFrienshipRequest(
@@ -102,6 +117,9 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	) {
 
 		try {
+			//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
+			//TODO otherwise, anyone connected can act upon anyone friendships
+			// if (client.handshake.auth)
 			const updatedRecord
 				= await this.frienshipsService
 					.updateFrienshipRequest(updateFrienshipDto);
@@ -137,6 +155,55 @@ export class FrienshipsGateway implements OnGatewayConnection {
 					requestorID: updateFrienshipDto.requestorID,
 					recipientID: updateFrienshipDto.recipientID
 			});
+		}
+	}
+
+	@Public()
+	@SubscribeMessage('rejectFrienship')
+	async deleteFriendship(
+		@MessageBody('userID') userID: number,
+		@MessageBody('friendID') friendID: number,
+		@ConnectedSocket() client: Socket
+	)
+	{
+		let [requestorID, recipientID] = await this.frienshipsService.getFriendship(userID, friendID);
+
+		try {
+			//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
+			//TODO otherwise, anyone connected can act upon anyone friendships
+			// if (client.handshake.auth)
+			await this.frienshipsService.deleteFrienshipRequest(requestorID, recipientID);
+
+			this.server
+				.to(`${this.clients.get(recipientID).id}`)
+				.emit('reject-friendship-request', {
+					requestorID,
+					recipientID
+				})
+			this.server
+				.to(`${this.clients.get(requestorID).id}`)
+				.emit('reject-friendship-request', {
+					requestorID,
+					recipientID
+				})
+		}
+		catch(err) {
+			const msg = `rejectFrienship: ${err.toString()}`;
+
+			this.server
+				.to(`${this.clients.get(recipientID).id}`)
+				.emit('friendship-error', {
+					msg: msg,
+					requestorID: requestorID,
+					recipientID: recipientID
+				});
+			this.server
+				.to(`${this.clients.get(requestorID).id}`)
+				.emit('friendship-error', {
+					msg: msg,
+					requestorID: requestorID,
+					recipientID: recipientID
+				});
 		}
 	}
 }
