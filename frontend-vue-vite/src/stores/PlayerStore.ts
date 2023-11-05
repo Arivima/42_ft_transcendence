@@ -35,7 +35,7 @@ export interface FriendRequestStatus {
 	status: 'loading' | 'accepted' | 'rejected'
 }
 
-export interface FriendshipReject {
+export interface FriendshipRejectAccept {
 	requestorID: number,
 	recipientID: number
 }
@@ -143,14 +143,9 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendFriendshipConsent(requestorID: number) {
-				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
-					bearerID: this.user.id,
-					recipientID: this.user.id,
+				this.user.notificationsSocket?.emit('acceptFriendship', {
 					requestorID: requestorID,
-					are_friends: true,
-					pending_friendship: false,
-					requestor_blacklisted: false,
-					recipient_blacklisted: false,
+					recipientID: this.user.id,
 				});
 			},
 
@@ -220,7 +215,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
 					this.user.notificationsSocket?.on('new-friendship-request', handleNewRequest.bind(this));
 					this.user.notificationsSocket?.on('reject-friendship-request', handleFriendshipReject.bind(this))
-					this.user.notificationsSocket?.on('update-friendship-request', updateNotifications.bind(this));
+					this.user.notificationsSocket?.on('accept-friendship', handleFriendshipAccept.bind(this));
 					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
@@ -255,17 +250,20 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				if (debug) console.log("/Store/ usePlayerStore.visibility(" + id + ')');
 				
 				let profileType = 'PublicProfile';
-				for (const friend of this.friends) {
-					if (friend.id == id)
-						profileType = 'FriendProfile'
-				}
-				// TODO ADD BLOCKED USER
-				for (const blocked of this.blockedUsers) {
-					if (id == blocked.id)
-						profileType = 'BlockedProfile';
-				}
 				if (id == this.user.id)
 					profileType = 'MyProfile'
+				for (const friend of this.friends) {
+					if (friend.id == id) {
+						profileType = 'FriendProfile'
+						break ;
+					}
+				}
+				for (const blocked of this.blockedUsers) {
+					if (id == blocked.id) {
+						profileType = 'BlockedProfile';
+						break ;
+					}
+				}
 				return profileType
 			},
 
@@ -325,6 +323,7 @@ async function fetchPlayer(id: number): Promise<Player> {
 	catch (_) {
 		console.log('axios failed inside user store')
 		console.log(user)
+		user = emptyUser;
 	}
 	return user
 }
@@ -389,9 +388,41 @@ async function handleNewRequest(this: any, data: FriendRequest) {
 		});
 	}
 }
+
+async function handleFriendshipAccept(
+	this: any,
+	data: FriendshipRejectAccept
+)
+{
+	let newFriendID: number;
+
+	//remove notification
+	console.log(`handleFriendshipAccept: {requestorID: ${data.requestorID}, recipientID: ${data.recipientID}}`);
+	if (data.recipientID == this.user.id) {
+		const index = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => {
+				return data.requestorID == request.requestorID
+			}
+		);
+
+		if (-1 != index)
+			this.notifications.splice(index, 1);
+		
+		newFriendID = data.requestorID;
+	}
+	else {
+		newFriendID = data.recipientID;
+	}
+
+	const newFriend = await fetchPlayer(newFriendID);
+	if (JSON.stringify(emptyUser) != JSON.stringify(newFriend)) {
+		this.friends.push(newFriend);
+	}
+}
+
 function handleFriendshipReject(
 	this: any,
-	data: FriendshipReject
+	data: FriendshipRejectAccept
 )
 {
 	if (data.recipientID == this.user.id)
@@ -421,12 +452,14 @@ function handleFriendshipReject(
 		this.friends.splice(index, 1);
 }
 
-function handleBlockedUser(
+async function handleBlockedUser(
 	this: any,
 	data: BlockedFriendship
 )
 {
 	let index: number;
+	let affectedUserID: number;
+	let userBlocked: boolean;
 
 	console.log('toggle-block-user: emitting from backend');
 	if (data.recipientID == this.user.id) {
@@ -439,6 +472,8 @@ function handleBlockedUser(
 		if (-1 != notificationsIndex)
 			this.notifications.splice(notificationsIndex, 1);
 		
+		affectedUserID = data.requestorID;
+		userBlocked = data.requestor_blacklisted;
 		index = this.friends.findIndex(
 			(friend: Player) => {
 				return data.requestorID == friend.id
@@ -446,6 +481,8 @@ function handleBlockedUser(
 		);
 	}
 	else {
+		affectedUserID = data.recipientID;
+		userBlocked = data.recipient_blacklisted;
 		// get friend index
 		index = this.friends.findIndex(
 			(friend: Player) => {
@@ -456,25 +493,44 @@ function handleBlockedUser(
 
 	if (-1 != index)
 		this.friends.splice(index, 1);
+	
+	if (userBlocked) {
+		const affectedUser = await fetchPlayer(affectedUserID);
+		if (JSON.stringify(emptyUser) != JSON.stringify(affectedUser)) {
+			this.blockedUsers.push(affectedUser);
+		}
+	}
+	else {
+		const index = this.blockedUsers.findIndex(
+			(user: Player) => {
+				return affectedUserID == user.id;
+			}
+		)
+
+		if (-1 != index) {
+			this.blockedUsers.splice(index, 1);
+		}
+	}
 }
 
-function updateNotifications(
-	this: any,
-	data: FriendRequestUpdate
-)
-{
-	console.log('update-friendship-request emitted from the server');
-	if (this.user.id == data.recipientID && false == data.pending_friendship)
-	{
-		const requestID = this.notifications.findIndex((request: (FriendRequest & FriendRequestStatus)) =>
-			data.requestorID == request.requestorID
-		);
+// function updateNotifications(
+// 	this: any,
+// 	data: FriendRequestUpdate
+// )
+// {
+// 	console.log('update-friendship-request emitted from the server');
+// 	// ACCEPT friendship succeeded
+// 	if (this.user.id == data.recipientID && false == data.pending_friendship)
+// 	{
+// 		const requestID = this.notifications.findIndex((request: (FriendRequest & FriendRequestStatus)) =>
+// 			data.requestorID == request.requestorID
+// 		);
 			
-		if (-1 != requestID)
-			this.notifications.splice(requestID, 1);
-	}
-	//TODO handle all other kinds of update events: blocked user, etc. (look into db table to think about all possibilities)
-}
+// 		if (-1 != requestID)
+// 			this.notifications.splice(requestID, 1);
+// 	}
+// 	//TODO handle all other kinds of update events: blocked user, etc. (look into db table to think about all possibilities)
+// }
 
 //TODO continue
 async function handleNotificationsError(this: any, data: FriendRequestError) {

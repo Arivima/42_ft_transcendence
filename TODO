@@ -35,30 +35,31 @@ DONE
 3 clean friendships
 1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
 
-Make everything reactive through websockets
+Make everything reactive through websockets DONE
 - online status
 - adding or removing to friends
 
-IMPLEMENT BLOCKING OF USERS
+IMPLEMENT BLOCKING OF USERS --DONE
 
 IMPLEMENT JWT IN WEBSOCKETS
 
 add a rule in players controller that doesn't let us get users that blocked us
 
-add button for unblocking profile in public profile
+add button for unblocking profile in public profile DONE
 
 solve requestorID and recipientID uniqueness regardless of ordering in BeFriends table. DONE 
 
 solve adding friend when user(s) is blocked.
 
-Add Block User also in friend profile ?
+Add Block User also in friend profile ? (si lo devo fare pefforzaah)
 
-Public profile, mostrare un bottone o l'altro a seconda che l'utente sia bloccato oppure no
+Public profile, mostrare un bottone o l'altro a seconda che l'utente sia bloccato oppure no DONE (controllare bene peró )
 
 forbid a user to block itself
 
 BlockUser
 	- make so that when each user unblock each other, record in BeFriends table gets destroyed
-		(so that new friend requests are possible)
-	- make reactive and understand what makes the "Block" button reactive
-	- fix any bug
+		(so that new friend requests are possible) DONE
+	- delete updateRequest in gateway and reformulate in playerStore DONE
+	- make reactive and understand what makes the "Block" button reactive DONE
+	- fix any bug BOOOH ??

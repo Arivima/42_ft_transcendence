@@ -22,14 +22,17 @@ export class FrienshipsService {
 				avatar: true
 			}
 		});
-		const friendship = await this.prisma.beFriends.findUnique({
-			where: {
-				requestorID_recipientID: {
-					requestorID: userID,
-					recipientID: recipientID
+		const [existingReqID, existingRecipID] = await this.getFriendship(userID, recipientID);
+		let friendship: BeFriends | null = null 
+		if (undefined != existingReqID)
+			friendship = await this.prisma.beFriends.findUnique({
+				where: {
+					requestorID_recipientID: {
+						requestorID: existingReqID,
+						recipientID: existingRecipID
+					},
 				},
-			},
-		});
+			});
 
 		/**
 		 * A friendship request may only be sent when the friendship
@@ -93,12 +96,29 @@ export class FrienshipsService {
 		return requestors;
 	}
 
-	async toggleBlockUser(userID: number, requestorID: number, recipientID: number, block: boolean) {
+	async toggleBlockUser(
+		userID: number, friendID: number,
+		requestorID: number, recipientID: number,
+		block: boolean
+	) {
 
-		if (undefined == requestorID)
-			throw Error('could not find friendship for these requestor and recipient');
+		let friendship: BeFriends;
 
-		if (requestorID == userID)
+		if (undefined == requestorID) {
+			this.prisma.beFriends.create({
+				data: {
+					are_friends: false,
+					pending_friendship: false,
+					requestor_blacklisted: (recipientID == userID) ? block : false,
+					recipient_blacklisted: (requestorID == userID) ? block : false,
+					requestorID: userID,
+					recipientID: friendID,
+				}
+			});
+			requestorID = userID;
+			recipientID = friendID;
+		}
+		else if (requestorID == userID)
 			await this.prisma.beFriends.update({
 				where: {
 					requestorID_recipientID: {
@@ -128,23 +148,63 @@ export class FrienshipsService {
 			});
 		else
 			throw Error('could not find friendship for these requestor and recipient');
-	}
-	
-	async updateFrienshipRequest(updateFrienshipDto: UpdateFrienshipDto): Promise<BeFriends> {
-		return await this.prisma.beFriends.update({
+
+		friendship = await this.prisma.beFriends.findUnique({
 			where: {
-				requestorID_recipientID: {
-					requestorID: updateFrienshipDto.requestorID,
-					recipientID: updateFrienshipDto.recipientID
-				}
-			},
-			data: {
-				are_friends: updateFrienshipDto.are_friends,
-				pending_friendship: updateFrienshipDto.pending_friendship,
-				requestor_blacklisted: updateFrienshipDto.requestor_blacklisted,
-				recipient_blacklisted: updateFrienshipDto.recipient_blacklisted,
+				requestorID_recipientID: {requestorID, recipientID}
 			}
 		});
+		if (
+			false == friendship.requestor_blacklisted &&
+			false == friendship.recipient_blacklisted
+		)
+			await this.prisma.beFriends.delete({
+				where: {
+					requestorID_recipientID: {requestorID, recipientID}
+				}
+			});
+	}
+	
+	// async updateFrienshipRequest(updateFrienshipDto: UpdateFrienshipDto): Promise<BeFriends> {
+	// 	return await this.prisma.beFriends.update({
+	// 		where: {
+	// 			requestorID_recipientID: {
+	// 				requestorID: updateFrienshipDto.requestorID,
+	// 				recipientID: updateFrienshipDto.recipientID
+	// 			}
+	// 		},
+	// 		data: {
+	// 			are_friends: updateFrienshipDto.are_friends,
+	// 			pending_friendship: updateFrienshipDto.pending_friendship,
+	// 			requestor_blacklisted: updateFrienshipDto.requestor_blacklisted,
+	// 			recipient_blacklisted: updateFrienshipDto.recipient_blacklisted,
+	// 		}
+	// 	});
+	// }
+
+	async acceptFriendshipRequest(requestorID: number, recipientID: number) {
+		const friendship = await this.prisma.beFriends.findUnique({
+			where: {
+				requestorID_recipientID: {requestorID, recipientID}
+			}
+		});
+
+		if (friendship && friendship.pending_friendship) {
+			console.log(`updating the db with requestorID: ${requestorID}; recipientID: ${recipientID}`)
+			await this.prisma.beFriends.update({
+				where: {
+					requestorID_recipientID: {requestorID, recipientID}
+				},
+				data: {
+					are_friends: true,
+					pending_friendship: false,
+					requestor_blacklisted: false,
+					recipient_blacklisted: false
+				}
+			});
+		}
+		else
+			throw Error('no pending request');
 	}
 
 	async deleteFrienshipRequest(requestorID: number, recipientID: number) {

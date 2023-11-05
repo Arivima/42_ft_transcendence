@@ -26,3 +26,14 @@ CREATE TRIGGER befriends_check_order_uniqueness_trigger
 BEFORE INSERT ON "BeFriends"
 FOR EACH ROW
 EXECUTE FUNCTION befriends_check_order_uniqueness();
+
+--- una entry con tutti flag a false non ha senso tenerla nel db, ma per ora meglio pulire a mano che fare dei triggers
+ALTER TABLE "BeFriends"
+ADD CONSTRAINT befriend_rule
+CHECK (
+    ("are_friends" AND NOT "pending_friendship" AND NOT "requestor_blacklisted" AND NOT "recipient_blacklisted") OR
+    (NOT "are_friends" AND "pending_friendship" AND NOT "requestor_blacklisted" AND NOT "recipient_blacklisted") OR
+    (NOT "are_friends" AND NOT "pending_friendship")
+);
+
+
