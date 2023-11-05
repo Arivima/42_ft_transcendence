@@ -93,6 +93,43 @@ export class FrienshipsService {
 		return requestors;
 	}
 
+	async toggleBlockUser(userID: number, requestorID: number, recipientID: number, block: boolean) {
+
+		if (undefined == requestorID)
+			throw Error('could not find friendship for these requestor and recipient');
+
+		if (requestorID == userID)
+			await this.prisma.beFriends.update({
+				where: {
+					requestorID_recipientID: {
+						requestorID,
+						recipientID
+					}
+				},
+				data: {
+					are_friends: false,
+					pending_friendship: false,
+					recipient_blacklisted: block
+				}
+			});
+		else if (recipientID == userID)
+			await this.prisma.beFriends.update({
+				where: {
+					requestorID_recipientID: {
+						requestorID,
+						recipientID
+					}
+				},
+				data: {
+					are_friends: false,
+					pending_friendship: false,
+					requestor_blacklisted: block
+				}
+			});
+		else
+			throw Error('could not find friendship for these requestor and recipient');
+	}
+	
 	async updateFrienshipRequest(updateFrienshipDto: UpdateFrienshipDto): Promise<BeFriends> {
 		return await this.prisma.beFriends.update({
 			where: {

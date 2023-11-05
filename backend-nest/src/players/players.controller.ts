@@ -100,6 +100,12 @@ export class PlayersController {
 		return this.playersService.getAllFriends(Number(id));
 	}
 
+	@Get('blocked')
+	getAllBlockedUsers(@Request() req) {
+		return this.playersService.getAllBlockedUsers(Number(req.user.sub));
+	}
+	
+
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
 		console.log(`CONTROLLER - getGames: id param = ${id}`);

@@ -40,6 +40,24 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		// https://socket.io/docs/v4/client-options/#auth
 		this.clients.set(Number(user.sub), client);
 	}
+
+	@Public()
+	async handleDisconnection(socket: Socket) {
+		console.log(`friendships gateway: ${socket.id} disconnected`);
+
+		let key: number = -1;
+		for (let [userID, csock] of this.clients) {
+			if (socket.id == csock.id) {
+				key = userID;
+				break ;
+			}
+		}
+
+		if (-1 != key) {
+			console.log(`friendships gateway: user ${key} socket removed`);
+			this.clients.delete(key);
+		}
+	}
 	
 	@Public()
 	@SubscribeMessage('createFrienshipRequest')
@@ -55,17 +73,20 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			// if (client.handshake.auth)
 			const requestor = await this.frienshipsService.createFrienshipRequest(userID, recipientID);
 
-			// https://socket.io/docs/v3/rooms/#default-room
-			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('new-friendship-request', {
-				requestorID: requestor.requestorID,
-				requestorUsername: requestor.requestorUsername,
-				requestorAvatar: requestor.requestorAvatar
-			})
+			let recipientSocket = this.clients.get(recipientID);
+			if (undefined != recipientSocket) {
+				// https://socket.io/docs/v3/rooms/#default-room
+				this.server.to(`${recipientSocket.id}`).emit('new-friendship-request', {
+					requestorID: requestor.requestorID,
+					requestorUsername: requestor.requestorUsername,
+					requestorAvatar: requestor.requestorAvatar
+				})
+			}
 		}
 		catch(error) {
 			const msg: string = `new-friendship-request: ${error.toString()}`;
 
-			this.server.to(`${this.clients.get(Number(recipientID)).id}`).emit('frienship-error', {
+			this.server.to(`${this.clients.get(Number(userID)).id}`).emit('frienship-error', {
 				msg: msg,
 				requestorID: userID,
 				recipientID: recipientID,
@@ -124,16 +145,18 @@ export class FrienshipsGateway implements OnGatewayConnection {
 				= await this.frienshipsService
 					.updateFrienshipRequest(updateFrienshipDto);
 
-			if (this.clients.has(Number(updateFrienshipDto.requestorID))) {
+			let requestorSocket = this.clients.get(updateFrienshipDto.requestorID);
+			if (undefined != requestorSocket) {
 				this.server
-					.to(`${this.clients.get(Number(updateFrienshipDto.requestorID)).id}`)
+					.to(`${requestorSocket.id}`)
 					.emit('update-friendship-request', {
 						...updatedRecord
 				});
 			}
-			if (this.clients.has(Number(updateFrienshipDto.recipientID))) {
+			let recipientSocket = this.clients.get(updateFrienshipDto.recipientID);
+			if (undefined != recipientSocket) {
 				this.server
-					.to(`${this.clients.get(Number(updateFrienshipDto.recipientID)).id}`)
+					.to(`${recipientSocket.id}`)
 					.emit('update-friendship-request', {
 					...updatedRecord
 				});
@@ -142,19 +165,72 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		catch (error) {
 			const msg: string = `update-friendship-request: ${error.toString()}`;
 			this.server
-				.to(`${this.clients.get(Number(updateFrienshipDto.requestorID)).id}`)
+				.to(`${this.clients.get(Number(updateFrienshipDto.bearerID)).id}`)
 				.emit('friendship-error', {
 					msg: msg,
 					requestorID: updateFrienshipDto.requestorID,
 					recipientID: updateFrienshipDto.recipientID
 			});
+		}
+	}
+
+	/**
+	 * When a user blocked you, you cannot see its profile.
+	 * When you blocked a user, you CAN see its profile and click a button to unblock it.
+	 * When either of the two users are blocked by the other, friendship request cannot be sent, you have to unblock it first
+	 * for all other rules, see the updateFriendship handler
+	 * 
+	 * @param userID 
+	 * @param friendID 
+	 * @param client 
+	 */
+	@Public()
+	@SubscribeMessage('ToggleBlockUser')
+	async toggleBlockUser(
+		@MessageBody('userID') userID: number,
+		@MessageBody('friendID') friendID: number,
+		@MessageBody('block') block: boolean,
+		@ConnectedSocket() client: Socket
+	)
+	{
+		let [requestorID, recipientID] = await this.frienshipsService.getFriendship(userID, friendID);
+
+		try {
+			await this.frienshipsService.toggleBlockUser(userID, requestorID, recipientID, block);
+
+			let requestorSocket = this.clients.get(requestorID);
+			if (undefined != requestorSocket) {
+				this.server
+					.to(requestorSocket.id)
+					.emit('toggle-block-user', {
+						requestorID: requestorID,
+						recipientID: recipientID,
+						...(userID == recipientID && {requestor_blacklisted:  block}),
+						...(userID == requestorID && {recipient_blacklisted:  block}),
+					})
+			}
+			let recipientSocket = this.clients.get(recipientID);
+			if (undefined != recipientSocket) {
+				this.server
+					.to(recipientSocket.id)
+					.emit('toggle-block-user', {
+						requestorID: requestorID,
+						recipientID: recipientID,
+						...(userID == recipientID && {requestor_blacklisted:  block}),
+						...(userID == requestorID && {recipient_blacklisted:  block}),
+					})
+			}
+		}
+		catch (err) {
+			const msg = `blockUser: ${err.toString()}`;
+
 			this.server
-				.to(`${this.clients.get(Number(updateFrienshipDto.recipientID)).id}`)
+				.to(`${this.clients.get(userID).id}`)
 				.emit('friendship-error', {
 					msg: msg,
-					requestorID: updateFrienshipDto.requestorID,
-					recipientID: updateFrienshipDto.recipientID
-			});
+					requestorID: requestorID,
+					recipientID: recipientID
+				});
 		}
 	}
 
@@ -174,31 +250,30 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			// if (client.handshake.auth)
 			await this.frienshipsService.deleteFrienshipRequest(requestorID, recipientID);
 
-			this.server
-				.to(`${this.clients.get(recipientID).id}`)
-				.emit('reject-friendship-request', {
-					requestorID,
-					recipientID
-				})
-			this.server
-				.to(`${this.clients.get(requestorID).id}`)
-				.emit('reject-friendship-request', {
-					requestorID,
-					recipientID
-				})
+			let recipientSocket = this.clients.get(recipientID);
+			if (undefined != recipientSocket) {
+				this.server
+					.to(`${recipientSocket.id}`)
+					.emit('reject-friendship-request', {
+						requestorID,
+						recipientID
+					})
+			}
+			let requestorSocket = this.clients.get(requestorID);
+			if (undefined != requestorSocket) {
+				this.server
+					.to(`${requestorSocket.id}`)
+					.emit('reject-friendship-request', {
+						requestorID,
+						recipientID
+					})
+			}
 		}
 		catch(err) {
 			const msg = `rejectFrienship: ${err.toString()}`;
 
 			this.server
-				.to(`${this.clients.get(recipientID).id}`)
-				.emit('friendship-error', {
-					msg: msg,
-					requestorID: requestorID,
-					recipientID: recipientID
-				});
-			this.server
-				.to(`${this.clients.get(requestorID).id}`)
+				.to(`${this.clients.get(userID).id}`)
 				.emit('friendship-error', {
 					msg: msg,
 					requestorID: requestorID,

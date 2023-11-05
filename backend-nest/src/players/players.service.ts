@@ -86,6 +86,41 @@ export class PlayersService {
 		}
 	}
 
+	async getAllBlockedUsers(userID: number): Promise<Player[]> {
+		const asRequestorIDs = await this.prisma.beFriends.findMany({
+			where: {
+				requestorID: userID,
+				AND: [{requestor_blacklisted: false}, {recipient_blacklisted: true}]
+			},
+			select: {
+				recipientID: true
+			}
+		});
+		const asRecipientIDs = await this.prisma.beFriends.findMany({
+			where: {
+				recipientID: userID,
+				AND: [{requestor_blacklisted: true}, {recipient_blacklisted: false}]
+			},
+			select: {
+				requestorID: true
+			}
+		});
+
+		let ids: number[] = [];
+		for (const id of asRequestorIDs)
+			ids.push(id.recipientID);
+		for (const id of asRecipientIDs)
+			ids.push(id.requestorID);
+		let blockedUsers: Player[] = [];
+		for (const id of ids) {
+			const blockedUser = await this.findOne(id);
+			blockedUser.avatar = `/playes/avatar/${blockedUser.id}`
+			blockedUsers.push(blockedUser);
+		}
+
+		return (blockedUsers);
+	}
+
 	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
 		console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({

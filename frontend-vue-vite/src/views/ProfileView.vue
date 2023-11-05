@@ -78,18 +78,28 @@ export default {
 	},
 	async created() {
 		if (debug) console.log('| ProfileView | created(' + (this.userProfile?.id) + ')')
-		await this.fetchUserProfile()
+		// try {
+			await this.fetchUserProfile()
+		// }
+		// catch (_) {
+		// 	this.$router.push({name: 'profile'});
+		// }
 	},
 	beforeMount() {
 		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile?.id) + ')')
 	},
 	mounted() {
 		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile?.id) + ')')
-		this.fetchUserProfile();
+		// this.fetchUserProfile();
 	},
 	beforeUpdate() {
 		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile?.id) + ')')
-		this.fetchUserProfile()
+		try {
+			this.fetchUserProfile()
+		}
+		catch (_) {
+			this.$router.push({name: 'profile'});
+		}
 	},
 	updated() {
 		if (debug) console.log('| ProfileView | updated(' + (this.userProfile?.id) + ')')

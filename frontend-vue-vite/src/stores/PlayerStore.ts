@@ -40,6 +40,13 @@ export interface FriendshipReject {
 	recipientID: number
 }
 
+export interface BlockedFriendship {
+	requestorID: number,
+	recipientID: number,
+	requestor_blacklisted: boolean,
+	recipient_blacklisted: boolean
+}
+
 export interface FriendRequestUpdate {
 	are_friends: boolean,
 	pending_friendship: boolean,
@@ -103,7 +110,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		state: (): {
 			user: Player
 			loading: boolean //TODO ? forse rimuovere
-			friends: Player[]
+			friends: Player[],
+			blockedUsers: Player[],
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
 			fetchFriends: (id: number) => Promise<Player[]>
@@ -114,6 +122,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			return {
 				user: emptyUser,
 				friends: [],
+				blockedUsers: [],
 				fetchGames: fetchGames.bind(this),
 				fetchPlayer: fetchPlayer,
 				fetchFriends: fetchFriends,
@@ -161,6 +170,15 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				// });
 			},
 
+			toggleBlockUser(profileID: number, block: boolean) {
+				console.log('blockUser: emitting to backend');
+				this.user.notificationsSocket?.emit('ToggleBlockUser', {
+					userID: this.user.id,
+					friendID: profileID,
+					block: block
+				});
+			},
+
 			// NEW
 			async updateAvatar(id? : number) : Promise<string> {
 				if (debug) console.log("/Store/ updateAvatar(" + id + ')');
@@ -203,6 +221,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('new-friendship-request', handleNewRequest.bind(this));
 					this.user.notificationsSocket?.on('reject-friendship-request', handleFriendshipReject.bind(this))
 					this.user.notificationsSocket?.on('update-friendship-request', updateNotifications.bind(this));
+					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
@@ -219,6 +238,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.friends.forEach(async (friend) => {
 						friend.avatar = await fetchAvatar(friend.avatar);//'/players/avatar/'+ friend.id);
 					})
+					this.blockedUsers = (await axios.get('players/blocked')).data;
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
 					).data
@@ -240,6 +260,10 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						profileType = 'FriendProfile'
 				}
 				// TODO ADD BLOCKED USER
+				for (const blocked of this.blockedUsers) {
+					if (id == blocked.id)
+						profileType = 'BlockedProfile';
+				}
 				if (id == this.user.id)
 					profileType = 'MyProfile'
 				return profileType
@@ -278,9 +302,9 @@ async function fetchGames(id: number): Promise<Game[]> {
 
 async function fetchPlayer(id: number): Promise<Player> {
 	if (debug) console.log("/Store/ fetchPlayer(" + id + ')');
-	let player : Player = (await axios.get(`players/${id}`)).data
 	let user : Player = emptyUser
 	try {
+		let player : Player = (await axios.get(`players/${id}`)).data
 		user = {
 			...player,
 			status:
@@ -290,8 +314,15 @@ async function fetchPlayer(id: number): Promise<Player> {
 					? PlayerStatus.playing
 					: PlayerStatus.online /* playing | online | offline */,
 		}
-		user.avatar = await fetchAvatar(user.avatar);
-	} catch (_) {
+		try {
+			user.avatar = await fetchAvatar(user.avatar);
+		}
+		catch (_) {
+			user.avatar = '';
+		}
+	}
+	//? FORSE TOGLIERE e fare in modo che profile vue richarichi il profilo in caso di errore (giá l'ho settato)
+	catch (_) {
 		console.log('axios failed inside user store')
 		console.log(user)
 	}
@@ -371,19 +402,60 @@ function handleFriendshipReject(
 			}
 		)
 
-		if (-1 != index)
+		if (-1 != index) {
 			this.notifications.splice(index, 1);
+		}
+	}
+	
+	const index = this.friends.findIndex(
+		(friend: Player) => {
+			return (
+				this.user.id == data.recipientID ?
+					(data.requestorID == friend.id)
+					: (data.recipientID == friend.id)
+			);
+		}
+	)
+	
+	if (-1 != index)
+		this.friends.splice(index, 1);
+}
+
+function handleBlockedUser(
+	this: any,
+	data: BlockedFriendship
+)
+{
+	let index: number;
+
+	console.log('toggle-block-user: emitting from backend');
+	if (data.recipientID == this.user.id) {
+		// remove notification && get friend index
+		let notificationsIndex = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => {
+				return data.requestorID = request.requestorID
+			}
+		);
+		if (-1 != notificationsIndex)
+			this.notifications.splice(notificationsIndex, 1);
+		
+		index = this.friends.findIndex(
+			(friend: Player) => {
+				return data.requestorID == friend.id
+			}
+		);
 	}
 	else {
-		const index = this.friends.findIndex(
+		// get friend index
+		index = this.friends.findIndex(
 			(friend: Player) => {
 				return data.recipientID == friend.id
 			}
-		)
-
-		if (-1 != index)
-			this.friends.splice(index, 1);
+		);
 	}
+
+	if (-1 != index)
+		this.friends.splice(index, 1);
 }
 
 function updateNotifications(
