@@ -8,7 +8,7 @@ import Chat from '../components/Chat/Chat.vue'
     <div class="chat">
         <NavSideBar/>
 
-        <!-- <Chat/> -->
+        <Chat/>
         <!-- <v-navigation-drawer permanent>
         <v-list>
           <v-list-item title="channels" value="channels"></v-list-item>
