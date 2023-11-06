@@ -28,34 +28,30 @@ As a new friendship is accepted, add automatically to friends
 
 Rethink updateFriendship event
 
-DONE
-2 reject notification as deletion of record
-	- modify create friendship request
-
 3 clean friendships
 1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
 
-Make everything reactive through websockets DONE
-- online status
-- adding or removing to friends
 
-IMPLEMENT BLOCKING OF USERS --DONE
+
+06/11/2023
+
+add button for blocking profile in public profile DONE 
+
+add a rule in players controller that doesn't let us get users that blocked us DONE
+
+forbid a user to block itself
+
+---------------------------------------
+
 
 IMPLEMENT JWT IN WEBSOCKETS
 
-add a rule in players controller that doesn't let us get users that blocked us
-
-add button for unblocking profile in public profile DONE
-
-solve requestorID and recipientID uniqueness regardless of ordering in BeFriends table. DONE 
-
-solve adding friend when user(s) is blocked.
-
-Add Block User also in friend profile ? (si lo devo fare pefforzaah)
-
 Public profile, mostrare un bottone o l'altro a seconda che l'utente sia bloccato oppure no DONE (controllare bene peró )
 
-forbid a user to block itself
+
+
+
+
 
 BlockUser
 	- make so that when each user unblock each other, record in BeFriends table gets destroyed

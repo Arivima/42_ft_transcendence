@@ -23,6 +23,7 @@ export class FrienshipsService {
 			}
 		});
 		const [existingReqID, existingRecipID] = await this.getFriendship(userID, recipientID);
+		console.log(`existingReqID: ${existingReqID}; existingReqID: ${existingReqID}`);
 		let friendship: BeFriends | null = null 
 		if (undefined != existingReqID)
 			friendship = await this.prisma.beFriends.findUnique({
@@ -96,21 +97,32 @@ export class FrienshipsService {
 		return requestors;
 	}
 
+	/**
+	 * this function toggles the block unlock of a user.
+	 * It modifies the friendship record, first crating if not yet existent,
+	 * following the db business rules that can be found in table constraints script (BeFriend table)
+	 * 
+	 * @param userID the user calling the websocket
+	 * @param friendID the user to block/unblock
+	 * @param block toggle variable to block/unblock user
+	 * @returns Promise<number[]>: the updated requestorID and recipientID if record is initially non existent
+	 */
 	async toggleBlockUser(
 		userID: number, friendID: number,
 		requestorID: number, recipientID: number,
 		block: boolean
-	) {
+	): Promise<number[]> {
 
 		let friendship: BeFriends;
 
 		if (undefined == requestorID) {
-			this.prisma.beFriends.create({
+			console.log(`creating friendship record`);
+			await this.prisma.beFriends.create({
 				data: {
 					are_friends: false,
 					pending_friendship: false,
-					requestor_blacklisted: (recipientID == userID) ? block : false,
-					recipient_blacklisted: (requestorID == userID) ? block : false,
+					requestor_blacklisted: false,
+					recipient_blacklisted: block,
 					requestorID: userID,
 					recipientID: friendID,
 				}
@@ -151,7 +163,10 @@ export class FrienshipsService {
 
 		friendship = await this.prisma.beFriends.findUnique({
 			where: {
-				requestorID_recipientID: {requestorID, recipientID}
+				requestorID_recipientID: {
+					requestorID: requestorID,
+					recipientID:recipientID
+				}
 			}
 		});
 		if (
@@ -160,9 +175,14 @@ export class FrienshipsService {
 		)
 			await this.prisma.beFriends.delete({
 				where: {
-					requestorID_recipientID: {requestorID, recipientID}
+					requestorID_recipientID: {
+						requestorID: requestorID,
+						recipientID: recipientID
+					}
 				}
 			});
+		
+		return [requestorID, recipientID];
 	}
 	
 	// async updateFrienshipRequest(updateFrienshipDto: UpdateFrienshipDto): Promise<BeFriends> {

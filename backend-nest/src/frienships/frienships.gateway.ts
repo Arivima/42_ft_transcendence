@@ -131,48 +131,7 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	 * Therefore, this function will automatically fail if any of the rules are violated.
 	 */
 	//TODO add constraints in db for frienship fields (when a user is blacklisted pending cannot be true, when pending is true friend cannot be, etc.)
-	// @Public()
-	// @SubscribeMessage('updateFrienshipRequest')
-	// async updateFrienshipRequest(
-	// 	@MessageBody() updateFrienshipDto: UpdateFrienshipDto,
-	// ) {
-
-	// 	try {
-	// 		//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
-	// 		//TODO otherwise, anyone connected can act upon anyone friendships
-	// 		// if (client.handshake.auth)
-	// 		const updatedRecord
-	// 			= await this.frienshipsService
-	// 				.updateFrienshipRequest(updateFrienshipDto);
-
-	// 		let requestorSocket = this.clients.get(updateFrienshipDto.requestorID);
-	// 		if (undefined != requestorSocket) {
-	// 			this.server
-	// 				.to(`${requestorSocket.id}`)
-	// 				.emit('update-friendship-request', {
-	// 					...updatedRecord
-	// 			});
-	// 		}
-	// 		let recipientSocket = this.clients.get(updateFrienshipDto.recipientID);
-	// 		if (undefined != recipientSocket) {
-	// 			this.server
-	// 				.to(`${recipientSocket.id}`)
-	// 				.emit('update-friendship-request', {
-	// 				...updatedRecord
-	// 			});
-	// 		}
-	// 	}
-	// 	catch (error) {
-	// 		const msg: string = `update-friendship-request: ${error.toString()}`;
-	// 		this.server
-	// 			.to(`${this.clients.get(Number(updateFrienshipDto.bearerID)).id}`)
-	// 			.emit('friendship-error', {
-	// 				msg: msg,
-	// 				requestorID: updateFrienshipDto.requestorID,
-	// 				recipientID: updateFrienshipDto.recipientID
-	// 		});
-	// 	}
-	// }
+	
 
 	/**
 	 * When a user blocked you, you cannot see its profile.
@@ -195,11 +154,14 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	{
 		let [requestorID, recipientID] = await this.frienshipsService.getFriendship(userID, friendID);
 
+		console.log(`DEBUG| ToggleBlockUser: userID: ${userID}; friendID: ${friendID}; block: ${block}; requestorID: ${requestorID}; recipientID: ${recipientID}`);
 		try {
-			await this.frienshipsService.toggleBlockUser(userID, friendID, requestorID, recipientID, block);
+			[requestorID, recipientID] = await this.frienshipsService.toggleBlockUser(userID, friendID, requestorID, recipientID, block);
 
+			console.log(`DEBUG | after prisma: requestorID: ${requestorID}; recipientID: ${recipientID}; typeof requestorID: ${typeof requestorID}; typeof recipientID: ${typeof recipientID}`);
 			let requestorSocket = this.clients.get(requestorID);
 			if (undefined != requestorSocket) {
+				console.log(`DEBUG | requestor not undefined`);
 				this.server
 					.to(requestorSocket.id)
 					.emit('toggle-block-user', {
@@ -211,6 +173,7 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			}
 			let recipientSocket = this.clients.get(recipientID);
 			if (undefined != recipientSocket) {
+				console.log(`DEBUG | requestor not undefined`);
 				this.server
 					.to(recipientSocket.id)
 					.emit('toggle-block-user', {

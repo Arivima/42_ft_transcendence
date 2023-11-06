@@ -19,15 +19,16 @@ export default {
 			state: 'default'
         }
     },
+	watch: {},
     methods: {
 		addAsFriend(){
 			console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
 			playerStore.sendFriendshipRequest(Number(this.userProfile.id));
 			// this.state = 'pending';//! WAS MODIFIED
 		},
-		// unblockUser() {
-		// 	playerStore.toggleBlockUser(this.userProfile.id, false)
-		// }
+		blockUser(){
+			playerStore.toggleBlockUser(this.userProfile.id, true)
+		},
 	},
     mounted (){
     },
@@ -50,16 +51,13 @@ export default {
 		>
 		</v-btn>
 
-		<!-- add v-if user is blocked -->
-		<!-- <v-btn 
-			value="unblock"
-			@click="unblockUser"
-			:text="'Unblock ' + `${userProfile.firstName}`"
-			prepend-icon="mdi-account-plus"
-			:color="state == 'pending'? 'purple-lighten-4' : 'white'"
+		<v-btn
+			:text="'Block ' + `${userProfile.firstName}`"
+			@click="blockUser"
+			prepend-icon="mdi-account-cancel"
 			block
 		>
-		</v-btn> -->
+		</v-btn>
 	</v-card>
 </template>
 

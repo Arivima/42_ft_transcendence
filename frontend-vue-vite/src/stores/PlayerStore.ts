@@ -166,7 +166,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			toggleBlockUser(profileID: number, block: boolean) {
-				console.log('blockUser: emitting to backend');
+				console.log(`blockUser: emitting to backend: profileID: ${profileID}; ${block}`);
 				this.user.notificationsSocket?.emit('ToggleBlockUser', {
 					userID: this.user.id,
 					friendID: profileID,
@@ -301,29 +301,21 @@ async function fetchGames(id: number): Promise<Game[]> {
 async function fetchPlayer(id: number): Promise<Player> {
 	if (debug) console.log("/Store/ fetchPlayer(" + id + ')');
 	let user : Player = emptyUser
-	try {
-		let player : Player = (await axios.get(`players/${id}`)).data
-		user = {
-			...player,
-			status:
-				player.playing === undefined
-					? PlayerStatus.offline
-					: player.playing
-					? PlayerStatus.playing
-					: PlayerStatus.online /* playing | online | offline */,
-		}
-		try {
-			user.avatar = await fetchAvatar(user.avatar);
-		}
-		catch (_) {
-			user.avatar = '';
-		}
+	let player : Player = (await axios.get(`players/${id}`)).data
+	user = {
+		...player,
+		status:
+			player.playing === undefined
+				? PlayerStatus.offline
+				: player.playing
+				? PlayerStatus.playing
+				: PlayerStatus.online /* playing | online | offline */,
 	}
-	//? FORSE TOGLIERE e fare in modo che profile vue richarichi il profilo in caso di errore (giá l'ho settato)
+	try {
+		user.avatar = await fetchAvatar(user.avatar);
+	}
 	catch (_) {
-		console.log('axios failed inside user store')
-		console.log(user)
-		user = emptyUser;
+		user.avatar = '';
 	}
 	return user
 }
@@ -463,7 +455,7 @@ async function handleBlockedUser(
 
 	console.log('toggle-block-user: emitting from backend');
 	if (data.recipientID == this.user.id) {
-		// remove notification && get friend index
+		// remove notification && get friend (profile, index in friends array, and wether it is blocked or not)
 		let notificationsIndex = this.notifications.findIndex(
 			(request: (FriendRequest & FriendRequestStatus)) => {
 				return data.requestorID = request.requestorID
@@ -481,9 +473,9 @@ async function handleBlockedUser(
 		);
 	}
 	else {
+		// get friend (profile, index in friends array, and wether it is blocked or not)
 		affectedUserID = data.recipientID;
 		userBlocked = data.recipient_blacklisted;
-		// get friend index
 		index = this.friends.findIndex(
 			(friend: Player) => {
 				return data.recipientID == friend.id
@@ -491,15 +483,18 @@ async function handleBlockedUser(
 		);
 	}
 
+	// delete from friends if exists
 	if (-1 != index)
 		this.friends.splice(index, 1);
 	
+	// if blocked, add to blocked users
 	if (userBlocked) {
 		const affectedUser = await fetchPlayer(affectedUserID);
 		if (JSON.stringify(emptyUser) != JSON.stringify(affectedUser)) {
 			this.blockedUsers.push(affectedUser);
 		}
 	}
+	// if unblocked, remove from blocked users
 	else {
 		const index = this.blockedUsers.findIndex(
 			(user: Player) => {

@@ -27,7 +27,7 @@ export default {
 		removeFromFriends(){
 			playerStore.sendFriendshipRejection(this.userProfile.id);
 		},
-		BlockUser(){
+		blockUser(){
 			playerStore.toggleBlockUser(this.userProfile.id, true)
 		},
 	},
@@ -76,7 +76,7 @@ export default {
 		</v-btn>
 		<v-btn
 			:text="'Block ' + `${userProfile.firstName}`"
-			@click="BlockUser"
+			@click="blockUser"
 			prepend-icon="mdi-account-cancel"
 			block
 		>

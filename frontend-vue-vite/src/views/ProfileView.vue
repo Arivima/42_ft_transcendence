@@ -42,12 +42,10 @@ export default {
 			if (!profileID || profileID == this.userVisitor.id) {
 				console.log(`Visitor and userProfile are the same`)
 				this.userProfile = this.userVisitor;
-				// Object.assign(this.userProfile, this.userVisitor)
 			}
 			else {
 				try {
 					this.userProfile = await fetchPlayer.value(profileID);
-					// Object.assign(this.userProfile, await fetchPlayer.value(profileID));
 					console.log(`{\
 						userprofileID: ${this.userProfile?.id},\
 						userprofileUsername: ${this.userProfile?.username},\
@@ -55,7 +53,8 @@ export default {
 					}`)
 				}
 				catch (err) {
-					console.log(err);
+					console.log(`Cannot view selected user profile`);
+					this.$router.push({name: 'profile'});
 				}
 			}
 			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | END`)

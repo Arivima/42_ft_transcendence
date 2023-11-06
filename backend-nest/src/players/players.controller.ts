@@ -122,9 +122,22 @@ export class PlayersController {
 	}
 
 	@Get(':id')
-	async findOne(@Param('id') id: string) {
+	async findOne(@Param('id') id: string, @Request() req) {
+		const userID = Number(req.user.sub);
 		const player = await this.playersService.findOne(Number(id));
+		const friendship = await this.playersService.getOneFriend(userID, Number(id));
 
+		if (null == player) {
+			throw new HttpException('user unknown', HttpStatus.NOT_FOUND);
+		}
+		if (friendship) {
+			if (
+				(userID == friendship.requestorID && friendship.requestor_blacklisted)
+				||
+				(userID == friendship.recipientID && friendship.recipient_blacklisted)
+			)
+				throw new HttpException('Cannot view profile of blocked user', HttpStatus.FORBIDDEN);
+		}
 		if (player) {
 			player.avatar = `players/avatar/${player.id}`;
 		}

@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { UpdatePlayerDto } from './dto/update-player.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { Player } from '@prisma/client';
+import { BeFriends, Player } from '@prisma/client';
 
 export class Connection {
 	playing: boolean;
@@ -119,6 +119,23 @@ export class PlayersService {
 		}
 
 		return (blockedUsers);
+	}
+
+	async getOneFriend(userID: number, friendID: number): Promise<BeFriends> {
+
+		return (
+			await this.prisma.beFriends.findUnique({
+				where: {
+					requestorID_recipientID: {requestorID: userID, recipientID: friendID}
+				}
+			})
+			||
+			await this.prisma.beFriends.findUnique({
+				where: {
+					requestorID_recipientID: {requestorID: friendID, recipientID: userID}
+				}
+			})
+		);
 	}
 
 	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
