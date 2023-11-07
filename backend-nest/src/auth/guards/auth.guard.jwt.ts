@@ -17,6 +17,7 @@ import { Request } from 'express';
 import { IS_PUBLIC_ENDPOINT } from '../decorators/auth.public.decorator';
 import { PlayersService } from 'src/players/players.service';
 import { IS_PROTECTED_ENDPOINT } from '../decorators/auth.protected.decorator';
+import { AuthService } from '../auth.service';
 
 export type JwtPayload = {
 	sub: string;
@@ -28,6 +29,7 @@ export class JwtAuthGuard implements CanActivate {
 		private readonly jwtService: JwtService,
 		private readonly pservice: PlayersService,
 		private readonly reflector: Reflector,
+		private readonly authService: AuthService
 	) {}
 
 	async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -59,7 +61,12 @@ export class JwtAuthGuard implements CanActivate {
 			// so that we can access it in our route handlers
 			request['user'] = payload;
 			if (false === this.pservice.isLoggedIn(Number(payload.sub))) {
-				if (isProtectedEndpoint) return true;
+				// if backend was unavailable for a period of time, all connections are now lost
+				if (false == (await this.authService.is2FAset(Number(request.user.sub)))) {
+					this.pservice.addConnection(Number(request.user.sub));
+					return true;
+				}
+				else if (isProtectedEndpoint) return true;
 				else return false;
 			}
 			return true;

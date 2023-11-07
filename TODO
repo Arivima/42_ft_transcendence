@@ -24,9 +24,9 @@ Rejection means removal of friend or rejection of request
 	- call action when rejecting request
 understand who is the requestor and who the recipient DONE
 
-As a new friendship is accepted, add automatically to friends
+As a new friendship is accepted, add automatically to friends DONE
 
-Rethink updateFriendship event
+Rethink updateFriendship event DONE
 
 3 clean friendships
 1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
@@ -40,6 +40,8 @@ add button for blocking profile in public profile DONE
 add a rule in players controller that doesn't let us get users that blocked us DONE
 
 forbid a user to block itself
+
+Forbid users to block user that already blocked them
 
 ---------------------------------------
 

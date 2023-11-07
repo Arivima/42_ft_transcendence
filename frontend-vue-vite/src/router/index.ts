@@ -77,6 +77,8 @@ router.beforeEach((to, from, next) => {
 		})
 		.catch((_) => {
 			// if token is set redirect to OTP VIEW
+			// important! Token is always loaded from localStorage into PlayerStore
+			// inside the checkLogIn function executed before this step.
 			if (null == usePlayerStore().getToken()) {
 				if ('login' == to.name)
 					next();
