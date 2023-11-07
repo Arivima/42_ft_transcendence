@@ -170,7 +170,8 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	1,
 	'pippo',
-	'https://www.ventennipaperoni.com/wp-content/uploads/2020/03/volto-pippo-e1584113937806.jpg', 'pippo',
+	'public/upload/pippo.jpg',
+	'pippo',
 	'pippi',
 	'https://api.intra.42.fr/v2/users/mmarinell'
 )
@@ -191,7 +192,7 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	2,
 	'pluto',
-	'https://store.modamerceria.it/8021-thickbox_default/pluto-disney-applicazione-patch-ricamata-e-termoadesiva.jpg',
+	'public/upload/pluto.jpg',
 	'pluto',
 	'plutini',
 	'https://api.intra.42.fr/v2/users/mmarinell'
@@ -213,7 +214,7 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	3,
 	'paperino',
-	'https://store.modamerceria.it/8023/zio-paperino-disney-applicazione-patch-ricamata-e-termoadesiva.jpg',
+	'public/upload/paperino.jpg',
 	'paperino',
 	'de paperini',
 	'https://api.intra.42.fr/v2/users/mmarinell'
@@ -242,6 +243,7 @@ VALUES (
 )
 ON CONFLICT DO NOTHING;
 
+
 INSERT INTO "Player" (
 	"createdAt",
 	"updatedAt",
@@ -256,11 +258,11 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	CURRENT_TIMESTAMP,
 	101282,
-	'dripanuc',
+	'mmarinel',
 	'public/upload/Rapunzel.jpg',
-	'Davide',
-	'Ripanucci',
-	'https://api.intra.42.fr/v2/users/dripanuc'
+	'Matteo',
+	'Marinelli',
+	'https://api.intra.42.fr/v2/users/mmarinel'
 )
 ON CONFLICT DO NOTHING;
 
@@ -485,42 +487,6 @@ VALUES (
 	3
 )
 ON CONFLICT DO NOTHING;
-
--- INSERT INTO "BeFriends" (
--- 	"are_friends",
--- 	"pending_friendship",
--- 	"requestor_blacklisted",
--- 	"recipient_blacklisted",
--- 	"requestorID",
--- 	"recipientID"
--- )
--- VALUES (
--- 	true,
--- 	false,
--- 	false,
--- 	false,
--- 	101282,
--- 	1
--- )
--- ON CONFLICT DO NOTHING;
-
--- INSERT INTO "BeFriends" (
--- 	"are_friends",
--- 	"pending_friendship",
--- 	"requestor_blacklisted",
--- 	"recipient_blacklisted",
--- 	"requestorID",
--- 	"recipientID"
--- )
--- VALUES (
--- 	true,
--- 	false,
--- 	false,
--- 	false,
--- 	3,
--- 	101282
--- )
--- ON CONFLICT DO NOTHING;
 
 --- Adding Matches
 INSERT INTO "Plays" (
