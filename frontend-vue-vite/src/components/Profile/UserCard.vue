@@ -8,6 +8,7 @@ import Stats from './UserCard/Stats.vue'
 import ActionsPublicProfile from './UserCard/ActionsPublicProfile.vue'
 import ActionsFriendProfile from './UserCard/ActionsFriendProfile.vue'
 import ActionsMyProfile from './UserCard/ActionsMyProfile.vue'
+import ActionsBlockedProfile from './UserCard/ActionsBlockedProfile.vue'
 
 const playerStore = usePlayerStore()
 const { user, friends } = storeToRefs(playerStore)
@@ -15,13 +16,14 @@ const debug = false
 
 export default {
 	components: {
-		Notifications,
-		Avatar,
-		Stats,
-		ActionsPublicProfile,
-		ActionsFriendProfile,
-		ActionsMyProfile,
-	},
+    Notifications,
+    Avatar,
+    Stats,
+    ActionsPublicProfile,
+    ActionsFriendProfile,
+    ActionsMyProfile,
+    ActionsBlockedProfile
+},
 	props: {
 		userProfile: {
 			type: Object as () => Player,
@@ -86,7 +88,7 @@ export default {
 
 	<v-card
 		class="containerContent component"
-		image="cats.jpg"
+		image="http://localhost:8080/cats.jpg"
 		rounded="1"
 		variant="tonal"
 	>
@@ -112,6 +114,11 @@ export default {
 		<ActionsMyProfile
 			v-if="visibility == 'MyProfile'"
 		></ActionsMyProfile>
+
+		<ActionsBlockedProfile
+			:userProfile="userProfile"
+			v-if="visibility == 'BlockedProfile'"
+		></ActionsBlockedProfile>
 
 		<!-- ADD BLOCKED PROFILE -->
 	</v-card>

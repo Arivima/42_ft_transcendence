@@ -27,7 +27,7 @@ export class ChatGateway {
 
 
   async handleConnection(client: any, ...args: any[]) {
-    console.log('connected');
+    console.log('chat connected');
     const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
 			secret: process.env.JWT_SECRET
 		});
@@ -38,7 +38,7 @@ export class ChatGateway {
   }
 
   handleDisconnect(client: any) {
-    console.log('disconnected');
+    console.log('chat disconnected');
     // client.emit('message', 'Hello world!');
     this.clients.delete(client.id);
   }

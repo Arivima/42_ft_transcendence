@@ -100,14 +100,15 @@ export class PlayersController {
 		return this.playersService.getAllFriends(Number(id));
 	}
 
-	@Get('me/addFriend/:id')
-	sendFrendship(@Param('id') recipientID: string, @Request() req)
-	{
-		this.playersService.sendFriendship(Number(req.user.sub), Number(recipientID));
+	@Get('blocked')
+	getAllBlockedUsers(@Request() req) {
+		return this.playersService.getAllBlockedUsers(Number(req.user.sub));
 	}
+	
 
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
+		console.log(`CONTROLLER - getGames: id param = ${id}`);
 		return this.playersService.getAllGames(
 			Number(id),
 			limit ? Number(limit) : undefined,
@@ -121,9 +122,22 @@ export class PlayersController {
 	}
 
 	@Get(':id')
-	async findOne(@Param('id') id: string) {
+	async findOne(@Param('id') id: string, @Request() req) {
+		const userID = Number(req.user.sub);
 		const player = await this.playersService.findOne(Number(id));
+		const friendship = await this.playersService.getOneFriend(userID, Number(id));
 
+		if (null == player) {
+			throw new HttpException('user unknown', HttpStatus.NOT_FOUND);
+		}
+		if (friendship) {
+			if (
+				(userID == friendship.requestorID && friendship.requestor_blacklisted)
+				||
+				(userID == friendship.recipientID && friendship.recipient_blacklisted)
+			)
+				throw new HttpException('Cannot view profile of blocked user', HttpStatus.FORBIDDEN);
+		}
 		if (player) {
 			player.avatar = `players/avatar/${player.id}`;
 		}

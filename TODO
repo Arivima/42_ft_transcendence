@@ -10,3 +10,52 @@
 4. make achievement name unique in db
 4. make avatar NOT unique in db
 5. remove @Protected() decorator on 2fa remove endpoint in back
+
+
+1. "files in public directory are served from the root path..." -- when starting vite DONE
+1 Fix vue static files served -- DONE
+1 avatar in notification -- DONE
+	- fetch avatar from endpoint url -- DONE
+
+
+DONE
+Rejection means removal of friend or rejection of request
+	- call action when clicking "remove" button
+	- call action when rejecting request
+understand who is the requestor and who the recipient DONE
+
+As a new friendship is accepted, add automatically to friends
+
+Rethink updateFriendship event
+
+3 clean friendships
+1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
+
+
+
+06/11/2023
+
+add button for blocking profile in public profile DONE 
+
+add a rule in players controller that doesn't let us get users that blocked us DONE
+
+forbid a user to block itself
+
+---------------------------------------
+
+
+IMPLEMENT JWT IN WEBSOCKETS
+
+Public profile, mostrare un bottone o l'altro a seconda che l'utente sia bloccato oppure no DONE (controllare bene peró )
+
+
+
+
+
+
+BlockUser
+	- make so that when each user unblock each other, record in BeFriends table gets destroyed
+		(so that new friend requests are possible) DONE
+	- delete updateRequest in gateway and reformulate in playerStore DONE
+	- make reactive and understand what makes the "Block" button reactive DONE
+	- fix any bug BOOOH ??

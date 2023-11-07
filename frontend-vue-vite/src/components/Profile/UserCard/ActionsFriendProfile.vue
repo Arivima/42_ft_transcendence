@@ -25,22 +25,10 @@ export default {
 	},
     methods: {
 		removeFromFriends(){
-			this.loading = true
-			setTimeout(() => {
-				// axios.post(friendship/request)
-				// if ok
-				this.loading = false
-				// push to reload the whole page to see the new state of the relationship
-			}, 5000);
+			playerStore.sendFriendshipRejection(this.userProfile.id);
 		},
-		BlockUser(){
-			this.loading = true
-			setTimeout(() => {
-				// axios.post(friendship/request)
-				// if ok
-				this.loading = false
-				// push to reload the whole page to see the new state of the relationship
-			}, 5000);
+		blockUser(){
+			playerStore.toggleBlockUser(this.userProfile.id, true)
 		},
 	},
     mounted (){
@@ -88,7 +76,7 @@ export default {
 		</v-btn>
 		<v-btn
 			:text="'Block ' + `${userProfile.firstName}`"
-			@click="BlockUser"
+			@click="blockUser"
 			prepend-icon="mdi-account-cancel"
 			block
 		>

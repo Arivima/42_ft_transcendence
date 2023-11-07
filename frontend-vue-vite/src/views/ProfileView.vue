@@ -13,40 +13,51 @@ import Notifications from '@/components/Profile/Notifications.vue'
 
 const playerStore = usePlayerStore()
 const { user, friends, fetchPlayer } = storeToRefs(playerStore)
-const debug = false
+const debug = true
 
 export default {
 	components : {
-    NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
-    Notifications,
+	NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
+	Notifications,
 },
 	data() {
 		return {
 			userVisitor: user.value,
 			userVisitorFriends: friends,
-			userProfile: {} as Player,
+			userProfile: undefined as Player | undefined,
 		}
 	},
 	computed: {
 		visibility() : string {
 			if (debug) console.log('| ProfileView | computed | visibility')
-			let profileType = playerStore.visibility(this.userProfile.id);
+			let profileType = playerStore.visibility(this.userProfile?.id);
 			return profileType
 		},
 	},
 	methods: {
-		fetchUserProfile() {
-			if (debug) console.log('| ProfileView | methods | fetchUserProfile()')
+		async fetchUserProfile() {
 			let profileID : number = Number(this.$route.params.id)
+			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | ${profileID}`)
+
 			if (!profileID || profileID == this.userVisitor.id) {
-				this.userProfile = this.userVisitor
+				console.log(`Visitor and userProfile are the same`)
+				this.userProfile = this.userVisitor;
 			}
-			else
-				fetchPlayer.value(profileID)
-					.then((targetUser : Player) => {
-						this.userProfile = targetUser;
-					})
-					.catch((err : Error) => console.log(err))
+			else {
+				try {
+					this.userProfile = await fetchPlayer.value(profileID);
+					console.log(`{\
+						userprofileID: ${this.userProfile?.id},\
+						userprofileUsername: ${this.userProfile?.username},\
+						userprofileAvatar: ${this.userProfile?.avatar},\
+					}`)
+				}
+				catch (err) {
+					console.log(`Cannot view selected user profile`);
+					this.$router.push({name: 'profile'});
+				}
+			}
+			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | END`)
 		},
 	},
 	watch : {
@@ -64,28 +75,39 @@ export default {
 	beforeCreate() {
 		if (debug) console.log('| ProfileView | beforeCreate()')
 	},
-	created() {
-		if (debug) console.log('| ProfileView | created(' + (this.userProfile.id) + ')')
-		this.fetchUserProfile()
+	async created() {
+		if (debug) console.log('| ProfileView | created(' + (this.userProfile?.id) + ')')
+		// try {
+			await this.fetchUserProfile()
+		// }
+		// catch (_) {
+		// 	this.$router.push({name: 'profile'});
+		// }
 	},
 	beforeMount() {
-		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile?.id) + ')')
 	},
 	mounted() {
-		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile?.id) + ')')
+		// this.fetchUserProfile();
 	},
 	beforeUpdate() {
-		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile.id) + ')')
-		this.fetchUserProfile()
+		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile?.id) + ')')
+		try {
+			this.fetchUserProfile()
+		}
+		catch (_) {
+			this.$router.push({name: 'profile'});
+		}
 	},
 	updated() {
-		if (debug) console.log('| ProfileView | updated(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | updated(' + (this.userProfile?.id) + ')')
 	},
 	beforeUnmount() {
-		if (debug) console.log('| ProfileView | beforeUnmount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | beforeUnmount(' + (this.userProfile?.id) + ')')
 	},
 	unmounted() {
-		if (debug) console.log('| ProfileView | unmounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | unmounted(' + (this.userProfile?.id) + ')')
 	},
 }
 </script>
@@ -106,7 +128,7 @@ export default {
 			</div>
 			<v-card class="child1">
 			<v-card class="child2">
-				<UserCard
+				<UserCard v-if="userProfile"
 					:userProfile="(userProfile as Player)"
 				></UserCard>
 			</v-card>
