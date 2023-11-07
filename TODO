@@ -29,7 +29,6 @@ As a new friendship is accepted, add automatically to friends DONE
 Rethink updateFriendship event DONE
 
 3 clean friendships
-1. isUserLoggedIn in backend (if backend restarts, it looses the connections)
 
 
 
@@ -39,9 +38,9 @@ add button for blocking profile in public profile DONE
 
 add a rule in players controller that doesn't let us get users that blocked us DONE
 
-forbid a user to block itself
+forbid a user to block itself DONE
 
-Forbid users to block user that already blocked them
+Forbid users to block user that already blocked them DONE (in constraints)
 
 ---------------------------------------
 
@@ -55,6 +54,7 @@ Public profile, mostrare un bottone o l'altro a seconda che l'utente sia bloccat
 
 
 
+DONE
 BlockUser
 	- make so that when each user unblock each other, record in BeFriends table gets destroyed
 		(so that new friend requests are possible) DONE

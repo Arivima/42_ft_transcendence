@@ -36,4 +36,16 @@ CHECK (
     (NOT "are_friends" AND NOT "pending_friendship")
 );
 
+ALTER TABLE "BeFriends"
+ADD CONSTRAINT user_blocking_rule
+CHECK (
+    ("requestor_blacklisted" AND NOT "recipient_blacklisted") OR
+    (NOT "requestor_blacklisted" AND "recipient_blacklisted") OR
+    (NOT "requestor_blacklisted" AND NOT "recipient_blacklisted")
+);
 
+ALTER TABLE "BeFriends"
+ADD CONSTRAINT same_user_blocking_rule
+CHECK (
+    ("requestorID" <> "recipientID")
+);
