@@ -66,11 +66,6 @@ export class ChatService {
           },
         },
       });
-  
-      result.subscriptions.forEach((subscription) => {
-        console.log(`DEBUG | chat.service | createChatRoomMessage | subscription: ${subscription.playerID}`);
-      });
-  
       return result.subscriptions;
     } catch (error) {
       // Handle errors here
@@ -125,149 +120,9 @@ export class ChatService {
     }
   }
 
-  // async createChatRoomMessage(createChatDto: CreateChatDto) {
-  //   createChatDto.receiverID = null;
-  //   createChatDto.receiversID = Number(createChatDto.receiversID);
-    
-  //   let res = this.prisma.message.create({
-  //     data: {
-  //       content: createChatDto.content,
-  //       timestamp: createChatDto.createdAt,
-  //       sender: {
-  //           connect: {
-  //               id: createChatDto.senderID
-  //           }
-  //       },
-  //       receivers: {
-  //           connect: {
-  //               groupID: createChatDto.receiversID
-  //           }
-  //       }
-  //     },
-  //   });
-  //   res.then((res) => {
-  //     console.log(`DEBUG | chat.service | createChatRoomMessage | res: ${res}`);
-
-  //     // update group last message
-  //     this.prisma.chatRoom.update({
-  //       where: {
-  //         groupID: createChatDto.receiversID
-  //       },
-  //       data: {
-  //         messages: {
-  //           connect: {
-  //             messageID: res.messageID
-  //           }
-  //         }
-  //       }
-  //     });
-  //     return this.prisma.chatRoom.findUnique({
-  //       where: {
-  //         groupID: createChatDto.receiversID
-  //       },
-  //       select: {
-  //         subscriptions: {
-  //           select: {
-  //             playerID: true
-  //           },
-  //           where: {
-  //             isBanned: false
-  //           }
-  //         }
-  //       }
-  //     });
-  //   }).then((res) => { // res is subscriptions  arrays
-  //     console.log(`DEBUG | chat.service | createChatRoomMessage | res: ${res.subscriptions}`);
-  //     res.subscriptions.forEach((subscription) => {
-  //       console.log(`DEBUG | chat.service | createChatRoomMessage | subscription: ${subscription.playerID}`);
-  //     });
-
-  //     return res;
-  //   });
-  // }
-
-  // async createChatMessage(createChatDto: CreateChatDto) {
-  //   createChatDto.receiverID = Number(createChatDto.receiverID);
-  //   createChatDto.receiversID = null;
-    
-  //   let res = this.prisma.message.create({
-  //     data: {
-  //       content: createChatDto.content,
-  //       timestamp: createChatDto.createdAt,
-  //       sender: {
-  //           connect: {
-  //               id: createChatDto.senderID
-  //           }
-  //       },
-  //       receiver: {
-  //           connect: {
-  //               id: createChatDto.receiverID
-  //           }
-  //       }
-  //     },
-  //   });
-  //   res.then((res) => {
-  //     console.log(`DEBUG | chat.service | createChatMessage | res: ${res}`);
-  //     return createChatDto.receiverID;
-  //   });
-  // }
-
-
-  // async create(createChatDto: CreateChatDto): Promise<any> {
-  //   console.log(`DEBUG | chat.service | create | senderID: ${Number(createChatDto.senderID)}, receiverID: ${Number(createChatDto.receiverID)}`);
-  //   createChatDto.senderID = Number(createChatDto.senderID);
-  //   console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiverID: ${createChatDto.receiversID}`);
-  //   if (createChatDto.receiversID)
-  //     return await this.createChatRoomMessage(createChatDto).then((res) => { 
-  //       console.log(`DEBUG | chat.service | create | res: ${res}`);
-  //         return res; });
-  //   else if (createChatDto.receiverID)
-  //     return await this.createChatMessage(createChatDto).then((res) => { return [res]; });
-  //     // return [await this.createChatMessage(createChatDto)];
-  //   else
-  //     return null;
-    
-  //   createChatDto.receiverID = Number(createChatDto.receiverID);
-  //   console.log(`DEBUG | chat.service | create | createChatDto: ${createChatDto.createdAt}`);
-  //   let res = this.prisma.message.create({
-  //     data: {
-  //       content: createChatDto.content,
-  //       timestamp: createChatDto.createdAt,
-  //       sender: {
-  //           connect: {
-  //               id: createChatDto.senderID
-  //           }
-  //       },
-  //       receiver: {
-  //           connect: {
-  //               id: createChatDto.receiverID
-  //           }
-  //       }
-  //     },
-  //   });
-  //   res.then((res) => {
-  //     console.log(`DEBUG | chat.service | create | res: ${res}`);
-  //     return res;
-
-  //   });
-  // }
-
   async createGroupChat(group: CreateGroupDto) {
     console.log(`DEBUG | chat.service | createGroupChat | group: ${group.name}`);
     const { name, members, founderId, isPublic, password } = group;
-// model Subscribed {
-// 	isAdmin					Boolean
-// 	isMuted					Boolean
-// 	isBanned				Boolean
-
-// 	player					Player @relation("Subscribed", fields: [playerID], references: [id])
-// 	playerID				Int
-// 	chatroom				ChatRoom @relation("hasParticipant", fields: [chatroomID], references: [groupID])
-// 	chatroomID				Int
-
-// 	@@id([playerID, chatroomID])
-// }
-
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
         name,
@@ -287,25 +142,7 @@ export class ChatService {
       },
     }});
     
-    // console.log(`DEBUG | chat.service | createGroupChat | me: ${me}, groupName: ${groupName}, receiversID: ${receiversID}`);
-    // return this.prisma.chatRoom.create({
-    //   data: {
-    //     name: groupName,
-    //     founder: {
-    //       connect: {
-    //         id: me,
-    //       },
-    //     },
-    //     members: {
-    //       connect: receiversID.map((receiverID) => ({
-    //         id: receiverID,
-    //       })),
-    //     },
-    //   },
-    // });
-    
     return chatGroup;
-
   }
 
   findAll() {
@@ -372,13 +209,6 @@ export class ChatService {
         return ((b.lastMessage as Date) || new Date(0)).getTime() - ((a.lastMessage as Date) || new Date(0)).getTime();
       }
     });
-  
-    // let res = {
-    //   friends: sortedData.filter((data) => 'name' in data),
-    //   rooms: sortedData.filter((data) => 'name' in data),
-    // };
-    // }
-    // return an object with 3 arrays: friends and rooms and sortedData
     return { friends: friends, rooms: roomsWithLastMessage, sortedData: sortedData };
   }
 
@@ -405,37 +235,9 @@ export class ChatService {
     }));
   }
 
-  
-// model ChatRoom {
-// 	createdAt			DateTime				@default(now())
-// 	updatedAt			DateTime				@updatedAt
-
-// 	groupID				Int						@id @default(autoincrement())
-// 	name				String
-
-// 	visibility			ChatRoomVisibility
-// 	password			String
-
-
-// 	messages			Message[]				@relation("RecipientS")
-// 	founder				Player					@relation("Founded", fields: [founderID], references: [id])
-// 	founderID			Int
-// 	subscriptions		Subscribed[]			@relation("hasParticipant")
-// }
-
   async getMessagesGroupChat(me: number, group: number) {
     console.log(`DEBUG | chat.service | getMessagesGroupChat | me: ${me} | group: ${group}`);
-    // let res = await this.prisma.chatRoom.findUnique({
-    //   where: {
-    //     groupID: group,
-    //   },
-    //   include: {
-    //     messages: {
-    //       orderBy: { timestamp: 'asc' },
-    //     }
-    //   },
-    // });
-    // select messagess and relative sender name for a group id and order by timestamp
+   
     let res = await this.prisma.chatRoom.findUnique({
       where: {
         groupID: group,
@@ -453,12 +255,10 @@ export class ChatService {
         },
       },
     });
-    let r = res.messages.map((message) => ({
+    return res.messages.map((message) => ({
       ...message,
       sender: message.sender.username,
     }));
-    console.log(`DEBUG | chat.service | getMessagesGroupChat | res: ${res}`); // [object PrismaPromise]
-    return r
   }
 
   findOne(id: number) {

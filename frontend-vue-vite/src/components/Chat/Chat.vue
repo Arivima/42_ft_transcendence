@@ -10,15 +10,11 @@
 								<v-item-group v-model="activeChat">
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
 										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)">
-											<!-- <v-list-item :value="item.id"> -->
 											<v-avatar color="grey lighten-1 white--text">
 												<v-icon>chat_bubble</v-icon>
 											</v-avatar>
-											<!-- <v-list-item-content> -->
-
-												<v-list-item-title v-text="item.name" />
-												<v-list-item-subtitle v-text="item.lastMessage" />
-											<!-- </v-list-item-content> -->
+											<v-list-item-title v-text="item.name" />
+											<v-list-item-subtitle v-text="item.lastMessage" />
 											<!-- <v-list-item-icon> -->
 												<!-- <v-icon
 													:color="item.active ? 'deep-purple accent-4' : 'grey'">chat_bubble</v-icon> -->
@@ -33,12 +29,7 @@
 					<v-col cols="auto" class="flex-grow-1 flex-shrink-0">
 						<v-responsive v-if="activeChat" class="overflow-y-hidden fill-height" height="500">
 							<v-card flat class="d-flex flex-column fill-height">
-								<!-- <v-card-title>{{ parents[activeChat - 1].name }}</v-card-title> -->
-								<!-- <v-card-title>{{ parents[activeChat - 1].name }}</v-card-title> only if activechat is not 0 -->
 								<v-card-title v-if="activeChat">{{ parents[activeChat - 1].name }}</v-card-title>
-								<!-- create group button -->
-
-
 								<v-card-text class="flex-grow-1 overflow-y-auto">
 									<template v-for="(msg, i) in messages" :key="`message${i}`">
 										<div :class="{ 'd-flex flex-row-reverse': msg.me }">
@@ -47,7 +38,6 @@
 													<v-hover v-slot:default="{ hover }">
 														<v-chip :color="msg.me ? 'primary': ''" dark
 															style="height:auto;white-space: normal;" class="pa-4 mb-2">
-															<!-- v-on="on"> -->
 															<p :color="'primary'">
 																<b>{{ parents[activeChat - 1].isGroup ? (msg.me ? 'You' :
 																	msg.senderName) : "" }}</b>
@@ -162,13 +152,9 @@ export default {
 				parsedData.createdAt = showTime(parsedData.createdAt);
 				this.messages.push(parsedData);
 			}
-
 		});
 
-
 		this.socket.on("newparent", (parent) => {
-			console.log("newparent", parent);
-			// this.parents.insert(0, parent);
 			this.parents.unshift(parent);
 		});
 	},
@@ -186,6 +172,7 @@ export default {
 			this.messages.push(newMessage);
 			this.messageForm.content = "";
 		},
+
 		activateChat(chatId, index, isGroup) {
 			this.activeChat = index + 1;
 			this.fetchMessagesForChat(chatId, isGroup);
@@ -198,14 +185,11 @@ export default {
 			this.messageForm.receiverID = null;
 			this.messageForm.receiversID = null;
 			if (isGroup)
-				// this.messageForm.groupID = chatId;
 				this.messageForm.receiversID = chatId;
 			else
 				this.messageForm.receiverID = chatId;
-
 			try {
 				this.socket.emit("getmessages", { userId, chatId, isGroup }, (response) => {
-					console.log("response", response);
 					for (let i = 0; i < response.length; i++) {
 						if (response[i].senderID == user.value.id)
 							response[i].me = true;
@@ -220,13 +204,11 @@ export default {
 			}
 		},
 
-		// Method to open the group chat popup
 		openGroupChatPopup() {
 			this.$refs.groupCreationDialog.groupChatDialog = true;
 			this.$refs.groupCreationDialog.friends = this.friends;
 			this.$refs.groupCreationDialog.socket = this.socket;
 			this.$refs.groupCreationDialog.group.founderId = user.value.id;
-
 		},
 
 	},
@@ -234,7 +216,6 @@ export default {
 </script>
   
 <style scoped>
-/* Add your custom styles here */
 .v-list-item__subtitle {
 	white-space: normal;
 }

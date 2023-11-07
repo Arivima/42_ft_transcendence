@@ -44,8 +44,6 @@
 		groupChatDialog: false,
 		friendSearch: '',
 		friends: [], // Populate this with your list of friends from the backend
-		// group.members: [],
-		// chat: this.$parent,
 		socket: null,
 		group: {
 			name: '',
@@ -68,18 +66,12 @@
 			this.group.members.push(id);
 		},
 	  closeGroupChatPopup() {
-		// this.groupChatDialog = false;
-		this.group.members = []; // Clear the selected friends when closing the dialog
+		this.group.members = [];
 		this.groupChatDialog = false;
 		this.group.name = '';
 
 	  },
 	  createGroupChatWithSelectedFriends() {
-		
-		// TODO: Create the group chat with the selected friends send socket event to backend "createGroupChatWithSelectedFriends"
-
-        // Access the parent component's button using $refs
-		console.log("group", this.socket);
 		try {
 				this.group.members.push(this.group.founderId);
 				this.socket.emit("creategroupchat", { group: this.group }, (response) => {
@@ -88,9 +80,6 @@
 			} catch (error) {
 				console.error("Error emitting 'getmessagesprivatechat':", error);
 		}
-    	// this.socket.emit("creategroupchat", { group }, (response) => {
-		// 	console.log("response", response);
-		// });
 		this.closeGroupChatPopup();
 	  },
 	},
