@@ -74,6 +74,7 @@ export interface Player {
 	notificationsSocket: Socket | null
 	token:	string | null
 	twofaSecret: string//?RIMUOVERE
+	profile_completed: boolean
 }
 
 export interface Achievement {
@@ -103,6 +104,7 @@ const emptyUser = {
 	notificationsSocket: null,
 	token: null,
 	twofaSecret: 'Nan',
+	profile_completed: false,
 };
 
 //?: make multiple players store
@@ -133,6 +135,14 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			}
 		},
 		actions: {
+
+			isProfileCompleted() {
+				return this.user.profile_completed;
+			},
+
+			async setProfileAsComplete() {
+				await axios.get('players/me/completeProfile');
+			},
 
 			sendFriendshipRequest(recipientID: number) {
 				console.log(`sendFriendshipRequest: ${recipientID}`);

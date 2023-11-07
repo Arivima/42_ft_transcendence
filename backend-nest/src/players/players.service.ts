@@ -46,6 +46,17 @@ export class PlayersService {
 		});
 	}
 
+	async setProfileAsComplete(userID: number) {
+		await this.prisma.player.update({
+			where: {
+				id: userID
+			},
+			data: {
+				profile_completed: true,
+			}
+		});
+	}
+
 	async findAll(): Promise<Player[]> {
 		const players = await this.prisma.player.findMany();
 

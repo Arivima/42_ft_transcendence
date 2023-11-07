@@ -143,6 +143,16 @@ export class PlayersController {
 		}
 		return player;
 	}
+
+	@Get('me/completeProfile')
+	async setProfileAsComplete(@Request() req) {
+		try {
+			await this.playersService.setProfileAsComplete(Number(req.user.sub));
+		}
+		catch (err) {
+			throw new HttpException(err.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 	
 	@Put('me/avatar')
 	@UseInterceptors(FileInterceptor('avatar'))

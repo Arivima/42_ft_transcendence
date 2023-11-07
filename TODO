@@ -44,6 +44,11 @@ Forbid users to block user that already blocked them DONE (in constraints)
 
 ---------------------------------------
 
+Implementare Ricerca Amici
+
+Implementare pagina di prompt iniziale DONE
+
+Username must be reactive
 
 IMPLEMENT JWT IN WEBSOCKETS
 

@@ -13,7 +13,7 @@ export default defineComponent({
 	},
 	data() {
 		return {
-			dialogBox: false,
+			dialogBox: ! playerStore.isProfileCompleted(),
 			// USERNAME
 			username: '',
 			isValidUsername : false,
@@ -43,6 +43,15 @@ export default defineComponent({
 		}
 	},
 	methods: {
+		async setProfileasComplete() {
+			try {
+				await playerStore.setProfileAsComplete();
+				this.dialogBox = false;
+			}
+			catch(err) {
+				console.log(`could not send profile confirmation because of: ${err}`)
+			}
+		},
 		async validate () {
 			await this.$refs.form.validate()
 			this.isValidUsername = this.$refs.form.isValid
@@ -264,7 +273,7 @@ export default defineComponent({
 			</v-expand-transition>
 
 			<div class="text-end">
-				<v-btn text="Done" @click="dialogBox = false" border class="me-4" color="primary" variant="tonal"></v-btn>
+				<v-btn text="Done" @click="setProfileasComplete" border class="me-4" color="primary" variant="tonal"></v-btn>
 			</div>
 		</v-card>
 	</v-dialog>
