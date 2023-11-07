@@ -6,33 +6,29 @@
 					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
 						<v-responsive class="overflow-y-auto fill-height" height="500">
 							<v-list subheader>
-								<v-list-item-group v-model="activeChat">
+								<v-btn @click="openGroupChatPopup">Create Group Chat</v-btn>
+								<v-item-group v-model="activeChat">
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
-										<v-list-item :value="item.id" @click="activateChat(item.id, index)">
-											<!-- <v-list-item :value="item.id"> -->
-											<v-list-item-avatar color="grey lighten-1 white--text">
+										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)">
+											<v-avatar color="grey lighten-1 white--text">
 												<v-icon>chat_bubble</v-icon>
-											</v-list-item-avatar>
-											<v-list-item-content>
-												<v-list-item-title v-text="item.name" />
-												<v-list-item-subtitle v-text="'hi'" />
-											</v-list-item-content>
-											<v-list-item-icon>
-												<v-icon
-													:color="item.active ? 'deep-purple accent-4' : 'grey'">chat_bubble</v-icon>
-											</v-list-item-icon>
+											</v-avatar>
+											<v-list-item-title v-text="item.name" />
+											<v-list-item-subtitle v-text="item.lastMessage" />
+											<!-- <v-list-item-icon> -->
+												<!-- <v-icon
+													:color="item.active ? 'deep-purple accent-4' : 'grey'">chat_bubble</v-icon> -->
+											<!-- </v-list-item-icon> -->
 										</v-list-item>
 										<v-divider class="my-0" />
 									</template>
-								</v-list-item-group>
+								</v-item-group>
 							</v-list>
 						</v-responsive>
 					</v-col>
 					<v-col cols="auto" class="flex-grow-1 flex-shrink-0">
 						<v-responsive v-if="activeChat" class="overflow-y-hidden fill-height" height="500">
 							<v-card flat class="d-flex flex-column fill-height">
-								<!-- <v-card-title>{{ parents[activeChat - 1].name }}</v-card-title> -->
-								<!-- <v-card-title>{{ parents[activeChat - 1].name }}</v-card-title> only if activechat is not 0 -->
 								<v-card-title v-if="activeChat">{{ parents[activeChat - 1].name }}</v-card-title>
 								<v-card-text class="flex-grow-1 overflow-y-auto">
 									<template v-for="(msg, i) in messages" :key="`message${i}`">
@@ -40,12 +36,14 @@
 											<v-menu offset-y>
 												<template v-slot:activator="{ on }">
 													<v-hover v-slot:default="{ hover }">
-														<v-chip :color="msg.me ? 'primary' : ''" dark
-															style="height:auto;white-space: normal;" class="pa-4 mb-2"
-															v-on="on">
-															{{ msg.content }}
-															<!-- parse the date to look 23.59 -->
-															<!-- <sub class="ml-2" style="font-size: 0.5rem;">{{ msg.createdAt -->
+														<v-chip :color="msg.me ? 'primary': ''" dark
+															style="height:auto;white-space: normal;" class="pa-4 mb-2">
+															<p :color="'primary'">
+																<b>{{ parents[activeChat - 1].isGroup ? (msg.me ? 'You' :
+																	msg.senderName) : "" }}</b>
+																<br>
+																{{ msg.content }}
+															</p>
 															<sub class="ml-2" style="font-size: 0.5rem;">{{ msg.createdAt
 															}}</sub>
 															<v-icon v-if="hover" small>expand_more</v-icon>
@@ -72,6 +70,9 @@
 				</v-row>
 			</v-container>
 		</v-app>
+
+		<GroupCreationDialog ref="groupCreationDialog" />
+
 	</div>
 </template>
   
@@ -80,6 +81,8 @@ import io from 'socket.io-client';
 import { storeToRefs } from 'pinia'
 import { usePlayerStore } from '@/stores/PlayerStore'
 import axios from 'axios';
+import { ref } from 'vue'
+import GroupCreationDialog from './GroupCreationDialog.vue'
 
 
 const { user } = storeToRefs(await usePlayerStore())
@@ -96,19 +99,28 @@ const showTime = (date) => {
 };
 
 export default {
+	components: {
+		GroupCreationDialog
+	},
 	data() {
 		return {
 			activeChat: 0,
 			parents: [],
+			friends: [],
+			groups: [],
 			messages: [],
 			messageForm: {
 				content: "",
 				me: true,
 				senderID: user.value.id,
-				receiverID: 1,
+				receiverID: null,
+				receiversID: null,
 				createdAt: new Date()
 			},
 			socket: null,
+			groupChatDialog: false, // Controls the visibility of the popup
+			groupChatName: '', // Store the group chat name entered by the user
+
 		};
 	},
 	created() {
@@ -121,21 +133,29 @@ export default {
 		});
 		try {
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
-				console.log("response", response);
-				this.parents = response
+				this.parents = response.sortedData;
+				this.friends = response.friends;
+				this.groups = response.rooms;
 			});
 		} catch (error) {
 			console.error("Error emitting 'getmessagesprivatechat':", error);
 		}
+
 		this.socket.on("message", (message) => {
+			console.log("parsedData", message);
 			const parsedData = JSON.parse(JSON.parse(message).data);
 			if (parsedData.senderID == user.value.id) {
 				parsedData.me = true;
+				// parsedData.sended = true;
 			} else {
 				parsedData.me = false;
 				parsedData.createdAt = showTime(parsedData.createdAt);
 				this.messages.push(parsedData);
 			}
+		});
+
+		this.socket.on("newparent", (parent) => {
+			this.parents.unshift(parent);
 		});
 	},
 	methods: {
@@ -144,29 +164,37 @@ export default {
 			if (newMessage.content.trim() === "") return;
 			if (newMessage.receiverID)
 				newMessage.receiverID = this.parents[this.activeChat - 1].id;
+			else if (newMessage.groupID)
+				newMessage.receiversID = this.parents[this.activeChat - 1].id;
+			console.log("newMessage", newMessage);
 			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
 			newMessage.createdAt = showTime(newMessage.createdAt);
 			this.messages.push(newMessage);
 			this.messageForm.content = "";
 		},
-		activateChat(chatId, index) {
+
+		activateChat(chatId, index, isGroup) {
 			this.activeChat = index + 1;
-			this.fetchMessagesForChat(chatId);
+			this.fetchMessagesForChat(chatId, isGroup);
 		},
 
-		async fetchMessagesForChat(chatId) {
+		async fetchMessagesForChat(chatId, isGroup) {
 			console.log(`Fetching messages for chat ID: ${chatId}`);
 			let userId = user.value.id;
-			let receiverId = chatId;
+			this.messages = [];
+			this.messageForm.receiverID = null;
+			this.messageForm.receiversID = null;
+			if (isGroup)
+				this.messageForm.receiversID = chatId;
+			else
+				this.messageForm.receiverID = chatId;
 			try {
-				this.socket.emit("getmessagesprivatechat", { userId, receiverId }, (response) => {
-					console.log("response", response);
+				this.socket.emit("getmessages", { userId, chatId, isGroup }, (response) => {
 					for (let i = 0; i < response.length; i++) {
-						if (response[i].senderID == user.value.id) {
+						if (response[i].senderID == user.value.id)
 							response[i].me = true;
-						} else {
+						else
 							response[i].me = false;
-						}
 						response[i].createdAt = showTime(response[i].createdAt);
 					}
 					this.messages = response
@@ -175,12 +203,19 @@ export default {
 				console.error("Error emitting 'getmessagesprivatechat':", error);
 			}
 		},
+
+		openGroupChatPopup() {
+			this.$refs.groupCreationDialog.groupChatDialog = true;
+			this.$refs.groupCreationDialog.friends = this.friends;
+			this.$refs.groupCreationDialog.socket = this.socket;
+			this.$refs.groupCreationDialog.group.founderId = user.value.id;
+		},
+
 	},
 };
 </script>
   
 <style scoped>
-/* Add your custom styles here */
 .v-list-item__subtitle {
 	white-space: normal;
 }
