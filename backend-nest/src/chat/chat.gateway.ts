@@ -63,6 +63,12 @@ export class ChatGateway {
     return this.chatService.getParents(Number(userId));
   }
 
+  @SubscribeMessage("getgroupinfo")
+  getGroupInfo(@MessageBody("groupId") groupId: string) {
+    console.log(`DEBUG | chat.controller | getGroupInfo | groupId: ${groupId}`);
+    return this.chatService.getGroupInfo(Number(groupId));
+  }
+
   @SubscribeMessage("creategroupchat")
   createGroupChat(@MessageBody("group") group: CreateGroupDto) {
     console.log(`DEBUG | chat.controller | createGroupChat | group: ${group}`);
@@ -90,6 +96,7 @@ export class ChatGateway {
     if (!resIds)
       return
     for (let resId of resIds) {
+      console.log(`DEBUG | chat.gateway | handleMessage | resId: ${resId}`);
       recClientId = this.clients.get(Number(resId.playerID));
       if (recClientId)
         this.server.to(`${recClientId.id}`).emit('message', data);

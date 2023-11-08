@@ -6,10 +6,13 @@
 					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
 						<v-responsive class="overflow-y-auto fill-height" height="500">
 							<v-list subheader>
-								<v-btn @click="openGroupChatPopup">Create Group Chat</v-btn>
+								<v-btn @click="openGroupCreationPopup">Create Group Chat</v-btn>
+								<div class="">
+									
 								<v-item-group v-model="activeChat">
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
-										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)">
+										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
+										>
 											<v-avatar color="grey lighten-1 white--text">
 												<v-icon>chat_bubble</v-icon>
 											</v-avatar>
@@ -23,13 +26,22 @@
 										<v-divider class="my-0" />
 									</template>
 								</v-item-group>
+							</div>
 							</v-list>
 						</v-responsive>
 					</v-col>
 					<v-col cols="auto" class="flex-grow-1 flex-shrink-0">
 						<v-responsive v-if="activeChat" class="overflow-y-hidden fill-height" height="500">
 							<v-card flat class="d-flex flex-column fill-height">
-								<v-card-title v-if="activeChat">{{ parents[activeChat - 1].name }}</v-card-title>
+								<div  @click="openGroupInfoPopup()" class="d-flex flex-row justify-space-between align-center pa-2 pointer elevation-1 mb-2" style="cursor: pointer;">
+									<v-card-title v-if="activeChat && !parents[activeChat - 1].isGroup">{{ parents[activeChat - 1].name }}</v-card-title>
+									<v-card-title v-if="activeChat && parents[activeChat - 1].isGroup">{{ parents[activeChat - 1].name }}</v-card-title>
+									<v-spacer></v-spacer>
+									<v-btn icon>
+										...
+									</v-btn>
+								</div>
+								<!-- <v-card-title v-if="activeChat && parents[activeChat - 1].isGroup" @click="openGroupInfoPopup()">{{ parents[activeChat - 1].name }}</v-card-title> -->
 								<v-card-text class="flex-grow-1 overflow-y-auto">
 									<template v-for="(msg, i) in messages" :key="`message${i}`">
 										<div :class="{ 'd-flex flex-row-reverse': msg.me }">
@@ -70,9 +82,8 @@
 				</v-row>
 			</v-container>
 		</v-app>
-
 		<GroupCreationDialog ref="groupCreationDialog" />
-
+		<GroupInfoDialog ref="groupInfoDialog" />
 	</div>
 </template>
   
@@ -83,6 +94,7 @@ import { usePlayerStore } from '@/stores/PlayerStore'
 import axios from 'axios';
 import { ref } from 'vue'
 import GroupCreationDialog from './GroupCreationDialog.vue'
+import GroupInfoDialog from './GroupInfoDialog.vue'
 
 
 const { user } = storeToRefs(await usePlayerStore())
@@ -100,7 +112,9 @@ const showTime = (date) => {
 
 export default {
 	components: {
-		GroupCreationDialog
+		GroupCreationDialog,
+		GroupInfoDialog
+		
 	},
 	data() {
 		return {
@@ -119,6 +133,7 @@ export default {
 			},
 			socket: null,
 			groupChatDialog: false, // Controls the visibility of the popup
+			groupInfoDialog: false, // Controls the visibility of the popup
 			groupChatName: '', // Store the group chat name entered by the user
 
 		};
@@ -144,6 +159,11 @@ export default {
 		this.socket.on("message", (message) => {
 			console.log("parsedData", message);
 			const parsedData = JSON.parse(JSON.parse(message).data);
+			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				this.parents = response.sortedData;
+				this.friends = response.friends;
+				this.groups = response.rooms;
+			});
 			if (parsedData.senderID == user.value.id) {
 				parsedData.me = true;
 				// parsedData.sended = true;
@@ -166,9 +186,16 @@ export default {
 				newMessage.receiverID = this.parents[this.activeChat - 1].id;
 			else if (newMessage.groupID)
 				newMessage.receiversID = this.parents[this.activeChat - 1].id;
+			newMessage.createdAt = new Date();
 			console.log("newMessage", newMessage);
 			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
+			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				this.parents = response.sortedData;
+				this.friends = response.friends;
+				this.groups = response.rooms;
+			});
 			newMessage.createdAt = showTime(newMessage.createdAt);
+			
 			this.messages.push(newMessage);
 			this.messageForm.content = "";
 		},
@@ -204,11 +231,19 @@ export default {
 			}
 		},
 
-		openGroupChatPopup() {
+		openGroupCreationPopup() {
 			this.$refs.groupCreationDialog.groupChatDialog = true;
 			this.$refs.groupCreationDialog.friends = this.friends;
 			this.$refs.groupCreationDialog.socket = this.socket;
 			this.$refs.groupCreationDialog.group.founderId = user.value.id;
+		},
+		openGroupInfoPopup() {
+			console.log("this.parents[this.activeChat - 1].id", this.parents[this.activeChat - 1].id);
+			this.socket.emit("getgroupinfo", { groupId: this.parents[this.activeChat - 1].id }, (response) => {
+				console.log("response group", response);
+				this.$refs.groupInfoDialog.groupInfo = response;
+			});
+			this.$refs.groupInfoDialog.groupInfoDialog = true;
 		},
 
 	},
@@ -224,10 +259,17 @@ export default {
 	white-space: normal;
 }
 
-#chat {
+.chat {
 	background-color: aqua;
 	/* outline: solid; */
 	/* all available screen */
 	width: 100%;
+	height: 100%;
+	overflow-y: hidden;
+
+	/* flexbox */
+	display: flex;
+	flex-direction: column;
+	
 }
 </style>
