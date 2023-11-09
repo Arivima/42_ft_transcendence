@@ -117,6 +117,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
 			fetchFriends: (id: number) => Promise<Player[]>
+			fetchPublicUsers: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
 			achievements: Achievement[],
 			notifications: (FriendRequest & FriendRequestStatus)[],
@@ -128,6 +129,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				fetchGames: fetchGames.bind(this),
 				fetchPlayer: fetchPlayer,
 				fetchFriends: fetchFriends,
+				fetchPublicUsers: fetchPublicUsers,
 				fetchAchievements: fetchAchievements,
 				achievements: [],
 				notifications: [],
@@ -229,7 +231,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
-					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
+					this.friends = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data
 					this.friends = this.friends.map((friend) => ({
 						...friend,
 						status:
@@ -332,7 +334,7 @@ async function fetchPlayer(id: number): Promise<Player> {
 
 async function fetchFriends(id: number): Promise<Player[]> {
 	if (debug) console.log("/Store/ fetchFriends(" + id + ')');
-	const friends : Promise<Player[]> = (await axios.get(`players/friends/${id}`)).data
+	const friends : Promise<Player[]> = (await axios.get(`players/friends/${id}`, {params: {includePending: false}})).data
 	return friends
 }
 
@@ -355,6 +357,25 @@ async function fetchAvatar(avatar: string): Promise<string> {
 	catch (error) {
 		console.log(`fetchAvatar() Exception: ${error}`)
 		return '';
+	}
+}
+
+// fetch all public users (all app users exept me, my friends and users I blocked)
+async function fetchPublicUsers(id: number): Promise<Player[]> {
+	if (debug) console.log("/Store/ fetchPublicUsers(" + id + ')');
+	try {
+		const publicUsers : Player[] = (await axios.get(`players/publicUsers/${id}`)).data
+		//! ICI
+		publicUsers.forEach(async (publicUser : Player) => {
+			publicUser.avatar = await fetchAvatar(publicUser.avatar);
+		})
+		// const player/Ids: number[] = publicUsers.map(player => player.id);
+		// console.log("/Store/ fetchPublicUsers(" + id + ') Value publicUsers :' + playerIds)
+		return publicUsers
+	}
+	catch (error) {
+		console.error(`fetchPublicUsers() Exception: ${error}`)
+		return [];
 	}
 }
 

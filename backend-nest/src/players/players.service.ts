@@ -97,6 +97,46 @@ export class PlayersService {
 		}
 	}
 
+
+	async getAllPlayers(): Promise<Player[]> {
+		// console.log(`DEBUG | Players.Service | getAllPlayers `);
+		const players: Player[] = await this.prisma.player.findMany();
+		const playerIds: number[] = players.map(player => player.id);
+		console.log(`DEBUG | Players.Service | getAllPlayers | players : ` + playerIds);
+		return players
+	}
+
+	async getAllPublicUsers(userID: number): Promise<Player[]> {
+		// console.log(`DEBUG | Players.Service | getAllPublicUsers | userID: ${userID}`);
+		const players = await this.getAllPlayers();
+		const friends = await this.getAllFriends(userID, true);
+		const blocked = await this.getAllBlockedUsers(userID);
+		// const playerIds: number[] = players.map(player => player.id);
+		// const friendsIds: number[] = friends.map(friends => friends.id);
+		// const blockedIds: number[] = blocked.map(blocked => blocked.id);
+		// console.log(`DEBUG | Players.Service | getAllPublicUsers | players : ` + playerIds);
+		// console.log(`DEBUG | Players.Service | getAllPublicUsers | friends : ` + friendsIds);
+		// console.log(`DEBUG | Players.Service | getAllPublicUsers | blocked : ` + blockedIds);
+
+		const isKnownId = (userId : number, anyId : number) => userId == anyId;
+
+		const publicUsers: Player[] = players.filter(player => {
+			return !friends.some(friend => isKnownId(friend.id, player.id)) &&
+				   !blocked.some(blockedUser => isKnownId(blockedUser.id, player.id)) &&
+				   !isKnownId(userID, player.id);
+		});
+		const publicUsersIds: number[] = publicUsers.map(publicUser => publicUser.id);
+		console.log(`DEBUG | Players.Service | getAllPublicUsers | publicUsers : ` + publicUsersIds);
+
+		publicUsers.forEach(
+			(user) => {
+				user.avatar = `players/avatar/${user.id}`;
+			}
+		);
+		return publicUsers
+	}
+
+
 	async getAllBlockedUsers(userID: number): Promise<Player[]> {
 		const asRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
@@ -149,12 +189,20 @@ export class PlayersService {
 		);
 	}
 
-	async getAllFriends(userID: number): Promise<(Player & Connection)[]> {
-		console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
+	async getAllFriends(userID: number, includePending: boolean): Promise<(Player & Connection)[]> {
+		// console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
 				requestorID: userID,
-				are_friends: true,
+				OR: [
+					{are_friends: true},
+					{
+						AND: [
+							{are_friends: false},
+							(includePending && {pending_friendship: true})
+						]
+					}
+				]
 			},
 			select: {
 				recipientID: true,
@@ -163,7 +211,15 @@ export class PlayersService {
 		const friendsAsRecipientIDs = await this.prisma.beFriends.findMany({
 			where: {
 				recipientID: userID,
-				are_friends: true,
+				OR: [
+					{are_friends: true},
+					{
+						AND: [
+							{are_friends: false},
+							(includePending && {pending_friendship: true})
+						]
+					}
+				]
 			},
 			select: {
 				requestorID: true,

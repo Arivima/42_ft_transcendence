@@ -96,8 +96,14 @@ export class PlayersController {
 
 	//TODO add interface "Connection" here for return type spec
 	@Get('friends/:id')
-	getFriends(@Param('id') id: string) {
-		return this.playersService.getAllFriends(Number(id));
+	getFriends(@Param('id') id: string, @Query('includePending') includePending: string) {
+		return this.playersService.getAllFriends(Number(id), Boolean(includePending));
+	}
+
+	@Get('publicUsers/:id')
+	async getPublicUsers(@Param('id') id: string) {
+		// console.log(`CONTROLLER - getAllPublicUsers: id param = ${id}`);
+		return this.playersService.getAllPublicUsers(Number(id));
 	}
 
 	@Get('blocked')
