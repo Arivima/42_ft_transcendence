@@ -83,24 +83,6 @@ export default {
 							</v-avatar>
 						</v-badge>
 					</template>
-					<template v-slot:append>
-						<v-btn
-							v-if="`${item.my_friend}` === '0'"
-							icon="mdi-account-plus"
-							size="x-small"
-							variant="tonal"
-							color="blue"
-						>
-						</v-btn>
-						<v-btn
-							v-if="`${item.my_friend}` === '1'"
-							icon="mdi-account-remove"
-							size="x-small"
-							variant="tonal"
-
-						>
-						</v-btn>
-					</template>
 				</v-list-item>
 			</template>
 		</v-virtual-scroll>

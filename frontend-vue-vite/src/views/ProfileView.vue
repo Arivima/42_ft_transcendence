@@ -9,6 +9,7 @@ import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
+import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
 
 
 const playerStore = usePlayerStore()
@@ -17,8 +18,9 @@ const debug = false
 
 export default {
 	components : {
-	NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
-	Notifications,
+    NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
+    Notifications,
+    BlockedUsers
 },
 	data() {
 		return {
@@ -149,6 +151,9 @@ export default {
 					<Friends
 						v-if="visibility == 'MyProfile'"
 					></Friends>
+					<BlockedUsers
+						v-if="visibility == 'MyProfile'"
+					></BlockedUsers>
 				</v-card>
 			</v-card>
 		</v-card>

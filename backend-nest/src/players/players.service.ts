@@ -159,7 +159,7 @@ export class PlayersService {
 		let blockedUsers: Player[] = [];
 		for (const id of ids) {
 			const blockedUser = await this.findOne(id);
-			blockedUser.avatar = `/playes/avatar/${blockedUser.id}`
+			blockedUser.avatar = `/players/avatar/${blockedUser.id}`
 			blockedUsers.push(blockedUser);
 		}
 

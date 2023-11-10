@@ -286,6 +286,11 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					})
 					this.publicUsers = await fetchPublicUsers(this.user.id);
 					this.blockedUsers = (await axios.get('players/blocked')).data;
+					this.blockedUsers.forEach(
+						async (blockedUser) => {
+							blockedUser.avatar = await fetchAvatar(blockedUser.avatar)
+						}
+					);
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
 					).data
@@ -496,13 +501,14 @@ async function handleFriendshipAccept(
 	}
 }
 
-function handleFriendshipReject(
+async function handleFriendshipReject(
 	this: any,
 	data: FriendshipRejectAccept
 )
 {
 	if (data.recipientID == this.user.id)
 	{
+		// remove notification
 		const index = this.notifications.findIndex(
 			(request: (FriendRequest & FriendRequestStatus)) => {
 				return data.requestorID == request.requestorID
@@ -512,9 +518,23 @@ function handleFriendshipReject(
 		if (-1 != index) {
 			this.notifications.splice(index, 1);
 		}
+
+		// add as public user
+		const newPublic = await fetchPlayer(data.requestorID);
+		if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
+			this.publicUsers.push(newPublic);
+		}
+	}
+	else {
+		// add as public user
+		const newPublic = await fetchPlayer(data.recipientID);
+		if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
+			this.publicUsers.push(newPublic);
+		}
 	}
 	
-	const index = this.friends.findIndex(
+	// remove as friend
+	const asFriend_index = this.friends.findIndex(
 		(friend: Player) => {
 			return (
 				this.user.id == data.recipientID ?
@@ -524,8 +544,8 @@ function handleFriendshipReject(
 		}
 	)
 	
-	if (-1 != index)
-		this.friends.splice(index, 1);
+	if (-1 != asFriend_index)
+		this.friends.splice(asFriend_index, 1);
 }
 
 async function handleBlockedUser(
@@ -533,11 +553,14 @@ async function handleBlockedUser(
 	data: BlockedFriendship
 )
 {
-	let index: number;
+	let asFriend_index: number;
+	let asPublic_index: number;
 	let affectedUserID: number;
 	let userBlocked: boolean;
 
 	console.log('toggle-block-user: emitting from backend');
+
+	// we are recipient
 	if (data.recipientID == this.user.id) {
 		// remove notification && get friend (profile, index in friends array, and wether it is blocked or not)
 		let notificationsIndex = this.notifications.findIndex(
@@ -550,27 +573,45 @@ async function handleBlockedUser(
 		
 		affectedUserID = data.requestorID;
 		userBlocked = data.requestor_blacklisted;
-		index = this.friends.findIndex(
+		asFriend_index = this.friends.findIndex(
 			(friend: Player) => {
 				return data.requestorID == friend.id
 			}
 		);
+		asPublic_index = this.publicUsers.findIndex(
+			(user: Player) => {
+				return data.requestorID == user.id
+			}
+		)
 	}
+	// We are requestor
 	else {
 		// get friend (profile, index in friends array, and wether it is blocked or not)
 		affectedUserID = data.recipientID;
 		userBlocked = data.recipient_blacklisted;
-		index = this.friends.findIndex(
+		asFriend_index = this.friends.findIndex(
 			(friend: Player) => {
 				return data.recipientID == friend.id
 			}
 		);
+		asPublic_index = this.publicUsers.findIndex(
+			(user: Player) => {
+				return data.recipientID == user.id
+			}
+		)
 	}
 
 	// delete from friends if exists
-	if (-1 != index)
-		this.friends.splice(index, 1);
+	if (-1 != asFriend_index)
+		this.friends.splice(asFriend_index, 1);
 	
+	// if any user is blocked, remove from public users
+	if (
+		(data.requestor_blacklisted || data.recipient_blacklisted) &&
+		-1 != asPublic_index
+	)
+		this.publicUsers.splice(asPublic_index, 1);
+
 	// if blocked, add to blocked users
 	if (userBlocked) {
 		const affectedUser = await fetchPlayer(affectedUserID);
