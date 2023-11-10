@@ -81,7 +81,7 @@ export default {
 	outline-color: antiquewhite;
 }
 .NavSideBar {
-	background-color: lightcyan;
+	background-color: rgb(255, 255, 255);
 	outline: solid;
 	outline-color: antiquewhite;
 }

@@ -16,5 +16,5 @@ export class Chat {
 	createdAt: Date;
 	senderID: number;
 	receiverID: number | null;
-	receiversID: number[] | null;
+	receiversID: number | null;
 }

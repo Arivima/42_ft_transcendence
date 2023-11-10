@@ -13,8 +13,12 @@ export default {
 	},
 	data: () => ({
 		badgeColor: 'grey',
-		items: friends.value as Player[],
 	}),
+	computed : {
+		items() : Player[] {
+			return friends.value
+		}
+	},
 	methods : {
 		getBadgeColor(status : PlayerStatus) : string {
 			if (debug) console.log('| Friends | methods | getBadgeColor()')

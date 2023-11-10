@@ -96,18 +96,25 @@ export class PlayersController {
 
 	//TODO add interface "Connection" here for return type spec
 	@Get('friends/:id')
-	getFriends(@Param('id') id: string) {
-		return this.playersService.getAllFriends(Number(id));
+	getFriends(@Param('id') id: string, @Query('includePending') includePending: string) {
+		return this.playersService.getAllFriends(Number(id), Boolean(includePending));
 	}
 
-	@Get('me/addFriend/:id')
-	sendFrendship(@Param('id') recipientID: string, @Request() req)
-	{
-		this.playersService.sendFriendship(Number(req.user.sub), Number(recipientID));
+	@Get('publicUsers/:id')
+	async getPublicUsers(@Param('id') id: string) {
+		// console.log(`CONTROLLER - getAllPublicUsers: id param = ${id}`);
+		return this.playersService.getAllPublicUsers(Number(id));
 	}
+
+	@Get('blocked')
+	getAllBlockedUsers(@Request() req) {
+		return this.playersService.getAllBlockedUsers(Number(req.user.sub));
+	}
+	
 
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
+		console.log(`CONTROLLER - getGames: id param = ${id}`);
 		return this.playersService.getAllGames(
 			Number(id),
 			limit ? Number(limit) : undefined,
@@ -121,13 +128,36 @@ export class PlayersController {
 	}
 
 	@Get(':id')
-	async findOne(@Param('id') id: string) {
+	async findOne(@Param('id') id: string, @Request() req) {
+		const userID = Number(req.user.sub);
 		const player = await this.playersService.findOne(Number(id));
+		const friendship = await this.playersService.getOneFriend(userID, Number(id));
 
+		if (null == player) {
+			throw new HttpException('user unknown', HttpStatus.NOT_FOUND);
+		}
+		if (friendship) {
+			if (
+				(userID == friendship.requestorID && friendship.requestor_blacklisted)
+				||
+				(userID == friendship.recipientID && friendship.recipient_blacklisted)
+			)
+				throw new HttpException('Cannot view profile of blocked user', HttpStatus.FORBIDDEN);
+		}
 		if (player) {
 			player.avatar = `players/avatar/${player.id}`;
 		}
 		return player;
+	}
+
+	@Get('me/completeProfile')
+	async setProfileAsComplete(@Request() req) {
+		try {
+			await this.playersService.setProfileAsComplete(Number(req.user.sub));
+		}
+		catch (err) {
+			throw new HttpException(err.toString(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 	
 	@Put('me/avatar')

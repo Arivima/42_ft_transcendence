@@ -3,12 +3,12 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 import NavSideBar from '../components/NavSideBar.vue'
+import Notifications from '@/components/Notifications.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-import Notifications from '@/components/Profile/Notifications.vue'
 
 
 const playerStore = usePlayerStore()
@@ -17,36 +17,47 @@ const debug = false
 
 export default {
 	components : {
-    NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
-    Notifications,
+	NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
+	Notifications,
 },
 	data() {
 		return {
 			userVisitor: user.value,
 			userVisitorFriends: friends,
-			userProfile: {} as Player,
+			userProfile: undefined as Player | undefined,
 		}
 	},
 	computed: {
 		visibility() : string {
 			if (debug) console.log('| ProfileView | computed | visibility')
-			let profileType = playerStore.visibility(this.userProfile.id);
+			let profileType = playerStore.visibility(this.userProfile?.id);
 			return profileType
 		},
 	},
 	methods: {
-		fetchUserProfile() {
-			if (debug) console.log('| ProfileView | methods | fetchUserProfile()')
+		async fetchUserProfile() {
 			let profileID : number = Number(this.$route.params.id)
+			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | ${profileID}`)
+
 			if (!profileID || profileID == this.userVisitor.id) {
-				this.userProfile = this.userVisitor
+				if (debug) console.log(`Visitor and userProfile are the same`)
+				this.userProfile = this.userVisitor;
 			}
-			else
-				fetchPlayer.value(profileID)
-					.then((targetUser : Player) => {
-						this.userProfile = targetUser;
-					})
-					.catch((err : Error) => console.log(err))
+			else {
+				try {
+					this.userProfile = await fetchPlayer.value(profileID);
+					if (debug) console.log(`{\
+						userprofileID: ${this.userProfile?.id},\
+						userprofileUsername: ${this.userProfile?.username},\
+						userprofileAvatar: ${this.userProfile?.avatar},\
+					}`)
+				}
+				catch (err) {
+					console.log(`Cannot view selected user profile`);
+					this.$router.push({name: 'profile'});
+				}
+			}
+			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | END`)
 		},
 	},
 	watch : {
@@ -64,81 +75,85 @@ export default {
 	beforeCreate() {
 		if (debug) console.log('| ProfileView | beforeCreate()')
 	},
-	created() {
-		if (debug) console.log('| ProfileView | created(' + (this.userProfile.id) + ')')
-		this.fetchUserProfile()
+	async created() {
+		if (debug) console.log('| ProfileView | created(' + (this.userProfile?.id) + ')')
+		// try {
+			await this.fetchUserProfile()
+		// }
+		// catch (_) {
+		// 	this.$router.push({name: 'profile'});
+		// }
 	},
 	beforeMount() {
-		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile?.id) + ')')
 	},
 	mounted() {
-		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile?.id) + ')')
+		// this.fetchUserProfile();
 	},
 	beforeUpdate() {
-		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile.id) + ')')
-		this.fetchUserProfile()
+		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile?.id) + ')')
+		try {
+			this.fetchUserProfile()
+		}
+		catch (_) {
+			this.$router.push({name: 'profile'});
+		}
 	},
 	updated() {
-		if (debug) console.log('| ProfileView | updated(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | updated(' + (this.userProfile?.id) + ')')
 	},
 	beforeUnmount() {
-		if (debug) console.log('| ProfileView | beforeUnmount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | beforeUnmount(' + (this.userProfile?.id) + ')')
 	},
 	unmounted() {
-		if (debug) console.log('| ProfileView | unmounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| ProfileView | unmounted(' + (this.userProfile?.id) + ')')
 	},
 }
 </script>
 
 <template>
-	<div class="profile">
-		<div class="justify-start">
-		<NavSideBar />
-		<!-- <v-app-bar density="compact" collapse  floating location="bottom"	 class="NavSideBar rounded-pill ma-2">
-			<Notifications></Notifications>
-		</v-app-bar> -->
-
-		</div>
-
+<div class="profile">
+	<NavSideBar />
+	<Notifications />
+	<!-- <v-main> -->
 		<v-card class="parent">
-			<div class="w-100 border d-flex justify-end align-end">
-				<Notifications></Notifications>
-			</div>
 			<v-card class="child1">
-			<v-card class="child2">
-				<UserCard
-					:userProfile="(userProfile as Player)"
-				></UserCard>
+				<v-card class="child2">
+					<UserCard v-if="userProfile"
+						:userProfile="(userProfile as Player)"
+					></UserCard>
+				</v-card>
 			</v-card>
-		</v-card>
-		<v-card class="child1">
-			<v-card
-				class="child2"
-				v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
-			>
-				<Achievements
-					:userProfile="(userProfile as Player)"
+			<v-card class="child1">
+				<v-card
+					class="child2"
 					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
-				></Achievements>
-				<Suspense><MatchHistoryTable
-					:userProfile="(userProfile as Player)"
-					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
-				></MatchHistoryTable></Suspense>
-			</v-card>
-			<v-card class="child2"
-				v-if="visibility === 'MyProfile'"
-			>
-				<AddFriend
-					v-if="visibility == 'MyProfile'"
-				></AddFriend>
+				>
+					<Achievements
+						:userProfile="(userProfile as Player)"
+						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+					></Achievements>
+					<Suspense><MatchHistoryTable
+						:userProfile="(userProfile as Player)"
+						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+					></MatchHistoryTable></Suspense>
+				</v-card>
+				<v-card class="child2"
+					v-if="visibility === 'MyProfile'"
+				>
+					<AddFriend
+						v-if="visibility == 'MyProfile'"
+					></AddFriend>
 
-				<Friends
-					v-if="visibility == 'MyProfile'"
-				></Friends>
+					<Friends
+						v-if="visibility == 'MyProfile'"
+					></Friends>
+				</v-card>
 			</v-card>
 		</v-card>
-		</v-card>
-	</div>
+	<!-- </v-main> -->
+</div>
 </template>
 
 <style scoped>

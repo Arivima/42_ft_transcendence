@@ -45,10 +45,10 @@ export default {
 	>
 		<v-card-item
 		>
-			<v-card-title class="text-overline">Add a new friend</v-card-title>
+		<v-card-title class="text-overline">Add a new friend</v-card-title>
 			<template v-slot:append>
 				<v-btn
-					icon="mdi-plus"
+					:icon="showBar ? 'mdi-chevron-up' : 'mdi-plus'"
 					size="small"
 					variant="tonal"
 					color="blue"
@@ -63,7 +63,6 @@ export default {
 		>
 			<SearchBar/>
 		</v-card-item>
-
 	</v-card>
 </template>
 

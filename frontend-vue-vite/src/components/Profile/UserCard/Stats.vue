@@ -13,8 +13,8 @@ export default {
 			required: true
 		},
 	},
-    data () {
-        return {
+	data () {
+		return {
 			stats: {
 				loading: false,
 				victories: 0,

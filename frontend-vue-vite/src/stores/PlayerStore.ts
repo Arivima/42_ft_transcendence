@@ -13,7 +13,6 @@
 import { defineStore, type StoreDefinition } from 'pinia'
 import axios from 'axios'
 import {io, Socket} from 'socket.io-client'
-// import type { Socket } from 'socket.io-client'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
 
@@ -29,7 +28,38 @@ export interface FriendRequest {
 	requestorID: number
 	requestorUsername: string
 	requestorAvatar: string
+}
+
+//? TOGLIERE
+export interface FriendRequestStatus {
 	status: 'loading' | 'accepted' | 'rejected'
+}
+
+export interface FriendshipRejectAccept {
+	requestorID: number,
+	recipientID: number
+}
+
+export interface BlockedFriendship {
+	requestorID: number,
+	recipientID: number,
+	requestor_blacklisted: boolean,
+	recipient_blacklisted: boolean
+}
+
+export interface FriendRequestUpdate {
+	are_friends: boolean,
+	pending_friendship: boolean,
+	requestor_blacklisted: boolean,
+	recipient_blacklisted: boolean,
+	requestorID: number,
+	recipientID: number,
+}
+
+export interface FriendRequestError {
+	msg: string,
+	requestorID: number,
+	recipientID: number
 }
 
 export interface Player {
@@ -44,6 +74,7 @@ export interface Player {
 	notificationsSocket: Socket | null
 	token:	string | null
 	twofaSecret: string//?RIMUOVERE
+	profile_completed: boolean
 }
 
 export interface Achievement {
@@ -73,6 +104,7 @@ const emptyUser = {
 	notificationsSocket: null,
 	token: null,
 	twofaSecret: 'Nan',
+	profile_completed: false,
 };
 
 //?: make multiple players store
@@ -80,20 +112,24 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		state: (): {
 			user: Player
 			loading: boolean //TODO ? forse rimuovere
-			friends: Player[]
+			friends: Player[],
+			blockedUsers: Player[],
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
 			fetchFriends: (id: number) => Promise<Player[]>
+			fetchPublicUsers: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
 			achievements: Achievement[],
-			notifications: {requestorID: number, requestorUsername: string, requestorAvatar: string}[],
+			notifications: (FriendRequest & FriendRequestStatus)[],
 		} => {
 			return {
 				user: emptyUser,
 				friends: [],
-				fetchGames: fetchGames,
+				blockedUsers: [],
+				fetchGames: fetchGames.bind(this),
 				fetchPlayer: fetchPlayer,
 				fetchFriends: fetchFriends,
+				fetchPublicUsers: fetchPublicUsers,
 				fetchAchievements: fetchAchievements,
 				achievements: [],
 				notifications: [],
@@ -102,52 +138,52 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		},
 		actions: {
 
+			isProfileCompleted() {
+				return this.user.profile_completed;
+			},
+
+			async setProfileAsComplete() {
+				await axios.get('players/me/completeProfile');
+			},
+
+			sendFriendshipRequest(recipientID: number) {
+				console.log(`sendFriendshipRequest: ${recipientID}`);
+				this.user.notificationsSocket?.emit('createFrienshipRequest', {
+					id: this.user.id,
+					recipientID: recipientID
+				});
+			},
+
 			sendFriendshipConsent(requestorID: number) {
-				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
-					bearerID: this.user.id,
-					recipientID: this.user.id,
+				this.user.notificationsSocket?.emit('acceptFriendship', {
 					requestorID: requestorID,
-					are_friends: true,
-					pending_friendship: false,
-					requestor_blacklisted: false,
-					recipient_blacklisted: false,
+					recipientID: this.user.id,
 				});
 			},
 
-			sendFriendshipRejection(requestorID: number) {
-				this.user.notificationsSocket?.emit('updateFrienshipRequest', {
-					bearerID: this.user.id,
-					recipientID: this.user.id,
-					requestorID: requestorID,
-					are_friends: false,
-					pending_friendship: false,
-					requestor_blacklisted: false,
-					recipient_blacklisted: false,
+			sendFriendshipRejection(friendID: number) {
+				this.user.notificationsSocket?.emit('rejectFrienship', {
+					userID: this.user.id,
+					friendID
 				});
+				// this.user.notificationsSocket?.emit('updateFrienshipRequest', {
+				// 	bearerID: this.user.id,
+				// 	recipientID: this.user.id,
+				// 	requestorID: requestorID,
+				// 	are_friends: false,
+				// 	pending_friendship: false,
+				// 	requestor_blacklisted: false,
+				// 	recipient_blacklisted: false,
+				// });
 			},
 
-			updateNotifications(
-				data: {
-					are_friends: boolean,
-					pending_friendship: boolean,
-					requestor_blacklisted: boolean,
-					recipient_blacklisted: boolean,
-					requestorID: number,
-					recipientID: number,
-				}
-			)
-			{
-				console.log('update-friendship-request emitted from the server');
-				if (this.user.id == data.recipientID && false == data.pending_friendship)
-				{
-					const requestID = this.notifications.findIndex((request) =>
-						data.requestorID == request.requestorID
-					);
-						
-					if (-1 != requestID)
-						this.notifications.splice(requestID, 1);
-				}
-				//TODO handle all other kinds of update events: blocked user, etc. (look into db table to think about all possibilities)
+			toggleBlockUser(profileID: number, block: boolean) {
+				console.log(`blockUser: emitting to backend: profileID: ${profileID}; ${block}`);
+				this.user.notificationsSocket?.emit('ToggleBlockUser', {
+					userID: this.user.id,
+					friendID: profileID,
+					block: block
+				});
 			},
 
 			// NEW
@@ -163,31 +199,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				return this.user.avatar
 			},
 
-			// NEW
-			// async updateUsername() : Promise<string> {
-			// 	if (debug) console.log('/Store/ updateUsername()');
-					
-			// 	const username = (await axios
-			// 		.get(`/players/username/${this.user.id}`)).data;
-			// 	this.user.username = username;
-			// 	console.log(`Store \ username update: ${this.user.username}`)
-			// 	this.user.username = `pippo`;
-			// 		// .then((response) => {
-			// 		// 	console.log(typeof response.data)
-			// 		// 	const username = response.data
-			// 		// 	console.log(`debug: ${debug}`);
-			// 		// 	if (debug) console.log('/Store/ updateUsername() username' + username);
-			// 		// 	this.user.username = username
-			// 		// })
-			// 		// .catch((error) => {
-			// 		// 	console.error('axios failed inside user store : updateUsername()')
-			// 		// 	console.error(this.user)
-			// 		// })
-					
-
-			// 	return this.user.username
-			// },
-
 			async fetchData(token: string) {
 				if (debug) console.log("/Store/ usePlayerStore.fetchData()")
 				if (false == this.loading)
@@ -198,7 +209,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user = {
 						...player,
 						token: token,
-						notificationsSocket: io(`http://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}`, {
+						notificationsSocket: io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}`, {
+							transports: ['websocket'],
 							auth: {
 								'token': token
 							}
@@ -213,10 +225,13 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					}
 					this.user.avatar = await fetchAvatar('/players/avatar/' + this.user.id);
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
-					this.user.notificationsSocket?.on('update-friendship-request', this.updateNotifications.bind(this));
-					this.user.notificationsSocket?.on('frienship-error', notificationsError.bind(this));
+					this.user.notificationsSocket?.on('new-friendship-request', handleNewRequest.bind(this));
+					this.user.notificationsSocket?.on('reject-friendship-request', handleFriendshipReject.bind(this))
+					this.user.notificationsSocket?.on('accept-friendship', handleFriendshipAccept.bind(this));
+					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
+					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
-					this.friends = (await axios.get(`players/friends/${this.user.id}`)).data
+					this.friends = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data
 					this.friends = this.friends.map((friend) => ({
 						...friend,
 						status:
@@ -228,8 +243,9 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						my_friend: true,
 					}))
 					this.friends.forEach(async (friend) => {
-						friend.avatar = await fetchAvatar('/players/avatar/'+ friend.id);
+						friend.avatar = await fetchAvatar(friend.avatar);//'/players/avatar/'+ friend.id);
 					})
+					this.blockedUsers = (await axios.get('players/blocked')).data;
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
 					).data
@@ -246,13 +262,20 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				if (debug) console.log("/Store/ usePlayerStore.visibility(" + id + ')');
 				
 				let profileType = 'PublicProfile';
-				for (const friend of this.friends) {
-					if (friend.id == id)
-						profileType = 'FriendProfile'
-				}
-				// TODO ADD BLOCKED USER
 				if (id == this.user.id)
 					profileType = 'MyProfile'
+				for (const friend of this.friends) {
+					if (friend.id == id) {
+						profileType = 'FriendProfile'
+						break ;
+					}
+				}
+				for (const blocked of this.blockedUsers) {
+					if (id == blocked.id) {
+						profileType = 'BlockedProfile';
+						break ;
+					}
+				}
 				return profileType
 			},
 
@@ -287,61 +310,31 @@ async function fetchGames(id: number): Promise<Game[]> {
 	return gamesDateReadable
 }
 
-function fillNotifications(this: any, data: {requests: {requestorID: number, requestorUsername: string, requestorAvatar: string}[]}) {
-	if (debug) console.log("/Store/ fillNotifications()");
-	data.requests.forEach((request) => {
-		console.log(`
-			requestorUsername: ${request.requestorUsername},
-			requestorID: ${request.requestorID},
-			requestorAvatar: ${request.requestorAvatar}
-		`);
-	})
-	this.notifications.splice(0);
-	data.requests.forEach((el) => {
-		this.notifications.push({
-			requestorID: el.requestorID,
-			requestorUsername: el.requestorUsername,
-			requestorAvatar: el.requestorAvatar,
-			status: 'pending'
-		});
-	})
-}
-
-async function notificationsError(this: any, data: {msg: string, requestorID: number, recipientID: number}) {
-	if (debug) console.log("/Store/ notificationsError()");
-	console.log(
-		`frienship-error: {\n
-			msg: ${data.msg},\n
-			requestorID: ${data.requestorID},\n
-			recipientID: ${data.recipientID}\n
-		}`
-	);
-}
 async function fetchPlayer(id: number): Promise<Player> {
 	if (debug) console.log("/Store/ fetchPlayer(" + id + ')');
-	let player : Player = (await axios.get(`players/${id}`)).data
 	let user : Player = emptyUser
+	let player : Player = (await axios.get(`players/${id}`)).data
+	user = {
+		...player,
+		status:
+			player.playing === undefined
+				? PlayerStatus.offline
+				: player.playing
+				? PlayerStatus.playing
+				: PlayerStatus.online /* playing | online | offline */,
+	}
 	try {
-		user = {
-			...player,
-			status:
-				player.playing === undefined
-					? PlayerStatus.offline
-					: player.playing
-					? PlayerStatus.playing
-					: PlayerStatus.online /* playing | online | offline */,
-		}
 		user.avatar = await fetchAvatar(user.avatar);
-	} catch (_) {
-		console.log('axios failed inside user store')
-		console.log(user)
+	}
+	catch (_) {
+		user.avatar = '';
 	}
 	return user
 }
 
 async function fetchFriends(id: number): Promise<Player[]> {
 	if (debug) console.log("/Store/ fetchFriends(" + id + ')');
-	const friends : Promise<Player[]> = (await axios.get(`players/friends/${id}`)).data
+	const friends : Promise<Player[]> = (await axios.get(`players/friends/${id}`, {params: {includePending: false}})).data
 	return friends
 }
 
@@ -365,4 +358,213 @@ async function fetchAvatar(avatar: string): Promise<string> {
 		console.log(`fetchAvatar() Exception: ${error}`)
 		return '';
 	}
+}
+
+// fetch all public users (all app users exept me, my friends and users I blocked)
+async function fetchPublicUsers(id: number): Promise<Player[]> {
+	if (debug) console.log("/Store/ fetchPublicUsers(" + id + ')');
+	try {
+		const publicUsers : Player[] = (await axios.get(`players/publicUsers/${id}`)).data
+		publicUsers.forEach(async (publicUser : Player) => {
+			publicUser.avatar = await fetchAvatar(publicUser.avatar);
+		})
+		// const player/Ids: number[] = publicUsers.map(player => player.id);
+		// console.log("/Store/ fetchPublicUsers(" + id + ') Value publicUsers :' + playerIds)
+		return publicUsers
+	}
+	catch (error) {
+		console.error(`fetchPublicUsers() Exception: ${error}`)
+		return [];
+	}
+}
+
+//Ws events
+
+//Friendships
+async function fillNotifications(this: any, data: {requests: FriendRequest[]}) {
+	if (debug) console.log("/Store/ fillNotifications()");
+
+	this.notifications.splice(0);
+	data.requests.forEach(async (req) => {
+		this.notifications.push({
+			requestorID: req.requestorID,
+			requestorUsername: req.requestorUsername,
+			requestorAvatar: await fetchAvatar(req.requestorAvatar),
+			status: 'pending'
+		});
+	})
+}
+
+async function handleNewRequest(this: any, data: FriendRequest) {
+	console.log(`new-friendship-request emitted from the server`);
+	const index = this.notifications.findIndex(
+		(request: (FriendRequest & FriendRequestStatus)) => data.requestorID == request.requestorID
+	)
+
+	if (-1 == index) {
+		this.notifications.push({
+			requestorID: data.requestorID,
+			requestorUsername: data.requestorUsername,
+			requestorAvatar: await fetchAvatar(data.requestorAvatar),
+			status: 'pending'
+		});
+	}
+}
+
+async function handleFriendshipAccept(
+	this: any,
+	data: FriendshipRejectAccept
+)
+{
+	let newFriendID: number;
+
+	//remove notification
+	console.log(`handleFriendshipAccept: {requestorID: ${data.requestorID}, recipientID: ${data.recipientID}}`);
+	if (data.recipientID == this.user.id) {
+		const index = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => {
+				return data.requestorID == request.requestorID
+			}
+		);
+
+		if (-1 != index)
+			this.notifications.splice(index, 1);
+		
+		newFriendID = data.requestorID;
+	}
+	else {
+		newFriendID = data.recipientID;
+	}
+
+	const newFriend = await fetchPlayer(newFriendID);
+	if (JSON.stringify(emptyUser) != JSON.stringify(newFriend)) {
+		this.friends.push(newFriend);
+	}
+}
+
+function handleFriendshipReject(
+	this: any,
+	data: FriendshipRejectAccept
+)
+{
+	if (data.recipientID == this.user.id)
+	{
+		const index = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => {
+				return data.requestorID == request.requestorID
+			}
+		)
+
+		if (-1 != index) {
+			this.notifications.splice(index, 1);
+		}
+	}
+	
+	const index = this.friends.findIndex(
+		(friend: Player) => {
+			return (
+				this.user.id == data.recipientID ?
+					(data.requestorID == friend.id)
+					: (data.recipientID == friend.id)
+			);
+		}
+	)
+	
+	if (-1 != index)
+		this.friends.splice(index, 1);
+}
+
+async function handleBlockedUser(
+	this: any,
+	data: BlockedFriendship
+)
+{
+	let index: number;
+	let affectedUserID: number;
+	let userBlocked: boolean;
+
+	console.log('toggle-block-user: emitting from backend');
+	if (data.recipientID == this.user.id) {
+		// remove notification && get friend (profile, index in friends array, and wether it is blocked or not)
+		let notificationsIndex = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => {
+				return data.requestorID = request.requestorID
+			}
+		);
+		if (-1 != notificationsIndex)
+			this.notifications.splice(notificationsIndex, 1);
+		
+		affectedUserID = data.requestorID;
+		userBlocked = data.requestor_blacklisted;
+		index = this.friends.findIndex(
+			(friend: Player) => {
+				return data.requestorID == friend.id
+			}
+		);
+	}
+	else {
+		// get friend (profile, index in friends array, and wether it is blocked or not)
+		affectedUserID = data.recipientID;
+		userBlocked = data.recipient_blacklisted;
+		index = this.friends.findIndex(
+			(friend: Player) => {
+				return data.recipientID == friend.id
+			}
+		);
+	}
+
+	// delete from friends if exists
+	if (-1 != index)
+		this.friends.splice(index, 1);
+	
+	// if blocked, add to blocked users
+	if (userBlocked) {
+		const affectedUser = await fetchPlayer(affectedUserID);
+		if (JSON.stringify(emptyUser) != JSON.stringify(affectedUser)) {
+			this.blockedUsers.push(affectedUser);
+		}
+	}
+	// if unblocked, remove from blocked users
+	else {
+		const index = this.blockedUsers.findIndex(
+			(user: Player) => {
+				return affectedUserID == user.id;
+			}
+		)
+
+		if (-1 != index) {
+			this.blockedUsers.splice(index, 1);
+		}
+	}
+}
+
+// function updateNotifications(
+// 	this: any,
+// 	data: FriendRequestUpdate
+// )
+// {
+// 	console.log('update-friendship-request emitted from the server');
+// 	// ACCEPT friendship succeeded
+// 	if (this.user.id == data.recipientID && false == data.pending_friendship)
+// 	{
+// 		const requestID = this.notifications.findIndex((request: (FriendRequest & FriendRequestStatus)) =>
+// 			data.requestorID == request.requestorID
+// 		);
+			
+// 		if (-1 != requestID)
+// 			this.notifications.splice(requestID, 1);
+// 	}
+// 	//TODO handle all other kinds of update events: blocked user, etc. (look into db table to think about all possibilities)
+// }
+
+//TODO continue
+async function handleNotificationsError(this: any, data: FriendRequestError) {
+	if (debug) console.log("/Store/ notificationsError()");
+	console.log(
+		`frienship-error: {\n
+			msg: ${data.msg},\n
+			requestorID: ${data.requestorID},\n
+			recipientID: ${data.recipientID}\n
+		}`
+	);
 }
