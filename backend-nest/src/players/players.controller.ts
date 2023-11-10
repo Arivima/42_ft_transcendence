@@ -58,14 +58,6 @@ export class PlayersController {
 		return player;
 	}
 
-	// NEW
-	// @Get('username/:id')
-	// async getUsername(@Param('id') id: string, @Res() res: Response) : Promise<string> {
-	// 	const username = await this.playersService.findOneUsername(Number(id));
-	// 	console.log('DEBUG | Players.controller | getUsername |USERNAME : ' + username)
-	// 	return username;
-	// }
-
 	@Get('avatar/:id')
 	async getAvatar(@Param('id') id: string, @Res() res: Response) {
 		const filePath = path.join(
@@ -97,7 +89,8 @@ export class PlayersController {
 	//TODO add interface "Connection" here for return type spec
 	@Get('friends/:id')
 	getFriends(@Param('id') id: string, @Query('includePending') includePending: string) {
-		return this.playersService.getAllFriends(Number(id), Boolean(includePending));
+		console.log(`PlayersController | includePending: ${Boolean(includePending)}, ${typeof Boolean(includePending)}`);
+		return this.playersService.getAllFriends(Number(id), includePending === 'true' ? true : false);
 	}
 
 	@Get('publicUsers/:id')
@@ -201,6 +194,7 @@ export class PlayersController {
 	@Patch('me')
 	async updateMe(@Request() req, @Body() updatePlaterDto: UpdatePlayerDto)
 	{
+		console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
 		try {
 			await this.playersService.update(Number(req.user.sub), updatePlaterDto);
 		}

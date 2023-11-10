@@ -79,9 +79,16 @@ export class FrienshipsGateway implements OnGatewayConnection {
 				this.server.to(`${recipientSocket.id}`).emit('new-friendship-request', {
 					requestorID: requestor.requestorID,
 					requestorUsername: requestor.requestorUsername,
-					requestorAvatar: requestor.requestorAvatar
+					requestorAvatar: requestor.requestorAvatar,
+					recipientID: recipientID
 				})
 			}
+			this.server.to(`${socket.id}`).emit('new-friendship-request', {
+				requestorID: requestor.requestorID,
+				requestorUsername: requestor.requestorUsername,
+				requestorAvatar: requestor.requestorAvatar,
+				recipientID: recipientID
+			})
 		}
 		catch(error) {
 			const msg: string = `new-friendship-request: ${error.toString()}`;

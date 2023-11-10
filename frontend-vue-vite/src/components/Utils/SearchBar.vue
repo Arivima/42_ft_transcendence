@@ -11,42 +11,42 @@ export default {
 	data() {
 		return {
 			loading : false,
-			labelText: 'Search a Player',
-			labelColor: 'primary',
-			publicUsers : [] as Player[]
+			// publicUsers : [] as Player[],
+			snackbar : false,
+			snackbarText : '',
 		}
 	},
 	computed: {
+		publicUsers() : Player[] {
+			return playerStore.publicUsers;
+		}
 	},
 	methods: {
-		async fetchUsers() {
-			if (debug) console.log('| SearchBar | methods | fetchUsers() IN' )
-			this.loading = true;
-			try {
-				//TODO how to render immediately without change in the picture ?
-				const tempUsers  : Player[] = (await fetchPublicUsers.value(user.value.id))
-				this.publicUsers = tempUsers
-				const playerIds: number[] = this.publicUsers.map(player => player.id);
-				if (debug) console.log('| SearchBar | methods | fetchUsers() publicUsers' + playerIds )
-				this.loading = false
-				if (debug) console.log('| SearchBar | methods | fetchUsers() LOADING FALSE' )
-				if (debug) console.log('| SearchBar | methods | fetchUsers() OUT' )
-			}
-			catch (error) {
-				console.error(`SearchBar : methods : fetchUsers() : Exception: ${error}`)
-				this.loading = false
-			}
-		},
+		// async fetchUsers() {
+		// 	if (debug) console.log('| SearchBar | methods | fetchUsers() IN' )
+		// 	this.loading = true;
+		// 	try {
+		// 		//TODO how to render immediately without change in the picture ?
+		// 		const tempUsers  : Player[] = (await fetchPublicUsers.value(user.value.id))
+		// 		this.publicUsers = tempUsers
+		// 		const playerIds: number[] = this.publicUsers.map(player => player.id);
+		// 		if (debug) console.log('| SearchBar | methods | fetchUsers() publicUsers' + playerIds )
+		// 		this.loading = false
+		// 		if (debug) console.log('| SearchBar | methods | fetchUsers() LOADING FALSE' )
+		// 		if (debug) console.log('| SearchBar | methods | fetchUsers() OUT' )
+		// 	}
+		// 	catch (error) {
+		// 		console.error(`SearchBar : methods : fetchUsers() : Exception: ${error}`)
+		// 		this.loading = false
+		// 	}
+		// },
 		async addAsFriend(id : number, username : string){
 			if (debug) console.log(`addAsFriend: userProfile.id = ${id}, typeof is: ${typeof id}`)
 			playerStore.sendFriendshipRequest(Number(id));
-			this.labelText = 'Request sent to ' + username;
-			this.labelColor = 'success'
-			await this.fetchUsers()
-			setTimeout(() => {
-				this.labelText = 'Search a Player',
-				this.labelColor = 'primary'
-			}, 4000);
+			this.snackbar = true,
+			this.snackbarText = 'Request sent to ' + username;
+			// await this.fetchUsers()
+			// playerStore.updateFriends()
 		},
 		customFilter (itemTitle : string, queryText : string, item : any) {
 			// if (debug) console.log('| SearchBar | methods | customFilter() '  + itemTitle)
@@ -64,13 +64,17 @@ export default {
 		},
 	},
 	watch : {
+		snackbar(newValue : boolean){
+			if (newValue == false)
+				this.snackbarText = ''
+		}
 	},
 	beforeCreate() {
 	if (debug) console.log('| SearchBar | beforeCreate()' )
 	},
-	async created() {
+	created() {
 		if (debug) console.log('| SearchBar | created(' + (user.value.id) + ')')
-		await this.fetchUsers()
+		// await this.fetchUsers()
 	},
 	beforeMount() {
 		if (debug) console.log('| SearchBar | beforeMount(' + (user.value.id) + ')')
@@ -103,6 +107,26 @@ export default {
 		max-width="550"
 		min-width="fit-content"
 		>
+			<v-snackbar
+				v-model="snackbar"
+				timeout=10000
+				location="top"
+				color="primary"
+				rounded="xl"
+			>
+				{{ snackbarText }}
+				<template v-slot:actions>
+					<v-btn
+						color="white"
+						variant="tonal"
+						@click="snackbar = false"
+						rounded="xl"
+					>
+						Close
+					</v-btn>
+				</template>
+			</v-snackbar>
+
 			<v-autocomplete
 				:items="publicUsers"
 				auto-select-first
@@ -113,8 +137,8 @@ export default {
 				:custom-filter="customFilter"
 
 				prepend-inner-icon="mdi-magnify"
-				:label="labelText"
-				:color="labelColor"
+				label="Search a Player"
+				color="primary"
 				clearable
 				clear-icon="mdi-close-circle"
 				no-data-text="No existing user"

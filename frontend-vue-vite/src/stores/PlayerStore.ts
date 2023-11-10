@@ -28,6 +28,7 @@ export interface FriendRequest {
 	requestorID: number
 	requestorUsername: string
 	requestorAvatar: string
+	recipientID: number
 }
 
 //? TOGLIERE
@@ -114,6 +115,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			loading: boolean //TODO ? forse rimuovere
 			friends: Player[],
 			blockedUsers: Player[],
+			publicUsers: Player[],
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
 			fetchFriends: (id: number) => Promise<Player[]>
@@ -126,6 +128,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				user: emptyUser,
 				friends: [],
 				blockedUsers: [],
+				publicUsers: [],
 				fetchGames: fetchGames.bind(this),
 				fetchPlayer: fetchPlayer,
 				fetchFriends: fetchFriends,
@@ -186,7 +189,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				});
 			},
 
-			// NEW
 			async updateAvatar(id? : number) : Promise<string> {
 				if (debug) console.log("/Store/ updateAvatar(" + id + ')');
 				try {
@@ -198,6 +200,43 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				}
 				return this.user.avatar
 			},
+
+			async updateUsername() : Promise<string> {
+				if (debug) console.log("/Store/ updateUsername()");
+				try {
+					const player = (await axios.get('players/me')).data
+					this.user.username = player.username;
+				} catch (error) {
+					console.error('axios failed inside user store : updateUsername()')
+					console.error(this.user)
+				}
+				return this.user.username
+			},
+
+			// NEW
+			// async updateFriends() {
+			// 	if (debug) console.log("/Store/ updateFriends()");
+			// 	try {
+			// 		let updateFriends  : Player[] = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data
+			// 		updateFriends = updateFriends.map((friend) => ({
+			// 			...friend,
+			// 			status:
+			// 				friend.playing === undefined
+			// 					? PlayerStatus.offline
+			// 					: friend.playing
+			// 					? PlayerStatus.playing
+			// 					: PlayerStatus.online /* playing | online | offline */,
+			// 			my_friend: true,
+			// 		}))
+			// 		updateFriends.forEach(async (friend) => {
+			// 			friend.avatar = await fetchAvatar(friend.avatar);
+			// 		})
+			// 		this.friends = updateFriends
+			// 	} catch (error) {
+			// 		console.error('axios failed inside user store : updateFriends()')
+			// 		console.error(this.user)
+			// 	}
+			// },
 
 			async fetchData(token: string) {
 				if (debug) console.log("/Store/ usePlayerStore.fetchData()")
@@ -245,6 +284,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.friends.forEach(async (friend) => {
 						friend.avatar = await fetchAvatar(friend.avatar);//'/players/avatar/'+ friend.id);
 					})
+					this.publicUsers = await fetchPublicUsers(this.user.id);
 					this.blockedUsers = (await axios.get('players/blocked')).data;
 					this.achievements = (
 						await axios.get(`players/achievements/${this.user.id}`)
@@ -397,17 +437,31 @@ async function fillNotifications(this: any, data: {requests: FriendRequest[]}) {
 
 async function handleNewRequest(this: any, data: FriendRequest) {
 	console.log(`new-friendship-request emitted from the server`);
-	const index = this.notifications.findIndex(
-		(request: (FriendRequest & FriendRequestStatus)) => data.requestorID == request.requestorID
-	)
 
-	if (-1 == index) {
-		this.notifications.push({
-			requestorID: data.requestorID,
-			requestorUsername: data.requestorUsername,
-			requestorAvatar: await fetchAvatar(data.requestorAvatar),
-			status: 'pending'
-		});
+	if (data.recipientID == this.user.id) {
+		const index = this.notifications.findIndex(
+			(request: (FriendRequest & FriendRequestStatus)) => data.requestorID == request.requestorID
+		)
+	
+		if (-1 == index) {
+			this.notifications.push({
+				requestorID: data.requestorID,
+				requestorUsername: data.requestorUsername,
+				requestorAvatar: await fetchAvatar(data.requestorAvatar),
+				status: 'pending'
+			});
+		}
+	}
+	else {
+		//updating public users...
+		const index = this.publicUsers.findIndex(
+			(user: Player) => {
+				return user.id == data.recipientID
+			}
+		);
+
+		if (-1 != index)
+			this.publicUsers.splice(index, 1);
 	}
 }
 

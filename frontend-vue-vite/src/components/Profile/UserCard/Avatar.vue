@@ -28,6 +28,10 @@ export default {
 			if (debug) console.log('| Avatar | computed : avatar')
 			return this.userProfile.avatar
 		},
+		username() : string {
+			if (debug) console.log('| Avatar | computed : username')
+			return this.userProfile.username
+		},
 	},
 	watch : {
 		userProfile(newValue : Player) {
@@ -46,7 +50,7 @@ export default {
 			</v-badge>
 			<div class="backgroundItem ma-3">
 				<v-card-item
-					:title="userProfile.username"
+					:title="username"
 					:subtitle="userProfile.firstName + ' ' + userProfile.lastName"
 				>
 				</v-card-item>
