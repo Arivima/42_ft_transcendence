@@ -365,7 +365,6 @@ async function fetchPublicUsers(id: number): Promise<Player[]> {
 	if (debug) console.log("/Store/ fetchPublicUsers(" + id + ')');
 	try {
 		const publicUsers : Player[] = (await axios.get(`players/publicUsers/${id}`)).data
-		//! ICI
 		publicUsers.forEach(async (publicUser : Player) => {
 			publicUser.avatar = await fetchAvatar(publicUser.avatar);
 		})

@@ -23,6 +23,7 @@ export default defineComponent({
 			request.status = 'loading'
 
 			playerStore.sendFriendshipConsent(request.requestorID);
+			//TODO add trigger to reload friends in Playerstore
 		},
 		rejectFriend(request : (FriendRequest & FriendRequestStatus)){
 			if (debug) console.log('| Notifications | methods | rejectFriend()' + request)

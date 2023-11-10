@@ -2,7 +2,7 @@
 import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
-import Notifications from './Notifications.vue'
+import Notifications from '../Notifications.vue'
 import Avatar from './UserCard/Avatar.vue'
 import Stats from './UserCard/Stats.vue'
 import ActionsPublicProfile from './UserCard/ActionsPublicProfile.vue'

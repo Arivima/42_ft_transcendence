@@ -3,12 +3,12 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 import NavSideBar from '../components/NavSideBar.vue'
+import Notifications from '@/components/Notifications.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-import Notifications from '@/components/Profile/Notifications.vue'
 
 
 const playerStore = usePlayerStore()
@@ -40,13 +40,13 @@ export default {
 			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | ${profileID}`)
 
 			if (!profileID || profileID == this.userVisitor.id) {
-				// console.log(`Visitor and userProfile are the same`)
+				if (debug) console.log(`Visitor and userProfile are the same`)
 				this.userProfile = this.userVisitor;
 			}
 			else {
 				try {
 					this.userProfile = await fetchPlayer.value(profileID);
-					console.log(`{\
+					if (debug) console.log(`{\
 						userprofileID: ${this.userProfile?.id},\
 						userprofileUsername: ${this.userProfile?.username},\
 						userprofileAvatar: ${this.userProfile?.avatar},\
