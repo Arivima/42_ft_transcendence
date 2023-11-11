@@ -10,6 +10,7 @@ import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
 import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
+import BlockedSent from '@/components/Profile/BlockedSent.vue'
 
 
 const playerStore = usePlayerStore()
@@ -20,7 +21,7 @@ export default {
 	components : {
     NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
     Notifications,
-    BlockedUsers
+    BlockedSent
 },
 	data() {
 		return {
@@ -118,7 +119,7 @@ export default {
 <div class="profile">
 	<NavSideBar />
 	<Notifications />
-	<!-- <v-main> -->
+	<v-main>
 		<v-card class="parent">
 			<v-card class="child1">
 				<v-card class="child2">
@@ -151,13 +152,13 @@ export default {
 					<Friends
 						v-if="visibility == 'MyProfile'"
 					></Friends>
-					<BlockedUsers
+					<BlockedSent
 						v-if="visibility == 'MyProfile'"
-					></BlockedUsers>
+					></BlockedSent>
 				</v-card>
 			</v-card>
 		</v-card>
-	<!-- </v-main> -->
+	</v-main>
 </div>
 </template>
 

@@ -498,6 +498,12 @@ async function handleNewRequest(this: any, data: FriendRequest) {
 
 	if (-1 != index)
 		this.publicUsers.splice(index, 1);
+
+	//updating pending users
+	const usr = await fetchPlayer(friendID);
+	if (JSON.stringify(emptyUser) != JSON.stringify(usr)) {
+		this.pendingUsers.push(usr);
+	}
 }
 
 async function handleFriendshipAccept(
@@ -525,10 +531,19 @@ async function handleFriendshipAccept(
 		newFriendID = data.recipientID;
 	}
 
+	// Adding to friends
 	const newFriend = await fetchPlayer(newFriendID);
 	if (JSON.stringify(emptyUser) != JSON.stringify(newFriend)) {
 		this.friends.push(newFriend);
 	}
+
+	// removing from pending
+	const index = this.pendingUsers.findIndex(
+		(usr: Player) => newFriendID == usr.id
+	);
+
+	if (-1 != index)
+		this.pendingUsers.splice(index, 1);
 }
 
 async function handleFriendshipReject(
@@ -536,6 +551,8 @@ async function handleFriendshipReject(
 	data: FriendshipRejectAccept
 )
 {
+	let	friendID: number;
+
 	if (data.recipientID == this.user.id)
 	{
 		// remove notification
@@ -549,33 +566,39 @@ async function handleFriendshipReject(
 			this.notifications.splice(index, 1);
 		}
 
-		// add as public user
-		const newPublic = await fetchPlayer(data.requestorID);
-		if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
-			this.publicUsers.push(newPublic);
-		}
+		// take friendID
+		friendID = data.requestorID;
 	}
 	else {
-		// add as public user
-		const newPublic = await fetchPlayer(data.recipientID);
-		if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
-			this.publicUsers.push(newPublic);
-		}
+		// take friendID
+		friendID = data.recipientID;
 	}
 	
+	// add as public user
+	const newPublic = await fetchPlayer(friendID);
+	if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
+		this.publicUsers.push(newPublic);
+	}
+
 	// remove as friend
 	const asFriend_index = this.friends.findIndex(
 		(friend: Player) => {
 			return (
-				this.user.id == data.recipientID ?
-					(data.requestorID == friend.id)
-					: (data.recipientID == friend.id)
+				this.user.id === friendID
 			);
 		}
 	)
 	
 	if (-1 != asFriend_index)
 		this.friends.splice(asFriend_index, 1);
+
+	// removing as pending
+	const asPending_index = this.pendingUsers.findIndex(
+		(usr: Player) => friendID === usr.id
+	);
+
+	if (-1 != asPending_index)
+		this.pendingUsers.splice(asPending_index, 1);
 }
 
 async function handleBlockedUser(
@@ -585,6 +608,7 @@ async function handleBlockedUser(
 {
 	let asFriend_index: number;
 	let asPublic_index: number;
+	let asPending_index: number;
 	let affectedUserID: number;
 	let userBlocked: boolean;
 
@@ -628,6 +652,14 @@ async function handleBlockedUser(
 			}
 		)
 	}
+
+	// remove from pending
+	asPending_index = this.pendingUsers.findIndex(
+		(usr: Player) => affectedUserID == usr.id
+	);
+
+	if (-1 != asPending_index)
+		this.pendingUsers.splice(asPending_index, 1);
 
 	// delete from friends if exists
 	if (-1 != asFriend_index)
