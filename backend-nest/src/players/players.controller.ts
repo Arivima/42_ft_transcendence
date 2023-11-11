@@ -166,7 +166,7 @@ export class PlayersController {
 			})
 		) avatar: Express.Multer.File
 	) {
-		const newRelPath = `${process.env.BACKEND_PFP_BASEFOLDER}${avatar.originalname}`;
+		const newRelPath = `${process.env.BACKEND_PFP_BASEFOLDER}${Number(req.user.sub)}_${avatar.originalname}`;
 		const newfilePath = path.join(
 			process.cwd(),
 			newRelPath
@@ -179,7 +179,9 @@ export class PlayersController {
 				oldRelPath
 			);
 
-			fs.unlinkSync(oldFilePath);
+			if (`${process.env.BACKEND_DEFAULT_PFP}` != oldRelPath &&
+				`${process.env.BACKEND_DEFAULT_ONERR_PFP}` != oldRelPath)
+				fs.unlinkSync(oldFilePath);
 			await this.playersService.update(
 				Number(req.user.sub),
 				{avatar: newRelPath}
@@ -213,30 +215,4 @@ export class PlayersController {
 	remove(@Param('id') id: string) {
 		return this.playersService.remove(Number(id));
 	}
-
-	// @Get(':id/getChats')
-	// async getChats(
-	// 	@Body('id') id: number,
-	// 	@Body('limit') n: number = Infinity,
-	// ): Promise<
-	// 	{
-	// 		name: string;
-	// 		dm: boolean;
-	// 		avatar: string;
-	// 	}[]
-	// > {
-	// 	console.log(n);
-	// 	return [
-	// 		{
-	// 			name: '',
-	// 			dm: false,
-	// 			avatar: '',
-	// 		},
-	// 		{
-	// 			name: '',
-	// 			dm: false,
-	// 			avatar: '',
-	// 		},
-	// 	];
-	// }
 }
