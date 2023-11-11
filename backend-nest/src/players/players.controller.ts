@@ -99,6 +99,12 @@ export class PlayersController {
 		return this.playersService.getAllPublicUsers(Number(id));
 	}
 
+	@Get('pendingUsers/:id')
+	async getPendingUsers(@Param('id') id: string) {
+		// console.log(`CONTROLLER - getAllPendingUsers: id param = ${id}`);
+		return this.playersService.getAllPendingUsers(Number(id));
+	}
+
 	@Get('blocked')
 	getAllBlockedUsers(@Request() req) {
 		return this.playersService.getAllBlockedUsers(Number(req.user.sub));

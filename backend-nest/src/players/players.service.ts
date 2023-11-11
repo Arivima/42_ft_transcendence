@@ -130,6 +130,26 @@ export class PlayersService {
 		return publicUsers
 	}
 
+	async getAllPendingUsers(userID: number): Promise<Player[]> {
+		console.log(`DEBUG | Players.Service | getAllPublicUsers | userID: ${userID}`);
+		const allfriends = await this.getAllFriends(userID, true);
+		const myfriends = await this.getAllFriends(userID, false);
+
+		const isKnownId = (userId : number, anyId : number) => userId == anyId;
+
+		const pendingUsers: Player[] = allfriends.filter(player => {
+			return !myfriends.some(friend => isKnownId(friend.id, player.id))
+		});
+		// const pendingUsersIds: number[] = pendingUsers.map(publicUser => publicUser.id);
+		// console.log(`DEBUG | Players.Service | getAllPendingUsers | pendingUsers : ` + pendingUsersIds);
+
+		pendingUsers.forEach(
+			(user) => {
+				user.avatar = `players/avatar/${user.id}`;
+			}
+		);
+		return pendingUsers
+	}	
 
 	async getAllBlockedUsers(userID: number): Promise<Player[]> {
 		const asRequestorIDs = await this.prisma.beFriends.findMany({

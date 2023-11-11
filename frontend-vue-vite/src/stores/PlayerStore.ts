@@ -116,10 +116,12 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			friends: Player[],
 			blockedUsers: Player[],
 			publicUsers: Player[],
+			pendingUsers: Player[],
 			fetchGames: (id: number) => Promise<Game[]>
 			fetchPlayer: (id: number) => Promise<Player>
 			fetchFriends: (id: number) => Promise<Player[]>
 			fetchPublicUsers: (id: number) => Promise<Player[]>
+			fetchPendingUsers: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
 			achievements: Achievement[],
 			notifications: (FriendRequest & FriendRequestStatus)[],
@@ -129,10 +131,12 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				friends: [],
 				blockedUsers: [],
 				publicUsers: [],
+				pendingUsers: [],
 				fetchGames: fetchGames.bind(this),
 				fetchPlayer: fetchPlayer,
 				fetchFriends: fetchFriends,
 				fetchPublicUsers: fetchPublicUsers,
+				fetchPendingUsers: fetchPendingUsers,
 				fetchAchievements: fetchAchievements,
 				achievements: [],
 				notifications: [],
@@ -285,6 +289,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						friend.avatar = await fetchAvatar(friend.avatar);//'/players/avatar/'+ friend.id);
 					})
 					this.publicUsers = await fetchPublicUsers(this.user.id);
+					this.pendingUsers = await fetchPendingUsers(this.user.id);
 					this.blockedUsers = (await axios.get('players/blocked')).data;
 					this.blockedUsers.forEach(
 						async (blockedUser) => {
@@ -419,6 +424,24 @@ async function fetchPublicUsers(id: number): Promise<Player[]> {
 	}
 	catch (error) {
 		console.error(`fetchPublicUsers() Exception: ${error}`)
+		return [];
+	}
+}
+
+// fetch all pending requests users
+async function fetchPendingUsers(id: number): Promise<Player[]> {
+	if (debug) console.log("/Store/ fetchPendingUsers(" + id + ')');
+	try {
+		const pendingUsers : Player[] = (await axios.get(`players/pendingUsers/${id}`)).data
+		pendingUsers.forEach(async (publicUser : Player) => {
+			publicUser.avatar = await fetchAvatar(publicUser.avatar);
+		})
+		// const player/Ids: number[] = pendingUsers.map(player => player.id);
+		// console.log("/Store/ fetchPendingUsers(" + id + ') Value pendingUsers :' + playerIds)
+		return pendingUsers
+	}
+	catch (error) {
+		console.error(`fetchPendingUsers() Exception: ${error}`)
 		return [];
 	}
 }

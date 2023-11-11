@@ -4,8 +4,8 @@ const debug = false
 
 export default {
 	components:	{
-		SearchBar
-	},
+    SearchBar,
+},
 	data: () => ({
 		showBar: false,
 	}),
@@ -43,20 +43,20 @@ export default {
 		class="component justify-center align-center"	
 		min-width="300"
 	>
-		<v-card-item
-		>
-		<v-card-title class="text-overline">Add a new friend</v-card-title>
+		<v-card-item>
+			<v-card-title class="text-overline">Add a new friend</v-card-title>
 			<template v-slot:append>
 				<v-btn
 					:icon="showBar ? 'mdi-chevron-up' : 'mdi-plus'"
 					size="small"
 					variant="tonal"
-					color="blue"
+					color="primary"
 					@click="showBar = !showBar"
 				>
 				</v-btn>
 			</template>
 		</v-card-item>
+
 		<v-card-item
 			class="px-2 py-0 ma-0"
 			v-if="showBar == true"

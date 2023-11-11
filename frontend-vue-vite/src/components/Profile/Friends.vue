@@ -60,7 +60,7 @@ export default {
 		min-width="300"
 	>
 		<v-card-item>
-			<v-card-title class="text-overline">Friends</v-card-title>
+			<v-card-title class="text-overline">My friends</v-card-title>
 		</v-card-item>
 		<v-divider></v-divider>
 		<v-virtual-scroll
