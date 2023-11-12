@@ -39,8 +39,7 @@ export default {
 		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
 		totalItems: 0,
 		loading: true,
-		searchedGuest: '',
-		searchedHost: '',
+		searchedBoth: '',
 	}),
 	methods: {
 		async fetchData(options: { page: number; itemsPerPage: number }) {
@@ -53,13 +52,9 @@ export default {
 				this.games = await fetchGames.value(this.userProfile.id)
 				this.games = this.games.filter((game) => {
 					if (
-						this.searchedGuest &&
-						false == game.guest.toLowerCase().includes(this.searchedGuest.toLowerCase())
-					)
-						return false
-					if (
-						this.searchedHost &&
-						false == game.host.toLowerCase().includes(this.searchedHost.toLowerCase())
+						this.searchedBoth &&
+						(false == game.guest.toLowerCase().includes(this.searchedBoth.toLowerCase()) &&
+						false == game.host.toLowerCase().includes(this.searchedBoth.toLowerCase()))
 					)
 						return false
 					return true
@@ -77,6 +72,12 @@ export default {
 				this.loading = false
 				console.log(err)
 			}
+		},
+		getColor(hostA : String, a : Number, b : Number){
+			if (hostA == this.userProfile.username)
+				return (a > b ? 'success' : a == b ? 'warning' : 'error')
+			else
+				return ('grey-darken-2')
 		}
 	},
 	watch: {
@@ -84,18 +85,12 @@ export default {
 			if (debug) console.log('| MatchHistoyTable | watch | userProfile : new value : ' + newValue.username)
 			this.fetchData({page: 1 , itemsPerPage :  this.itemsPerPage})
 		},
-		searchedGuest: {
+		searchedBoth: {
 			handler() {
 				this.search = String(Date.now())
 			},
 			immediate: true
 		},
-		searchedHost: {
-			handler() {
-				this.search = String(Date.now())
-			},
-			immediate: false
-		}
 	},
 	beforeCreate() {
 		if (debug) console.log('| MatchHistoyTable | beforeCreate()')
@@ -130,6 +125,7 @@ export default {
 			<v-card-title class="text-overline">Match history</v-card-title>
 		</v-card-item>
 		<v-divider></v-divider>
+			<!-- style="background-color: white; " -->
 		<v-data-table-server
 			v-model:items-per-page="itemsPerPage"
 			:items="games"
@@ -137,31 +133,71 @@ export default {
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
-			class="elevation-1 text-caption"
 			@update:options="fetchData"
 
 			density="compact"
 			hover
+			class="text-caption"
 		>
+
+			<!-- <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
+				<tr>
+					<template v-for="column in columns" :key="column.key">
+						<td
+							style="background-color: transparent;"
+
+						>
+							<span
+								class="mr-2 cursor-pointer"
+								@click="() => toggleSort(column)"
+								style="	font-weight: bold;"
+							>
+								{{ column.title }}
+							</span>
+						</td>
+					</template>
+				</tr>
+			</template> -->
+
+			<template v-slot:item="{ item }">
+				<tr
+					style="background-color: transparent;"
+				>
+					<td style="background-color: transparent;">{{ item.dateString }}</td>
+					<td style="background-color: transparent;">{{ item.host }}</td>
+					<td style="background-color: transparent;">
+						<v-chip
+							:color="getColor(item.host, item.host_score, item.guest_score)"
+							:variant="item.host != userProfile.username ? 'text' : 'tonal'"
+						>
+							{{ item.host_score }}
+						</v-chip>
+					</td>
+					<td style="background-color: transparent;">
+						<v-chip
+							:color="getColor(item.guest, item.guest_score, item.host_score)"
+							:variant="item.guest != userProfile.username ? 'text' : 'tonal'"
+						>
+							{{ item.guest_score }}
+						</v-chip>
+					</td>
+					<td style="background-color: transparent;">{{ item.guest }}</td>
+				</tr>
+			</template>
+
 			<template v-slot:tfoot>
 				<div class="d-flex">
-						<v-text-field
-							v-model="searchedHost"
-							hide-details
-							placeholder="search host"
-							class="mr-1 mt-1 text-caption"
-							type="string"
-							density="compact"
-							
-						></v-text-field>
-						<v-text-field
-							v-model="searchedGuest"
-							hide-details
-							placeholder="search guest"
-							class="ml-1 mt-1 text-caption "
-							type="string"
-							density="compact"
-						></v-text-field>
+					<v-text-field
+						v-model="searchedBoth"
+						hide-details
+						class="ml-1 mt-3 text-caption"
+						type="string"
+						density="compact"
+					>
+					<template v-slot:label>
+						<v-label style="font-size: small; font-style: italic;">search username</v-label>
+					</template>
+					</v-text-field>
 				</div>
 			</template>
 		</v-data-table-server>

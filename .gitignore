@@ -1,3 +1,6 @@
+# db migrations
+backend-nest/prisma/migrations/**/*.sql
+
 # Logs
 */dist
 logs

@@ -58,14 +58,6 @@ export class PlayersController {
 		return player;
 	}
 
-	// NEW
-	// @Get('username/:id')
-	// async getUsername(@Param('id') id: string, @Res() res: Response) : Promise<string> {
-	// 	const username = await this.playersService.findOneUsername(Number(id));
-	// 	console.log('DEBUG | Players.controller | getUsername |USERNAME : ' + username)
-	// 	return username;
-	// }
-
 	@Get('avatar/:id')
 	async getAvatar(@Param('id') id: string, @Res() res: Response) {
 		const filePath = path.join(
@@ -97,13 +89,20 @@ export class PlayersController {
 	//TODO add interface "Connection" here for return type spec
 	@Get('friends/:id')
 	getFriends(@Param('id') id: string, @Query('includePending') includePending: string) {
-		return this.playersService.getAllFriends(Number(id), Boolean(includePending));
+		console.log(`PlayersController | includePending: ${Boolean(includePending)}, ${typeof Boolean(includePending)}`);
+		return this.playersService.getAllFriends(Number(id), includePending === 'true' ? true : false);
 	}
 
 	@Get('publicUsers/:id')
 	async getPublicUsers(@Param('id') id: string) {
 		// console.log(`CONTROLLER - getAllPublicUsers: id param = ${id}`);
 		return this.playersService.getAllPublicUsers(Number(id));
+	}
+
+	@Get('pendingUsers/:id')
+	async getPendingUsers(@Param('id') id: string) {
+		// console.log(`CONTROLLER - getAllPendingUsers: id param = ${id}`);
+		return this.playersService.getAllPendingUsers(Number(id));
 	}
 
 	@Get('blocked')
@@ -173,7 +172,7 @@ export class PlayersController {
 			})
 		) avatar: Express.Multer.File
 	) {
-		const newRelPath = `${process.env.BACKEND_PFP_BASEFOLDER}${avatar.originalname}`;
+		const newRelPath = `${process.env.BACKEND_PFP_BASEFOLDER}${Number(req.user.sub)}_${avatar.originalname}`;
 		const newfilePath = path.join(
 			process.cwd(),
 			newRelPath
@@ -186,7 +185,9 @@ export class PlayersController {
 				oldRelPath
 			);
 
-			fs.unlinkSync(oldFilePath);
+			if (`${process.env.BACKEND_DEFAULT_PFP}` != oldRelPath &&
+				`${process.env.BACKEND_DEFAULT_ONERR_PFP}` != oldRelPath)
+				fs.unlinkSync(oldFilePath);
 			await this.playersService.update(
 				Number(req.user.sub),
 				{avatar: newRelPath}
@@ -201,6 +202,7 @@ export class PlayersController {
 	@Patch('me')
 	async updateMe(@Request() req, @Body() updatePlaterDto: UpdatePlayerDto)
 	{
+		console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
 		try {
 			await this.playersService.update(Number(req.user.sub), updatePlaterDto);
 		}
@@ -219,30 +221,4 @@ export class PlayersController {
 	remove(@Param('id') id: string) {
 		return this.playersService.remove(Number(id));
 	}
-
-	// @Get(':id/getChats')
-	// async getChats(
-	// 	@Body('id') id: number,
-	// 	@Body('limit') n: number = Infinity,
-	// ): Promise<
-	// 	{
-	// 		name: string;
-	// 		dm: boolean;
-	// 		avatar: string;
-	// 	}[]
-	// > {
-	// 	console.log(n);
-	// 	return [
-	// 		{
-	// 			name: '',
-	// 			dm: false,
-	// 			avatar: '',
-	// 		},
-	// 		{
-	// 			name: '',
-	// 			dm: false,
-	// 			avatar: '',
-	// 		},
-	// 	];
-	// }
 }

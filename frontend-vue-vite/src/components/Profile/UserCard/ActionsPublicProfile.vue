@@ -3,7 +3,7 @@ import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { user, friends } = storeToRefs(playerStore)
+const { user, friends, publicUsers } = storeToRefs(playerStore)
 const debug = false
 
 export default {
@@ -16,15 +16,24 @@ export default {
     data () {
         return {
 			loading: false,
-			state: 'default'
         }
     },
 	watch: {},
+	computed: {
+		pending() {
+			return -1 == publicUsers.value.findIndex(
+				(usr: Player) => this.userProfile.id == usr.id
+			);
+		}
+	},
     methods: {
-		addAsFriend(){
+		toggleFriendshipRequest(){
 			console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
-			playerStore.sendFriendshipRequest(Number(this.userProfile.id));
-			// this.state = 'pending';//! WAS MODIFIED
+
+			if (this.pending)
+				playerStore.sendFriendshipRejection(Number(this.userProfile.id));
+			else
+				playerStore.sendFriendshipRequest(Number(this.userProfile.id));
 		},
 		blockUser(){
 			playerStore.toggleBlockUser(this.userProfile.id, true)
@@ -43,10 +52,10 @@ export default {
 	>
 		<v-btn
 			value="add"
-			@click="addAsFriend"
-			:text="state == 'pending'? 'Friendship request sent' : 'Ask ' + `${userProfile.firstName}` + ' as a friend'"
+			@click="toggleFriendshipRequest"
+			:text="pending? 'Cancel Friendship Request' : 'Ask ' + `${userProfile.firstName}` + ' as a friend'"
 			prepend-icon="mdi-account-plus"
-			:color="state == 'pending'? 'purple-lighten-4' : 'white'"
+			:color="pending? 'purple-lighten-4' : 'white'"
 			block
 		>
 		</v-btn>

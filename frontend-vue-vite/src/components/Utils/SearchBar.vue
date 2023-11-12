@@ -1,56 +1,38 @@
 <script lang="ts">
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
+import CatSnackBar from './CatSnackBar.vue'
 
 const playerStore = usePlayerStore()
-const { user, fetchPublicUsers } = storeToRefs(playerStore)
+const { user } = storeToRefs(playerStore)
 
 const debug = true
 
 export default {
+	components: {
+		CatSnackBar
+},
 	data() {
 		return {
 			loading : false,
-			labelText: 'Search a Player',
-			labelColor: 'primary',
-			publicUsers : [] as Player[]
+			snackbar : false,
+			snackbarText : '',
 		}
 	},
 	computed: {
+		publicUsers() : Player[] {
+			return playerStore.publicUsers;
+		}
 	},
 	methods: {
-		async fetchUsers() {
-			if (debug) console.log('| SearchBar | methods | fetchUsers() IN' )
-			this.loading = true;
-			try {
-				//TODO how to render immediately without change in the picture ?
-				const tempUsers  : Player[] = (await fetchPublicUsers.value(user.value.id))
-				this.publicUsers = tempUsers
-				const playerIds: number[] = this.publicUsers.map(player => player.id);
-				if (debug) console.log('| SearchBar | methods | fetchUsers() publicUsers' + playerIds )
-				this.loading = false
-				if (debug) console.log('| SearchBar | methods | fetchUsers() LOADING FALSE' )
-				if (debug) console.log('| SearchBar | methods | fetchUsers() OUT' )
-			}
-			catch (error) {
-				console.error(`SearchBar : methods : fetchUsers() : Exception: ${error}`)
-				this.loading = false
-			}
-		},
 		async addAsFriend(id : number, username : string){
 			if (debug) console.log(`addAsFriend: userProfile.id = ${id}, typeof is: ${typeof id}`)
 			playerStore.sendFriendshipRequest(Number(id));
-			this.labelText = 'Request sent to ' + username;
-			this.labelColor = 'success'
-			await this.fetchUsers()
-			setTimeout(() => {
-				this.labelText = 'Search a Player',
-				this.labelColor = 'primary'
-			}, 4000);
+			this.snackbar = true,
+			this.snackbarText = 'Request sent to ' + username;
 		},
 		customFilter (itemTitle : string, queryText : string, item : any) {
 			// if (debug) console.log('| SearchBar | methods | customFilter() '  + itemTitle)
-
 			const textOne = item.raw.username.toLowerCase()
 			const textTwo = item.raw.firstName.toLowerCase()
 			const textThree = item.raw.lastName.toLowerCase()
@@ -64,13 +46,16 @@ export default {
 		},
 	},
 	watch : {
+		snackbar(newValue : boolean){
+			if (newValue == false)
+				this.snackbarText = ''
+		}
 	},
 	beforeCreate() {
 	if (debug) console.log('| SearchBar | beforeCreate()' )
 	},
-	async created() {
+	created() {
 		if (debug) console.log('| SearchBar | created(' + (user.value.id) + ')')
-		await this.fetchUsers()
 	},
 	beforeMount() {
 		if (debug) console.log('| SearchBar | beforeMount(' + (user.value.id) + ')')
@@ -103,6 +88,12 @@ export default {
 		max-width="550"
 		min-width="fit-content"
 		>
+			<CatSnackBar
+				@closeSnackbar="snackbar = false"
+				:snackbarText="snackbarText"
+				:snackbarParent="snackbar"
+			></CatSnackBar>
+
 			<v-autocomplete
 				:items="publicUsers"
 				auto-select-first
@@ -113,8 +104,8 @@ export default {
 				:custom-filter="customFilter"
 
 				prepend-inner-icon="mdi-magnify"
-				:label="labelText"
-				:color="labelColor"
+				label="Search a Player"
+				color="primary"
 				clearable
 				clear-icon="mdi-close-circle"
 				no-data-text="No existing user"
