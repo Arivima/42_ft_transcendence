@@ -18,6 +18,7 @@ export default {
 },
 	data: () => ({
 		newGame: false,
+		inGame: true,
 	}),
 }
 </script>
@@ -25,15 +26,15 @@ export default {
 <template>
 	<NavSideBar />
 	<Notifications></Notifications>
-	<AboutGame></AboutGame>
+	<AboutGame v-if="false == inGame"></AboutGame>
 	<v-main>
 		<v-card
 			class="game flex-column backgroundGame"
 		>
-				<Leaderboard></Leaderboard>				
-				<Customization></Customization>
+				<Leaderboard v-if="false == inGame"></Leaderboard>				
+				<Customization v-if="false == inGame"></Customization>
 
-		<v-card-item
+		<v-card-item v-if="false == inGame"
 			class="justify-center mt-7"
 		>
 			<v-btn
@@ -47,7 +48,7 @@ export default {
 			</v-btn>
 		</v-card-item>
 
-		<v-card-item
+		<v-card-item v-if="false == inGame"
 			class="justify-center mt-7"
 		>
 			<v-btn
@@ -61,7 +62,7 @@ export default {
 			</v-btn>
 		</v-card-item>
 
-		<CanvasGame></CanvasGame>
+		<CanvasGame v-if="inGame"></CanvasGame>
 
 
 		</v-card>
