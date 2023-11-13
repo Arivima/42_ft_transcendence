@@ -1,33 +1,76 @@
 <!-- GAME -->
 <script lang="ts">
+import Notifications from '@/components/Notifications.vue';
 import NavSideBar from '../components/NavSideBar.vue'
-import { IntersectingCirclesSpinner } from 'epic-spinners'
+import Customization from '@/components/Game/Customization.vue'
+import Leaderboard from '@/components/Game/Leaderboard.vue'
+import AboutGame from '@/components/Game/AboutGame.vue';
+import DialogQueue from '@/components/Game/DialogQueue.vue';
+import DialogEndGame from '@/components/Game/DialogEndGame.vue';
+import CanvasGame from '@/components/Game/CanvasGame.vue';
+
 export default {
 	components : {
-		IntersectingCirclesSpinner, NavSideBar
-	}
+    NavSideBar, Notifications, Customization, Leaderboard, DialogQueue,
+    AboutGame,
+    DialogEndGame,
+    CanvasGame
+},
+	data: () => ({
+		newGame: false,
+	}),
 }
-
 </script>
 
 <template>
-	<v-card
-		class="game flex-column"
-		variant="tonal"
-	>
-		<NavSideBar/>
-		<h1>This is Game</h1>
-			<intersecting-circles-spinner
-				:animation-duration="1200"
-				:size="70"
-				color="#ff1d5e"
-				/>
+	<NavSideBar />
+	<Notifications></Notifications>
+	<AboutGame></AboutGame>
+	<v-main>
+		<v-card
+			class="game flex-column backgroundGame"
+		>
+				<Leaderboard></Leaderboard>				
+				<Customization></Customization>
+
+		<v-card-item
+			class="justify-center mt-7"
+		>
+			<v-btn
+				color="primary"
+				variant="elevated"
+				size="x-large"
+				@click="newGame = true"
+			>
+				Play now
+				<DialogQueue></DialogQueue>
+			</v-btn>
+		</v-card-item>
+
+		<v-card-item
+			class="justify-center mt-7"
+		>
+			<v-btn
+				color="primary"
+				variant="tonal"
+				size="x-large"
+				@click="newGame = true"
+			>
+				test dialog end of game
+				<DialogEndGame></DialogEndGame>
+			</v-btn>
+		</v-card-item>
+
+		<CanvasGame></CanvasGame>
+
+
 		</v-card>
+	</v-main>
 </template>
 
 <style scoped>
 .game {
-	background-color: aqua;
+	background-color: antiquewhite;
 	height: 100%;
 	width: 100%;
 	outline: solid;
@@ -38,4 +81,17 @@ export default {
 	align-items: center;
 
 }
+.backgroundGame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(1.1);
+    background: url(../../cats_ai.webp) no-repeat center center;
+    background-size: cover;
+}
+
+.component {
+	background-color: white;
+}
 </style>
+

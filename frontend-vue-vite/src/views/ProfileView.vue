@@ -119,7 +119,7 @@ export default {
 <div class="profile">
 	<NavSideBar />
 	<Notifications />
-	<v-main>
+	<!-- <v-main> -->
 		<v-card class="parent">
 			<v-card class="child1">
 				<v-card class="child2">
@@ -158,7 +158,7 @@ export default {
 				</v-card>
 			</v-card>
 		</v-card>
-	</v-main>
+	<!-- </v-main> -->
 </div>
 </template>
 
