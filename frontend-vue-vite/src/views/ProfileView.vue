@@ -9,7 +9,7 @@ import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
+// import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
 import BlockedSent from '@/components/Profile/BlockedSent.vue'
 
 
