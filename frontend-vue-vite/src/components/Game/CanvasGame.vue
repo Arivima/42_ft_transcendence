@@ -84,7 +84,105 @@ export default {
 			canvas: null,
 			ccontext: null,
 			gameConf: emptyConf,
+			keyState: { ArrowUp: false, ArrowDown: false },
+			paddleDistance1: Number,
+			paddleDistance2: Number,
+			deltaTime: Number,
+			lastTimeStamp: Number,
+			ballDirection: Number,
+			ballDistance: Number,
 	}),
+	methods: {
+		canvasSetup() {
+			this.canvas = this.$refs.canvas;
+			this.canvas.width =  window.innerWidth - window.innerWidth * 50 / 100;
+			this.canvas.height = window.innerHeight - window.innerHeight * 50 / 100;
+			
+			this.ccontext = this.canvas.getContext("2d");
+
+			// setting sizes
+			this.gameConf.paddleWidth = this.canvas.width * 2 / 100;
+			this.gameConf.hostConf.paddleHeight = this.canvas.height * 20 / 100;
+			this.gameConf.guestConf.paddleHeight = this.canvas.height * 20 / 100;
+			this.gameConf.ballRadius = this.canvas.height / 64;
+			//pitch
+			this.gameConf.pitchLineWidth = this.gameConf.paddleWidth;
+			this.gameConf.pitchCircleRadius = this.canvas.height / 8;
+			this.gameConf.pitchCirclePos = {x: this.canvas.width / 2, y: this.canvas.height / 2};
+
+			// setting positions
+			this.gameConf.hostConf.paddlePos = {x: 0, y: this.canvas.height / 2 - this.gameConf.hostConf.paddleHeight / 2};
+			this.gameConf.guestConf.paddlePos = {x: this.canvas.width - this.gameConf.paddleWidth, y: this.canvas.height / 2 - this.gameConf.guestConf.paddleHeight / 2 }
+			//this.gameConf.ballPos = {x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height};
+			this.gameConf.ballPos = {x: this.canvas.width / 2, y: this.canvas.height / 2 };
+		},
+		drawOnCanvas() {
+			// clearing canvas
+			this.ccontext.fillStyle = "white";
+			this.ccontext.fillRect(0, 0, this.canvas.width, this.canvas.height);
+			this.ccontext.fillStyle = "black";
+
+			// drawing paddles
+			this.ccontext.fillRect(this.gameConf.hostConf.paddlePos.x, this.gameConf.hostConf.paddlePos.y + this.paddleDistance1 * this.canvas.height, this.gameConf.paddleWidth, this.gameConf.hostConf.paddleHeight);
+			this.ccontext.fillRect(this.gameConf.guestConf.paddlePos.x, this.gameConf.guestConf.paddlePos.y, this.gameConf.paddleWidth, this.gameConf.guestConf.paddleHeight);
+	
+			// drawing pitch
+			this.ccontext.fillRect(
+				this.canvas.width / 2 - this.gameConf.pitchLineWidth / 2,
+				0,
+				this.gameConf.pitchLineWidth,
+				this.canvas.height
+			);
+			this.ccontext.beginPath();
+			this.ccontext.arc(
+				this.gameConf.pitchCirclePos.x, this.gameConf.pitchCirclePos.y,
+				this.gameConf.pitchCircleRadius,
+				0, 2 * Math.PI
+			);
+			this.ccontext.stroke();
+	
+			// drawing ball
+			this.ccontext.beginPath();
+			this.ccontext.arc(this.gameConf.ballPos.x + (this.ballDistance * this.canvas.width), this.gameConf.ballPos.y, this.gameConf.ballRadius, 0, 2 * Math.PI);
+			this.ccontext.fillStyle = "black";
+			this.ccontext.fill();
+			this.ccontext.stroke();
+		},
+		onResize() {
+			this.canvasSetup();
+			this.drawOnCanvas();
+		},
+		onKeyDown(event: KeyboardEvent) {
+			event.preventDefault();
+			this.keyState[event.key] = true;
+		},
+		onKeyUp(event: KeyboardEvent) {
+			event.preventDefault();
+			this.keyState[event.key] = false;
+		},
+		getDeltaTime() {
+			const now : Number = Date.now();
+			this.deltaTime = (now - this.lastTimeStamp) / 10000;
+			this.lastTimeStamp = now;
+		},
+		movePaddle() {
+			if (this.keyState.ArrowUp === true)
+				this.paddleDistance1 -= 2 * this.deltaTime;
+			if (this.keyState.ArrowDown === true)
+				this.paddleDistance1 += 2 * this.deltaTime;
+		},
+		moveBall() {
+			this.ballDistance += 0.01;// * this.deltaTime * this.ballDirection;
+				//console.log(this.ballDistance + '      ' + this.deltaTime);
+		},
+		gameLoop() {
+			this.getDeltaTime();
+			this.movePaddle();
+			this.moveBall();
+			this.drawOnCanvas();
+			requestAnimationFrame(this.gameLoop);
+		},
+	},
 	computed : {
 	},
 	watch : {
@@ -101,57 +199,21 @@ export default {
 	mounted() {
 		if (debug) console.log('| BlockedSent | mounted()')
 
-		this.canvas = this.$refs.canvas;
-		this.canvas.width =  window.innerWidth - window.innerWidth * 50 / 100;
-		this.canvas.height = window.innerHeight - window.innerHeight * 50 / 100;
+
+		window.addEventListener('keydown', this.onKeyDown);
+		window.addEventListener('keyup', this.onKeyUp);
+		window.addEventListener('resize', this.onResize);
+
+		// initializing variables
+		this.paddleDistance1 = 0;
+		this.paddleDistance2 = 0;
+		this.deltaTime = 0;
+		this.lastTimeStamp = 0;
+		this.ballDirection = 1;
+		this.ballDistance = 0;
 		
-		this.ccontext = this.canvas.getContext("2d");
-
-		// setting sizes
-		this.gameConf.paddleWidth = this.canvas.width * 2 / 100;
-		this.gameConf.hostConf.paddleHeight = this.canvas.height * 20 / 100;
-		this.gameConf.guestConf.paddleHeight = this.canvas.height * 20 / 100;
-		this.gameConf.ballRadius = this.canvas.height / 64;
-		//pitch
-		this.gameConf.pitchLineWidth = this.gameConf.paddleWidth;
-		this.gameConf.pitchCircleRadius = this.canvas.height / 8;
-		this.gameConf.pitchCirclePos = {x: this.canvas.width / 2, y: this.canvas.height / 2};
-
-		// setting positions
-		this.gameConf.hostConf.paddlePos = {x: 0, y: this.canvas.height / 2 - this.gameConf.hostConf.paddleHeight / 2};
-		this.gameConf.guestConf.paddlePos = {x: this.canvas.width - this.gameConf.paddleWidth, y: this.canvas.height / 2 - this.gameConf.guestConf.paddleHeight / 2 }
-		this.gameConf.ballPos = {x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height};
-
-		// drawing paddles
-		this.ccontext.fillRect(this.gameConf.hostConf.paddlePos.x, this.gameConf.hostConf.paddlePos.y, this.gameConf.paddleWidth, this.gameConf.hostConf.paddleHeight);
-		this.ccontext.fillRect(this.gameConf.guestConf.paddlePos.x, this.gameConf.guestConf.paddlePos.y, this.gameConf.paddleWidth, this.gameConf.guestConf.paddleHeight);
-
-		// drawing pitch
-		this.ccontext.fillRect(
-			this.canvas.width / 2 - this.gameConf.pitchLineWidth / 2,
-			0,
-			this.gameConf.pitchLineWidth,
-			this.canvas.height
-		);
-		this.ccontext.beginPath();
-		this.ccontext.arc(
-			this.gameConf.pitchCirclePos.x, this.gameConf.pitchCirclePos.y,
-			this.gameConf.pitchCircleRadius,
-			0, 2 * Math.PI
-		);
-		this.ccontext.stroke();
-
-		// drawing ball
-		this.ccontext.beginPath();
-		this.ccontext.arc(this.gameConf.ballPos.x, this.gameConf.ballPos.y, this.gameConf.ballRadius, 0, 2 * Math.PI);
-		this.ccontext.fillStyle = "black";
-		this.ccontext.fill();
-		this.ccontext.stroke();
-
-		window.addEventListener("keydown", () => {
-			console.log(`keydown`);
-			this.gameConf.hostConf.paddleHeight += 10;
-		})
+		this.canvasSetup();
+		this.gameLoop();
 
 	},
 	beforeUpdate() {
@@ -162,6 +224,9 @@ export default {
 	},
 	beforeUnmount() {
 		if (debug) console.log('| BlockedSent | beforeUnmount()')
+		window.removeEventListener('keydown', this.onKeyDown);
+		window.removeEventListener('keyup', this.onKeyUp);
+		window.removeEventListener('resize', this.onResize);
 	},
 	unmounted() {
 		if (debug) console.log('| BlockedSent | unmounted()')
