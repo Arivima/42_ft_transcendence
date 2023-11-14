@@ -33,9 +33,16 @@
 					<v-col cols="auto" class="flex-grow-1 flex-shrink-0">
 						<v-responsive v-if="activeChat" class="overflow-y-hidden fill-height" height="500">
 							<v-card flat class="d-flex flex-column fill-height">
-								<div  @click="openGroupInfoPopup()" class="d-flex flex-row justify-space-between align-center pa-2 pointer elevation-1 mb-2" style="cursor: pointer;">
-									<v-card-title v-if="activeChat && !parents[activeChat - 1].isGroup">{{ parents[activeChat - 1].name }}</v-card-title>
-									<v-card-title v-if="activeChat && parents[activeChat - 1].isGroup">{{ parents[activeChat - 1].name }}</v-card-title>
+								<div v-if="activeChat && !parents[activeChat - 1].isGroup" class="d-flex flex-row justify-space-between align-center pa-2 pointer elevation-1 mb-2" style="cursor: pointer;">
+
+									<v-card-title>{{ parents[activeChat - 1].name }}</v-card-title>
+									<v-spacer></v-spacer>
+									<v-btn icon>
+										...
+									</v-btn>
+								</div>
+								<div v-if="activeChat && parents[activeChat - 1].isGroup" @click="openGroupInfoPopup()" class="d-flex flex-row justify-space-between align-center pa-2 pointer elevation-1 mb-2" style="cursor: pointer;">
+									<v-card-title >{{ parents[activeChat - 1].name }}</v-card-title>
 									<v-spacer></v-spacer>
 									<v-btn icon>
 										...
@@ -56,8 +63,7 @@
 																<br>
 																{{ msg.content }}
 															</p>
-															<sub class="ml-2" style="font-size: 0.5rem;">{{ msg.createdAt
-															}}</sub>
+															<sub class="ml-2" style="font-size: 0.5rem;">{{ msg.createdAt }}</sub>
 															<v-icon v-if="hover" small>expand_more</v-icon>
 														</v-chip>
 													</v-hover>
@@ -83,7 +89,7 @@
 			</v-container>
 		</v-app>
 		<GroupCreationDialog ref="groupCreationDialog" />
-		<GroupInfoDialog ref="groupInfoDialog" />
+		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userId="userId" @reload="reloadData"/>
 	</div>
 </template>
   
@@ -123,6 +129,15 @@ export default {
 			friends: [],
 			groups: [],
 			messages: [],
+			userId: user.value.id,
+			// user: {
+			// 	id: user.value.id,
+			// 	name: user.value.username,
+			// 	imageUrl: user.value.avatar,
+			// 	isAdmin: false,
+			// 	isMuted: false,
+			// 	isBanned: false,
+			// },
 			messageForm: {
 				content: "",
 				me: true,
@@ -178,6 +193,14 @@ export default {
 			this.parents.unshift(parent);
 		});
 	},
+	mounted() {
+		console.log("Chat mounted");
+		this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+			this.parents = response.sortedData;
+			this.friends = response.friends;
+			this.groups = response.rooms;
+		});
+	},
 	methods: {
 		sendMessage() {
 			const newMessage = { ...this.messageForm };
@@ -199,14 +222,23 @@ export default {
 			this.messages.push(newMessage);
 			this.messageForm.content = "";
 		},
+		reloadData() {
+			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				this.parents = response.sortedData;
+				this.friends = response.friends;
+				this.groups = response.rooms;
+			});
+		},
 
 		activateChat(chatId, index, isGroup) {
 			this.activeChat = index + 1;
+			this.$refs.groupInfoDialog.user.isAdmin = false;
+			this.$refs.groupInfoDialog.user.isMuted = false;
+			this.$refs.groupInfoDialog.user.isBanned = false;
 			this.fetchMessagesForChat(chatId, isGroup);
 		},
 
 		async fetchMessagesForChat(chatId, isGroup) {
-			console.log(`Fetching messages for chat ID: ${chatId}`);
 			let userId = user.value.id;
 			this.messages = [];
 			this.messageForm.receiverID = null;
@@ -217,14 +249,28 @@ export default {
 				this.messageForm.receiverID = chatId;
 			try {
 				this.socket.emit("getmessages", { userId, chatId, isGroup }, (response) => {
-					for (let i = 0; i < response.length; i++) {
-						if (response[i].senderID == user.value.id)
-							response[i].me = true;
+					let messages = response.messages;
+					let subscriptions = response.subscriptions;
+					console.log("messages", messages);
+					console.log("subscriptions", subscriptions);
+					for (let i = 0; i < messages.length; i++) {
+						if (messages[i].senderID == user.value.id)
+							messages[i].me = true;
 						else
-							response[i].me = false;
-						response[i].createdAt = showTime(response[i].createdAt);
+							messages[i].me = false;
+						messages[i].createdAt = showTime(messages[i].createdAt);
 					}
-					this.messages = response
+					if (isGroup)
+					{
+						subscriptions.forEach((subscription) => {
+							if (subscription.playerID == user.value.id) {
+								this.$refs.groupInfoDialog.user.isAdmin = subscription.isAdmin;
+								this.$refs.groupInfoDialog.user.isMuted = subscription.isMuted;
+								this.$refs.groupInfoDialog.user.isBanned = subscription.isBanned;
+							}
+						});
+					}
+					this.messages = messages
 				});
 			} catch (error) {
 				console.error("Error emitting 'getmessagesprivatechat':", error);
@@ -238,12 +284,10 @@ export default {
 			this.$refs.groupCreationDialog.group.founderId = user.value.id;
 		},
 		openGroupInfoPopup() {
-			console.log("this.parents[this.activeChat - 1].id", this.parents[this.activeChat - 1].id);
+			this.$refs.groupInfoDialog.groupInfoDialog = true;
 			this.socket.emit("getgroupinfo", { groupId: this.parents[this.activeChat - 1].id }, (response) => {
-				console.log("response group", response);
 				this.$refs.groupInfoDialog.groupInfo = response;
 			});
-			this.$refs.groupInfoDialog.groupInfoDialog = true;
 		},
 
 	},
