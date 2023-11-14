@@ -13,8 +13,12 @@ export default {
 	},
 	data: () => ({
 		badgeColor: 'grey',
-		items: friends.value as Player[],
 	}),
+	computed : {
+		items() : Player[] {
+			return friends.value
+		}
+	},
 	methods : {
 		getBadgeColor(status : PlayerStatus) : string {
 			if (debug) console.log('| Friends | methods | getBadgeColor()')
@@ -56,7 +60,7 @@ export default {
 		min-width="300"
 	>
 		<v-card-item>
-			<v-card-title class="text-overline">Friends</v-card-title>
+			<v-card-title class="text-overline">My friends</v-card-title>
 		</v-card-item>
 		<v-divider></v-divider>
 		<v-virtual-scroll
@@ -78,24 +82,6 @@ export default {
 							>
 							</v-avatar>
 						</v-badge>
-					</template>
-					<template v-slot:append>
-						<v-btn
-							v-if="`${item.my_friend}` === '0'"
-							icon="mdi-account-plus"
-							size="x-small"
-							variant="tonal"
-							color="blue"
-						>
-						</v-btn>
-						<v-btn
-							v-if="`${item.my_friend}` === '1'"
-							icon="mdi-account-remove"
-							size="x-small"
-							variant="tonal"
-
-						>
-						</v-btn>
 					</template>
 				</v-list-item>
 			</template>

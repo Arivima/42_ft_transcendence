@@ -28,7 +28,7 @@ model Player {
 
 	id					Int							@id
 	username			String						@unique
-	avatar				String						@unique
+	avatar				String
 
 	firstName			String ?
 	lastName			String ?

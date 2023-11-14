@@ -3,22 +3,25 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 import NavSideBar from '../components/NavSideBar.vue'
+import Notifications from '@/components/Notifications.vue'
 import UserCard from '../components/Profile/UserCard.vue'
 import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-import Notifications from '@/components/Profile/Notifications.vue'
+// import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
+import BlockedSent from '@/components/Profile/BlockedSent.vue'
 
 
 const playerStore = usePlayerStore()
 const { user, friends, fetchPlayer } = storeToRefs(playerStore)
-const debug = true
+const debug = false
 
 export default {
 	components : {
-	NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
-	Notifications,
+    NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
+    Notifications,
+    BlockedSent
 },
 	data() {
 		return {
@@ -40,13 +43,13 @@ export default {
 			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | ${profileID}`)
 
 			if (!profileID || profileID == this.userVisitor.id) {
-				console.log(`Visitor and userProfile are the same`)
+				if (debug) console.log(`Visitor and userProfile are the same`)
 				this.userProfile = this.userVisitor;
 			}
 			else {
 				try {
 					this.userProfile = await fetchPlayer.value(profileID);
-					console.log(`{\
+					if (debug) console.log(`{\
 						userprofileID: ${this.userProfile?.id},\
 						userprofileUsername: ${this.userProfile?.username},\
 						userprofileAvatar: ${this.userProfile?.avatar},\
@@ -113,54 +116,50 @@ export default {
 </script>
 
 <template>
-	<div class="profile">
-		<div class="justify-start">
-		<NavSideBar />
-		<!-- <v-app-bar density="compact" collapse  floating location="bottom"	 class="NavSideBar rounded-pill ma-2">
-			<Notifications></Notifications>
-		</v-app-bar> -->
-
-		</div>
-
+<div class="profile">
+	<NavSideBar />
+	<Notifications />
+	<!-- <v-main> -->
 		<v-card class="parent">
-			<div class="w-100 border d-flex justify-end align-end">
-				<Notifications></Notifications>
-			</div>
 			<v-card class="child1">
-			<v-card class="child2">
-				<UserCard v-if="userProfile"
-					:userProfile="(userProfile as Player)"
-				></UserCard>
+				<v-card class="child2">
+					<UserCard v-if="userProfile"
+						:userProfile="(userProfile as Player)"
+					></UserCard>
+				</v-card>
 			</v-card>
-		</v-card>
-		<v-card class="child1">
-			<v-card
-				class="child2"
-				v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
-			>
-				<Achievements
-					:userProfile="(userProfile as Player)"
+			<v-card class="child1">
+				<v-card
+					class="child2"
 					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
-				></Achievements>
-				<Suspense><MatchHistoryTable
-					:userProfile="(userProfile as Player)"
-					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
-				></MatchHistoryTable></Suspense>
-			</v-card>
-			<v-card class="child2"
-				v-if="visibility === 'MyProfile'"
-			>
-				<AddFriend
-					v-if="visibility == 'MyProfile'"
-				></AddFriend>
+				>
+					<Achievements
+						:userProfile="(userProfile as Player)"
+						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+					></Achievements>
+					<Suspense><MatchHistoryTable
+						:userProfile="(userProfile as Player)"
+						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+					></MatchHistoryTable></Suspense>
+				</v-card>
+				<v-card class="child2"
+					v-if="visibility === 'MyProfile'"
+				>
+					<AddFriend
+						v-if="visibility == 'MyProfile'"
+					></AddFriend>
 
-				<Friends
-					v-if="visibility == 'MyProfile'"
-				></Friends>
+					<Friends
+						v-if="visibility == 'MyProfile'"
+					></Friends>
+					<BlockedSent
+						v-if="visibility == 'MyProfile'"
+					></BlockedSent>
+				</v-card>
 			</v-card>
 		</v-card>
-		</v-card>
-	</div>
+	<!-- </v-main> -->
+</div>
 </template>
 
 <style scoped>

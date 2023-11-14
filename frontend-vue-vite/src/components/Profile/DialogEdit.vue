@@ -88,13 +88,7 @@ export default defineComponent({
 					
 				)
 				.then(async () => {
-					// await playerStore.updateUsername()
-					// .then(() =>
-					// 	())
-					// .catch((error : any)  => {
-					// 	this.displayErrorUsername('Error: Server internal error.')
-					// 	console.log(error)
-					// })
+					playerStore.updateUsername()
 					this.displaySuccessUsername("Successfully uploaded a new username !")
 					this.loadingUsername = false
 				})

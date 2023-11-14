@@ -52,6 +52,11 @@ kill: fclean
 	done;
 	docker system prune -a -f
 
+# reset:
+# rm -rf 'frontend-vue-vite/node_modules'
+# rm -rf 'backend-nest/node_modules'
+# $(MAKE) -C backend-nest/prisma/make re
+
 env_local:
 	@printf $(BOLDCYAN)"Makefile: Setting-up env files for a local build\n"$(RESET)
 	./env/docker_env local

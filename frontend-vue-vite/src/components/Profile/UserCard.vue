@@ -2,7 +2,7 @@
 import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
-import Notifications from './Notifications.vue'
+import Notifications from '../Notifications.vue'
 import Avatar from './UserCard/Avatar.vue'
 import Stats from './UserCard/Stats.vue'
 import ActionsPublicProfile from './UserCard/ActionsPublicProfile.vue'
@@ -42,6 +42,9 @@ export default {
 			let profileType = playerStore.visibility(this.userProfile.id);
 			return profileType
 		},
+		debug() : boolean {
+			return debug
+		}
 	},
 	watch : {
 		userVisitor(newValue : Player) {
@@ -84,7 +87,7 @@ export default {
 </script>
 
 <template>
-	<p class="text-overline text-end mx-3 pa-0 "> {{ visibility }}</p>
+	<p class="text-overline text-end mx-3 pa-0 " v-if="debug"> (debug) visibility : {{ visibility }}</p>
 
 	<v-card
 		class="containerContent component"
