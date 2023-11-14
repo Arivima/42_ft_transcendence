@@ -26,9 +26,7 @@
 				</span>
 				</template>
 			</v-select>
-			
-			<div>Selected Items: {{ group.members }}</div>
-		<v-card-actions>
+			<v-card-actions>
 		  <v-btn @click="createGroupChatWithSelectedFriends">Create Group Chat</v-btn>
 		  <v-btn @click="closeGroupChatPopup">Cancel</v-btn>
 		</v-card-actions>
@@ -60,11 +58,6 @@
 	  },
 	},
 	methods: {
-
-	  selectId(id) {
-			console.log("id", id);
-			this.group.members.push(id);
-		},
 	  closeGroupChatPopup() {
 		this.group.members = [];
 		this.groupChatDialog = false;
