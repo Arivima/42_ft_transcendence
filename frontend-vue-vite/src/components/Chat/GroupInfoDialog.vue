@@ -4,7 +4,6 @@
 			<div class="d-flex justify-space-between align-center pa-2 pointer elevation-1 mb-2">
 				<!-- <v-avatar class="mr-2"> -->
 				<v-card-title>{{ groupInfo.name }}</v-card-title>
-				
 				<v-btn icon @click="addusertogroup()" v-if="this.user.isAdmin">
 					<v-icon>edit</v-icon>
 					+
@@ -23,7 +22,7 @@
 								
 								<!--  <v-btn @click="viewProfile(member.id)" color="primary" class="mr-2" outlined -->
 								<!-- <v-btn @click="toggleSelect = !toggleSelect" color="primary" class="mr-2" outlined>Edit user</v-btn>  TODO: Add this -->
-								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin"></PopUpUserEdit>
+								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId"/>
 								<v-btn @click="viewProfile(member.id)" color="secondary" class="mr-2" outlined>
 									View Profile
 								</v-btn>
@@ -62,6 +61,7 @@ export default {
 		this.socket = this.$props.socketProp;
 		// this.user = this.$props.userProp;
 		this.userId = this.$props.userIdProp
+		console.log("GroupInfoDialog socket", this.userId);
 		this.socket.on("removeuserfromgroup", (data) => {
 			console.log("removeuserfromgroup", data);
 			if (data.groupId === this.groupInfo.id) {
@@ -89,12 +89,16 @@ export default {
 		
 
 		this.socket.on("editusersubscription", (data) => {
-			console.log("editusersubscription", data);
 			if (data.groupId === this.groupInfo.id) {
+				console.log("editusersubscription", data);
 				this.groupInfo.members = this.groupInfo.members.map((member) => {
 					if (member.id === data.userId) {
 						member.isMuted = data.isMuted;
 						member.isAdmin = data.isAdmin;
+					}
+					if (data.userId === this.userId) {
+						this.user.isMuted = data.isMuted;
+						this.user.isAdmin = data.isAdmin;
 					}
 					return member;
 				});
@@ -139,13 +143,14 @@ export default {
 		},
 		addusertogroup() {
 			this.$refs.groupAddUserDialog.groupAddUserDialog = true;
+			console.log("this.$refs.groupAddUserDialog", this.userId, this.groupInfo.id);
 			this.socket.emit("getfriendsnotingroup", { userId: this.userId, groupId: this.groupInfo.id }, (response) => {
 				this.$refs.groupAddUserDialog.friends = response.friends;
 			});
 		},
 		leaveGroup() {
-			this.socket.emit("removeuserfromgroup", { userId: this.userId, groupId: this.groupInfo.id }, (response) => {
-				console.log("response removeuserfromgroup", response);
+			this.socket.emit("removemefromgroup", { groupId: this.groupInfo.id }, (response) => {
+				console.log("response removemefromgroup", response);
 				this.$emit("reload");
 				this.groupInfoDialog = false;
 			});

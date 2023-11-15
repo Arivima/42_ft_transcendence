@@ -95,28 +95,37 @@ export class ChatService {
         },
       });
 
-      console.log(`DEBUG | chat.service | createChatMessage | res: ${res}`);
+      console.log(`DEBUG | chat.service | createChatMessage | res: ${res}, ${createChatDto.receiverID}`);
 
-      return createChatDto.receiverID;
     } catch (error) {
       // Handle errors here
       console.error(error);
-      throw error; // Rethrow the error or handle it as needed
+      return null; // Rethrow the error or handle it as needed
     }
+    return {"playerID": createChatDto.receiverID};
+
   }
 
-  async create(createChatDto: CreateChatDto): Promise<any> {
+  async create(createChatDto: CreateChatDto, isMutedId: number): Promise<any> {
     console.log(`DEBUG | chat.service | create | senderID: ${Number(createChatDto.senderID)}, receiverID: ${Number(createChatDto.receiverID)}`);
     createChatDto.senderID = Number(createChatDto.senderID);
     console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiversID: ${createChatDto.receiversID}`);
 
     if (createChatDto.receiversID) {
-      return this.createChatRoomMessage(createChatDto);
-    } else if (createChatDto.receiverID) {
-      return [this.createChatMessage(createChatDto)];
-    } else {
+      let isMuted = await this.prisma.subscribed.findMany({
+        where: {
+          playerID: isMutedId,
+          chatroomID: createChatDto.receiversID,
+          isMuted: true,
+        },
+      });
+      if (isMuted.length > 0)
+        return null;
+      return await this.createChatRoomMessage(createChatDto);
+    } else if (createChatDto.receiverID)
+      return [await this.createChatMessage(createChatDto)];
+    else
       return null;
-    }
   }
 
   async createGroupChat(group: CreateGroupDto) {
@@ -145,7 +154,20 @@ export class ChatService {
     return chatGroup;
   }
 
-  async addUsersToGroup(groupId: number, userIds: number[]) {
+  async addUsersToGroup(groupId: number, userIds: number[], adminId: number) {
+    let isAdminId = await this.prisma.subscribed.findMany({
+      where: {
+        chatroomID: groupId,
+        isAdmin: true,
+        playerID: adminId,
+      },
+      select: {
+        playerID: true,
+      },
+    });
+    if (isAdminId.length === 0) {
+      return null;
+    }
     console.log(`DEBUG | chat.service | addUsersToGroup | groupId: ${groupId} | userIds: ${userIds}`);
     try {
       const res = await this.prisma.chatRoom.update({
@@ -160,26 +182,41 @@ export class ChatService {
               isBanned: false,
 
               player: { connect: { id: userId } },
-
             }),
             ),
           },
         },
       });
-      return await this.prisma.subscribed.findMany({
+      return await this.prisma.chatRoom.findUnique({
         where: {
-          chatroomID: groupId,
+          groupID: groupId,
         },
         select: {
-          player: true,
-          
-          isAdmin: true,
-          isMuted: true,
-          isBanned: true,
-
+          name: true,
+          messages: {
+            take: 1,
+            orderBy: { timestamp: 'desc' },
+          },
+          subscriptions: {
+            select: {
+              player: true,
+            },
+          },
         },
-
       });
+      // return await this.prisma.subscribed.findMany({
+      //   where: {
+      //     chatroomID: groupId,
+      //   },
+      //   select: {
+      //     player: true,
+          
+      //     isAdmin: true,
+      //     isMuted: true,
+      //     isBanned: true,
+      //   },
+
+      // });
     } catch (error) {
       console.error(error);
       throw error;
@@ -200,27 +237,39 @@ export class ChatService {
 // 	@@id([playerID, chatroomID])
 // }
 
-  async editUserSubscription(userId: number, groupId: number, isAdmin: boolean, isMuted: boolean) {
+  async editUserSubscription(userId: number, groupId: number, isAdmin: boolean, isMuted: boolean, adminId: number) {
     console.log(`DEBUG | chat.service | editUserSubscription | userId: ${userId} | groupId: ${groupId} | isAdmin: ${isAdmin} | isMuted: ${isMuted}`);
-    if (isAdmin === false) {
-      let res = await this.prisma.subscribed.findMany({
-        where: {
-          chatroomID: groupId,
-          isAdmin: true,
-          playerID: {
-            not: userId,
-          },
-        },
-        select: {
-          playerID: true,
-        },
-      });
-      if (res.length === 0) {
-        console.log(`DEBUG | chat.service | editUserSubscription | res.length: ${res.length}`);
-        return null;
-      }
+    // if (isAdmin === false) {
+    //   let res = await this.prisma.subscribed.findMany({
+    //     where: {
+    //       chatroomID: groupId,
+    //       isAdmin: true,
+    //       playerID: {
+    //         not: userId,
+    //       },
+    //     },
+    //     select: {
+    //       playerID: true,
+    //     },
+    //   });
+    //   if (res.length === 0) {
+    //     console.log(`DEBUG | chat.service | editUserSubscription | res.length: ${res.length}`);
+    //     return null;
+    //   }
+    // }
+    let isAdminId = await this.prisma.subscribed.findMany({
+      where: {
+        chatroomID: groupId,
+        isAdmin: true,
+        playerID: adminId,
+      },
+      select: {
+        playerID: true,
+      },
+    });
+    if (isAdminId.length === 0) {
+      return null;
     }
-    
     let res = await this.prisma.subscribed.update({
       where: {
         playerID_chatroomID: {
@@ -243,17 +292,47 @@ export class ChatService {
     });
   }
 
-  async removeUserFromGroup(userId: number, groupId: number) {
+  async removeUserFromGroup(userId: number, groupId: number, adminId: number) {
     console.log(`DEBUG | chat.service | removeUserFromGroup | userId: ${userId} | groupId: ${groupId}`);
     try {
-      let res = await this.prisma.subscribed.delete({
-        where: {
-          playerID_chatroomID: {
-            playerID: userId,
+      if (userId != adminId) {
+        let isAdminId = await this.prisma.subscribed.findMany({
+          where: {
             chatroomID: groupId,
+            isAdmin: true,
+            playerID: adminId,
+          },
+          select: {
+            playerID: true,
+          },
+        });
+        if (isAdminId.length === 0) {
+          return ["not admin"];
+        }
+      }
+      await this.prisma.chatRoom.update({
+        where: {
+          groupID: groupId,
+        },
+        data: {
+          subscriptions: {
+            delete: {
+              playerID_chatroomID: {
+                playerID: userId,
+                chatroomID: groupId,
+              },
+            },
           },
         },
       });
+      // let res = await this.prisma.subscribed.delete({
+      //   where: {
+      //     playerID_chatroomID: {
+      //       playerID: userId,
+      //       chatroomID: groupId,
+      //     },
+      //   },
+      // });
       let res2 = await this.prisma.subscribed.findMany({
         where: {
           chatroomID: groupId,
@@ -269,7 +348,7 @@ export class ChatService {
             groupID: groupId,
           },
         });
-        return null;
+        return ["delete group"]
       }
       // console.log(`DEBUG | chat.service | removeUserFromGroup | res2: ${res2}`);
       // let user = await this.prisma.player.update({
@@ -345,6 +424,62 @@ export class ChatService {
               select: {
                 id: true,
                 username: true,
+                avatar: true,
+                //   sent_messages: {
+                //     // select: {
+                //     where: {
+                //           receiverID: userId,
+                //     },
+                //     take: 1,
+                //     orderBy: { timestamp: 'desc' },
+                //     // },
+                //   },
+                //   received_messages_dm: {
+                //     // select: {
+                //     where: {
+                //           senderID: userId,
+                //     },
+                //     take: 1,
+                //     orderBy: { timestamp: 'desc' },
+                //     // },
+                //   },
+              },
+
+            },
+
+          },
+        },
+        receivedFriendshipRequests: {
+          where: { are_friends: true },
+          select: {
+            recipient: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
+                // sent_messages: {
+                //   // select: {
+                //   where: {
+                //     OR: [
+                //       {
+                //         senderID: userId,
+                //       },
+                //       {
+                //         receiverID: userId,
+                //       },
+                //     ],
+                //   },
+                //   take: 1,
+                //   orderBy: { timestamp: 'desc' },
+                //   // },
+                // },
+              },
+            },
+            requestor: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
                 //   sent_messages: {
                 //     // select: {
                 //     where: {
@@ -402,7 +537,7 @@ export class ChatService {
     });
     
     let listoffriends = [];
-    for (const friendship of user.sentFriendshipRequests) {
+    for (const friendship of user.sentFriendshipRequests.concat(user.receivedFriendshipRequests)) {
       if (friendship.requestor.id === userId)
         listoffriends.push(friendship.recipient);
       else
@@ -430,17 +565,15 @@ export class ChatService {
       lastMessage: friendship.lastMessage.length > 0 ? friendship.lastMessage[0].timestamp : null,
       isGroup: false,
     }));
-    // for (const room of user.chatroomSubscriptions) {
-    //   console.log(`DEBUG | chat.service | getParents | room: ${room.name}, room.messages.length: ${room.messages.length}`);
-    // }
     const roomsWithLastMessage = user.chatroomSubscriptions.map((room) => ({
-      
       id: room.chatroom.groupID,
       name: room.chatroom.name,
       lastMessage: room.chatroom.messages.length > 0 ? room.chatroom.messages[0].timestamp : null,
       isGroup: true,
     }));
 
+
+    // TODO: sort by last message check if is properly sorted
     const sortedData = [...friends, ...roomsWithLastMessage].sort((a, b) => {
       if (!('lastMessage' in a) && !('lastMessage' in b)) {
         return 0;
@@ -494,6 +627,7 @@ export class ChatService {
         },
       },
     });
+  
     // console.log(`DEBUG | chat.service | getFriendsNotInGroup | group.subscriptions: ${group.subscriptions}, group.subscriptions.length: ${group.subscriptions.length}`);
     const friends = await this.prisma.player.findMany({
       where: { id: userId },
@@ -516,10 +650,29 @@ export class ChatService {
             },
           },
         },
+        receivedFriendshipRequests: {
+          where: { are_friends: true },
+          select: {
+            recipient: {
+              select: {
+                id: true,
+                username: true,
+                avatar: true,
+              },
+            },
+            requestor: {
+              select: {
+                id: true,
+                username: true,
+              },
+            },
+          },
+        },
+
       },
     });
     let newFriends = [];
-    for (const friendship of friends[0].sentFriendshipRequests) {
+    for (const friendship of friends[0].sentFriendshipRequests.concat(friends[0].receivedFriendshipRequests)) {
       if (friendship.requestor.id === userId)
         newFriends.push(friendship.recipient);
       else
@@ -531,7 +684,6 @@ export class ChatService {
         return subscription.playerID === friend.id;
       });
     });
-    // console.log(`DEBUG | chat.service | getFriendsNotInGroup | friendsNotInGroup: ${friendsNotInGroup[0].username}`); // [object PrismaPromise
     return { friends: friendsNotInGroup };
   }
 

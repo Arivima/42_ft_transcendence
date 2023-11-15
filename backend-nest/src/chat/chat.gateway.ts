@@ -90,9 +90,14 @@ export class ChatGateway {
   //   console.log("response", response);
   // });
   @SubscribeMessage("editusersubscription")
-  editUserSubscription(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string, @MessageBody("isAdmin") isAdmin: boolean, @MessageBody("isMuted") isMuted: boolean) {
+  editUserSubscription(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string, @MessageBody("isAdmin") isAdmin: boolean, @MessageBody("isMuted") isMuted: boolean, @ConnectedSocket() client: Socket) {
     console.log(`DEBUG | chat.controller | editUserSubscription | userId: ${userId}`);
-    this.chatService.editUserSubscription(Number(userId), Number(groupId), isAdmin, isMuted).then(response => {
+    // check if user is admin
+    let adminId = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    console.log(`DEBUG | chat.controller | editUserSubscription | adminId: ${adminId}`);
+    this.chatService.editUserSubscription(Number(userId), Number(groupId), isAdmin, isMuted, Number(adminId)).then(response => {
+      if (!response)
+        return { success: false };
       response.forEach((memberId) => {
         console.log(`DEBUG | chat.controller | editUserSubscription | memberId: ${memberId.playerID}`);
         let recClientId = this.clients.get(Number(memberId.playerID));
@@ -106,13 +111,15 @@ export class ChatGateway {
   }
 
   @SubscribeMessage("addusertogroup")
-  addUserToGroup(@MessageBody("groupId") groupId: string, @MessageBody("userIds") userIds: string[]) {
+  addUserToGroup(@MessageBody("groupId") groupId: string, @MessageBody("userIds") userIds: string[], @ConnectedSocket() client: Socket) {
     console.log(`DEBUG | chat.controller | addUserToGroup | userId: ${userIds}`);
     let userIdsList = userIds.map((userId) => {
       return Number(userId);
     });
+    let isAdminId = this.jwtService.decode(client.handshake.auth.token)['sub'];
 
-    this.chatService.addUsersToGroup(Number(groupId), userIdsList).then((otherMembers) => {
+    this.chatService.addUsersToGroup(Number(groupId), userIdsList, Number(isAdminId)).then((res) => {
+      let otherMembers = res.subscriptions;
       if (!otherMembers)
         return { response: true };
       otherMembers.forEach((memberId) => {
@@ -123,20 +130,51 @@ export class ChatGateway {
         console.log(`DEBUG | chat.controller | addUserToGroup | memberId: ${recClientId}`);
         if (recClientId)
           this.server.to(`${recClientId.id}`).emit('addusertogroup', { groupId, newUsers });
+        
         return { response: true };
+      });
+      for (let userId of userIdsList) {
+        let recClientId = this.clients.get(Number(userId));
+        if (recClientId)
+          this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0].createdAt, isGroup: true });
       }
-      )
       return { response: true };
     });
     return { response: true };
   }
 
-  @SubscribeMessage("removeuserfromgroup")
-  removeUserFromGroup(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string) {
-    this.chatService.removeUserFromGroup(Number(userId), Number(groupId)).then((otherMembers) => {
-      console.log(`DEBUG | chat.controller | removeUserFromGroup | otherMembers: ${otherMembers}`);
+  @SubscribeMessage("removemefromgroup")
+  removeMeFromGroup(@MessageBody("groupId") groupId: string, @ConnectedSocket() client: Socket) {
+    let me = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    if (!me)
+      return { success: false };
+    this.chatService.removeUserFromGroup(Number(me), Number(groupId), Number(me)).then((otherMembers) => {
+      console.log(`DEBUG | chat.controller | removeMeFromGroup | otherMembers: ${otherMembers}`);
       if (!otherMembers)
-        return { response: true };
+        return { success: false };
+      otherMembers.forEach((memberId) => {
+        let recClientId = this.clients.get(Number(memberId.playerID));
+        console.log(`DEBUG | chat.controller | removeMeFromGroup | memberId: ${recClientId}`);
+        if (recClientId)
+          this.server.to(`${recClientId.id}`).emit('removemefromgroup', { groupId });
+        return { success: true };
+      }
+      )
+      return { success: true };
+    });
+    return { success: true };
+  }
+  
+
+  @SubscribeMessage("removeuserfromgroup")
+  removeUserFromGroup(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string, @ConnectedSocket() client: Socket) {
+    let adminId = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    this.chatService.removeUserFromGroup(Number(userId), Number(groupId), Number(adminId)).then((otherMembers) => {
+      console.log(`DEBUG | chat.controller | removeUserFromGroup | otherMembers: ${otherMembers}`);
+      if (otherMembers[0] === "not admin")
+        return { success: false };
+      if (otherMembers[0] === "delete group")
+        return { success: true };
       otherMembers.forEach((memberId) => {
         let recClientId = this.clients.get(Number(memberId.playerID));
         console.log(`DEBUG | chat.controller | removeUserFromGroup | memberId: ${recClientId}`);
@@ -180,11 +218,13 @@ export class ChatGateway {
     let CreateChatDto: CreateChatDto = JSON.parse(JSON.parse(data).data);
     let recClientId: Socket;
 
-    let resIds = await this.chatService.create(CreateChatDto);
+    let senderID = this.jwtService.decode(client.handshake.auth.token)['sub']
+
+    let resIds = await this.chatService.create(CreateChatDto, Number(senderID));
     if (!resIds)
       return
     for (let resId of resIds) {
-      console.log(`DEBUG | chat.gateway | handleMessage | resId: ${resId}`);
+      console.log(`DEBUG | chat.gateway | handleMessage | resId: ${resId.playerID}`);
       recClientId = this.clients.get(Number(resId.playerID));
       if (recClientId)
         this.server.to(`${recClientId.id}`).emit('message', data);

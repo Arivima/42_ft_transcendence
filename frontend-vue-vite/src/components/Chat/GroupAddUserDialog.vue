@@ -66,11 +66,11 @@
 		console.log("GroupAddUserDialog socket", this.$props.socketProp);
 		this.socket = this.$props.socketProp;
 		//   getFriendsNotInGroup(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string) {
-
-		this.socket.emit("getfriendsnotingroup", { userId: this.$props.userId, groupId: this.$props.groupId }, (response) => {
-			console.log("response getfriendsnotingroup", response);
-			this.friends = response.friends;
-		});
+		console.log("this.$props.groupId", this.$props.groupId);
+		// this.socket.emit("getfriendsnotingroup", { userId: this.$props.userId, groupId: this.$props.groupId }, (response) => {
+		// 	console.log("response getfriendsnotingroup", response);
+		// 	this.friends = response.friends;
+		// });
 
 		// this.socket.emit("getfriendsnotingroup", { userId: this.$props.userId }, (response) => {
 		// 		this.friends = response.friends;
