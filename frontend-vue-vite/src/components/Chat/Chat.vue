@@ -80,7 +80,8 @@
 								<v-card-text class="flex-shrink-1">
 									<v-text-field v-model="messageForm.content" label="type_a_message" type="text"
 										no-details outlined append-outer-icon="send" @keyup.enter="sendMessage"
-										@click:append-outer="sendMessage" hide-details />
+										@click:append-outer="sendMessage" hide-details v-if="!this.isGroupActive || !this.$refs.groupInfoDialog.user.isMuted"/>
+
 								</v-card-text>
 							</v-card>
 						</v-responsive>
@@ -89,7 +90,7 @@
 			</v-container>
 		</v-app>
 		<GroupCreationDialog ref="groupCreationDialog" />
-		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userId="userId" @reload="reloadData"/>
+		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userIdProp="this.userId" :userProp="this.userGroupData" @reload="reloadData"/>
 	</div>
 </template>
   
@@ -130,6 +131,7 @@ export default {
 			groups: [],
 			messages: [],
 			userId: user.value.id,
+			isGroupActive: false,
 			// user: {
 			// 	id: user.value.id,
 			// 	name: user.value.username,
@@ -170,11 +172,13 @@ export default {
 		} catch (error) {
 			console.error("Error emitting 'getmessagesprivatechat':", error);
 		}
+		
 
 		this.socket.on("message", (message) => {
 			console.log("parsedData", message);
 			const parsedData = JSON.parse(JSON.parse(message).data);
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				console.log("response", response);
 				this.parents = response.sortedData;
 				this.friends = response.friends;
 				this.groups = response.rooms;
@@ -204,6 +208,8 @@ export default {
 	methods: {
 		sendMessage() {
 			const newMessage = { ...this.messageForm };
+			if (this.isGroupActive && this.$refs.groupInfoDialog.user.isMuted)
+				return;
 			if (newMessage.content.trim() === "") return;
 			if (newMessage.receiverID)
 				newMessage.receiverID = this.parents[this.activeChat - 1].id;
@@ -235,6 +241,7 @@ export default {
 			this.$refs.groupInfoDialog.user.isAdmin = false;
 			this.$refs.groupInfoDialog.user.isMuted = false;
 			this.$refs.groupInfoDialog.user.isBanned = false;
+			this.isGroupActive = isGroup;
 			this.fetchMessagesForChat(chatId, isGroup);
 		},
 
@@ -264,6 +271,7 @@ export default {
 					{
 						subscriptions.forEach((subscription) => {
 							if (subscription.playerID == user.value.id) {
+								console.log("subscription", subscription.isAdmin);
 								this.$refs.groupInfoDialog.user.isAdmin = subscription.isAdmin;
 								this.$refs.groupInfoDialog.user.isMuted = subscription.isMuted;
 								this.$refs.groupInfoDialog.user.isBanned = subscription.isBanned;
@@ -287,6 +295,16 @@ export default {
 			this.$refs.groupInfoDialog.groupInfoDialog = true;
 			this.socket.emit("getgroupinfo", { groupId: this.parents[this.activeChat - 1].id }, (response) => {
 				this.$refs.groupInfoDialog.groupInfo = response;
+				this.$refs.groupInfoDialog.user.isAdmin = false;
+				this.$refs.groupInfoDialog.user.isMuted = false;
+				this.$refs.groupInfoDialog.user.isBanned = false;
+				for (let i = 0; i < response.members.length; i++) {
+					if (response.members[i].id == user.value.id) {
+						this.$refs.groupInfoDialog.user.isAdmin = response.members[i].isAdmin;
+						this.$refs.groupInfoDialog.user.isMuted = response.members[i].isMuted;
+						this.$refs.groupInfoDialog.user.isBanned = response.members[i].isBanned;
+					}
+				}
 			});
 		},
 
