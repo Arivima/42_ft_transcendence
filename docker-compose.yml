@@ -1,4 +1,4 @@
-version: "3.8" # Use the latest version of Docker Compose
+version: "2.3" # Use the latest version of Docker Compose
 
 services:
   database:
