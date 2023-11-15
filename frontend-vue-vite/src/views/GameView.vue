@@ -34,18 +34,20 @@ export default {
 				<Leaderboard v-if="false == inGame"></Leaderboard>				
 				<Customization v-if="false == inGame"></Customization>
 
-		<v-card-item v-if="false == inGame"
-			class="justify-center mt-7"
+		<v-card-item 
+			class="mt-7"
 		>
 			<v-btn
 				color="primary"
 				variant="elevated"
 				size="x-large"
-				@click="newGame = true"
+				class="mx-3"
+				@click="inGame = !inGame" 
 			>
-				Play now
+				{{ inGame? 'Stop Game' : 'Play now'  }}
 				<DialogQueue></DialogQueue>
 			</v-btn>
+
 		</v-card-item>
 
 		<v-card-item v-if="false == inGame"
@@ -62,7 +64,11 @@ export default {
 			</v-btn>
 		</v-card-item>
 
-		<CanvasGame v-if="inGame"></CanvasGame>
+		<CanvasGame
+			v-if="inGame"
+			@close="inGame = false"
+
+		></CanvasGame>
 
 
 		</v-card>

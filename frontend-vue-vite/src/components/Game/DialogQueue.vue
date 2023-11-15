@@ -18,7 +18,13 @@ export default defineComponent({
 		return {
 			dialogBox: false,
 			loading: false,
+			foundOpponent : false, // to delete :  take from store & put into computed & in store initialise to false
 		}
+	},
+	computed : {
+		// foundOpponent(){
+		// 	return store
+		// },
 	},
 	methods: {
 		cancelGameRequest(){
@@ -28,8 +34,18 @@ export default defineComponent({
 	watch: {
 		dialogBox(isActive: boolean) {
 			if (isActive == true) {
+				
+				// to delete : here to reproduce a queue effect while no connection with store
+				setTimeout(() => {
+					this.foundOpponent = true
+				}, 3000)
 			} 
-		}
+		},
+		foundOpponent(newVal : Boolean){
+			if (newVal == true) {
+				this.dialogBox = false
+			}
+		},
 	},
 	mounted() {}
 })
