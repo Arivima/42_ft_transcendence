@@ -33,15 +33,18 @@
  * 8. power-ups: different maps (per iniziare colori diversi), paddle height aumenta se fai punti, etc.
  */
 
+
+
+ // TODO CHECK IF NEEDED
 //  const requestAnimationFrame =
 //   window.requestAnimationFrame ||
 //   window.mozRequestAnimationFrame ||
 //   window.webkitRequestAnimationFrame ||
 //   window.msRequestAnimationFrame;
 
-
 // const cancelAnimationFrame =
 //   window.cancelAnimationFrame || window.mozCancelAnimationFrame;
+
 
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
@@ -64,6 +67,7 @@ export interface BallConf {
 	dir: {x: number, y: number},
 	radius: number,
 	color: string,
+	speedFactor : number,
 }
 
 export interface GameConf {
@@ -72,23 +76,10 @@ export interface GameConf {
 	ball : BallConf,
 	pitchLineWidth: number,
 	pitchCirclePos: {x: number, y: number},
-	pitchCircleRadius: Number,
-	// paddleColor: string,
-	// pitchColor: string,
+	pitchCircleRadius: number,
 }
 
-export interface GameState {
-	// host: PlayerConf,
-	// guest: PlayerConf,
-	// ball : BallConf,
-	// pitchLineWidth: number,
-	// pitchCirclePos: {x: number, y: number},
-	// pitchCircleRadius: Number,
-	// // paddleColor: string,
-	// // pitchColor: string,
-}
-
-const emptyConf = {
+const initialGameConf : GameConf = {
 	host: {
 		id: 0,
 		paddleHeight: 0,
@@ -106,15 +97,48 @@ const emptyConf = {
 		pos: {x: 0, y: 0},
 		dir: {x: 0, y: 0},
 		radius: 0,
-		color: 'purple'
+		color: 'purple',
+		speedFactor: 500/1000, // px/sec (1000 milliseconds) //TODO pb when screen resize, different speed
 	},
 	pitchLineWidth: 0,
 	pitchCirclePos: {x: 0, y: 0},
-	pitchCircleRadius: 0
+	pitchCircleRadius: 0,
 }
 
-// ball speed
-// update frequency
+export interface GameState {
+	// host: PlayerConf,
+	// guest: PlayerConf,
+	// ball : BallConf,
+	// pitchLineWidth: number,
+	// pitchCirclePos: {x: number, y: number},
+	// pitchCircleRadius: Number,
+	// // paddleColor: string,
+	// // pitchColor: string,
+}
+
+export interface TimeState {
+	start: number;	// start of game abs nb performance.now(), gets fired with startGame()
+	pause: number; // cumulates all off time incl pause, lag, wait
+	clock: number; // cumulates actual running time of game
+	lastTimeStamp: number; // last update
+	deltaTime: number; // last time gap between screen updates
+	getSeconds: (milliseconds: number) => number;   // function to calculate seconds from milliseconds
+	getMinutes: (milliseconds: number) => number;   // function to calculate minutes from milliseconds
+}
+
+const initialTimeState : TimeState = {
+	start: 0,
+	pause: 0,
+	clock: 0,
+	deltaTime: 0,
+	lastTimeStamp : 0,
+	getSeconds(milliseconds) {
+		return Math.floor((milliseconds / 1000) % 60)
+	},
+	getMinutes(milliseconds) {
+		return Math.floor((milliseconds / 1000) / 60)
+	},
+}
 
 
 export default {
@@ -131,22 +155,23 @@ export default {
 			opponent : {} as Player,
 			canvas_old_width: 0,
 			canvas_old_height: 0,
-			canvas : null as HTMLCanvasElement | null, // CHECK HERE TODO
-			ccontext: null as CanvasRenderingContext2D | null, // CHECK HERE TODO
-			gameConf: emptyConf,
+			canvas : null as HTMLCanvasElement | null,
+			ccontext: null as CanvasRenderingContext2D | null,
+
+			gameConf: initialGameConf, // should be given by server ?
 			// state
-			clock: true,
+			start : false,
 			paused: false,
+
 			keyState: new Map<string, Boolean>([
 				['ArrowUp', false], ['ArrowDown', false], [' ', false]
 			]),
+
+
+
+			// to put in a structure to pass to server
+			gameTime : initialTimeState,
 			score : {host : 0, guest : 0},
-
-
-
-			deltaTime: 0,
-			lastTimeStamp: 0,
-			step: 1000/150,
 
 			hostPaddleDis: 0,
 			guestPaddleDis: 0,
@@ -161,13 +186,34 @@ export default {
 		gameState(newVal: 'Start' | 'Play' | 'Pause' | 'End') {
 			if (debug) console.log("Game state : " + newVal)
 		},
+		// COLLISIONS
+		ballDirX(newVal : number){
+			if (newVal == 1){
+				console.log('Host lost a point')
+				// send point request to server
+				this.score.guest++				
+			}
+
+			if (newVal == -1){
+				console.log('Guest lost a point')
+				// send point request to server
+				this.score.host++				
+			}
+		},
+		// use for bonus ? additional animation ?
+		// ballDirY(newVal : number){
+		// 	if (newVal == 1)
+		// 		console.log('Bouncing off ceiling')
+		// 	if (newVal == -1)
+		// 		console.log('Bouncing off floor')
+		// },
 	},
 	computed : {
 		userIsHost() : boolean {
-			return (this.gameConf.host.id == this.user.id)
+			return (this.gameConf.host.id == user.value.id)
 		},
 		userIsGuest() : boolean {
-			return (this.gameConf.host.id != this.user.id)
+			return (this.gameConf.host.id != user.value.id)
 		},
 		hostWon() : boolean {
 			return (this.score.host == 10)
@@ -189,25 +235,25 @@ export default {
 			return (
 				this.paused ? 'Pause' : 
 				this.end ? 'End' :
-				this.clock ? 'Play' :  
+				this.start ? 'Play' :  
 				'Start');
 		},
 		AbsPaddleHost() : {x: number, y: number} {
 			return ({
 				x : this.gameConf.host.paddlePos.x, 
-				y : this.gameConf.host.paddlePos.y + (+this.hostPaddleDis * (this.canvas?.height || 0))
+				y : this.gameConf.host.paddlePos.y + (+this.hostPaddleDis), // * (this.canvas?.height || 0))
 			})
 		},
 		AbsPaddleGuest() : {x: number, y: number} {
 			return ({
 				x : this.gameConf.guest.paddlePos.x, 
-				y : this.gameConf.guest.paddlePos.y + (+this.guestPaddleDis * (this.canvas?.height || 0))
+				y : this.gameConf.guest.paddlePos.y + (+this.guestPaddleDis), // * (this.canvas?.height || 0))
 			})
 		},
 		AbsBall() : {x: number, y: number} {
 			return ({
-				x : this.gameConf.ball.start.x + (this.ballDisX),// * (this.canvas?.width || 0)), 
-				y : this.gameConf.ball.start.y + (this.ballDisY)// * (this.canvas?.height || 0))
+				x : this.gameConf.ball.start.x + (this.ballDisX), // * (this.canvas?.width || 0), 
+				y : this.gameConf.ball.start.y + (this.ballDisY), // * (this.canvas?.height || 0),
 			})
 		},
 	},
@@ -238,8 +284,9 @@ export default {
 			// setting positions
 			this.gameConf.host.paddlePos	= {x: 0, y: this.canvas.height / 2 - this.gameConf.host.paddleHeight / 2};
 			this.gameConf.guest.paddlePos	= {x: this.canvas.width - this.gameConf.guest.paddleWidth, y: this.canvas.height / 2 - this.gameConf.guest.paddleHeight / 2 }
-			this.gameConf.ball.start		= {x: this.canvas.width / 2, y: this.canvas.height / 2 };
-			//this.gameConf.pos = {x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height};
+			// TODO bug when start on edge
+			// this.gameConf.ball.start		= {x: this.canvas.width , y: this.canvas.height };
+			this.gameConf.ball.start		= {x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height };
 		},
 
 		drawOnCanvas() {
@@ -252,12 +299,10 @@ export default {
 				this.ccontext.fillRect(this.AbsPaddleHost.x, this.AbsPaddleHost.y, this.gameConf.host.paddleWidth, this.gameConf.host.paddleHeight);
 				this.ccontext.fillRect(this.AbsPaddleGuest.x, this.AbsPaddleGuest.y, this.gameConf.guest.paddleWidth, this.gameConf.guest.paddleHeight);
 				// drawing pitch
-				this.ccontext.fillRect(
-					this.canvas.width / 2 - this.gameConf.pitchLineWidth / 2,
-					0,
-					this.gameConf.pitchLineWidth,
-					this.canvas.height
-				);
+				this.ccontext.beginPath();
+				this.ccontext.moveTo(this.canvas?.width / 2, 0)
+				this.ccontext.lineTo(this.canvas?.width / 2, this.canvas?.height)
+				this.ccontext.stroke();
 				this.ccontext.beginPath();
 				this.ccontext.arc(
 					this.gameConf.pitchCirclePos.x, this.gameConf.pitchCirclePos.y,
@@ -291,71 +336,92 @@ export default {
 			this.keyState.set(event.key, false);
 		},
 
-		// TODO
 		getDeltaTime() {
-			// to resolve with paused state
-			const now : number = Date.now();
-			this.deltaTime = (now - this.lastTimeStamp);
-			// this.clock += this.deltaTime;
+			const now : number = performance.now();
+			this.gameTime.deltaTime = (now - this.gameTime.lastTimeStamp);
 
-			// console.log('now: ' + now)
-			// console.log('this.lastTimeStamp: ' + this.lastTimeStamp)
-			// console.log('this.deltaTime: ' + this.deltaTime)
+			if (this.gameState == 'Play')
+				this.gameTime.clock += this.gameTime.deltaTime;
+			if (this.gameState == 'Pause')
+				this.gameTime.pause += this.gameTime.deltaTime;
 
-			this.lastTimeStamp = now;
+			this.gameTime.lastTimeStamp = now;
 		},
 
 		// testing ok, speedFactor could be a bonus, step to be reviewed if we need to change it with this.deltaTime ???
 		movePaddle() {
-			const speedFactor = 6 
+			const step : number = this.gameTime.deltaTime * this.gameConf.ball.speedFactor
+
 			if (this.keyState.get('ArrowUp') === true) {
 				if (this.userIsHost) {
-					if (this.AbsPaddleHost.y - speedFactor * this.step >= 0)
-						this.hostPaddleDis -= speedFactor * this.step;
+					if (this.AbsPaddleHost.y - step > 0)
+						this.hostPaddleDis -= step;
 				} else {
-					if (this.AbsPaddleGuest.y - speedFactor * this.step >= 0)
-						this.guestPaddleDis -= speedFactor * this.step;
+					if (this.AbsPaddleGuest.y - step > 0)
+						this.guestPaddleDis -= step;
 				}
+				console.log('ArrowUp')
+				console.log('paddle step : ' + step)
+				console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
+
 			}
 			if (this.keyState.get('ArrowDown') === true) {
 				if (this.userIsHost) {
-					if (this.AbsPaddleHost.y + this.gameConf.host.paddleHeight + speedFactor * this.step <= (this.canvas?.height || 0))
-						this.hostPaddleDis += speedFactor * this.step;
+					if (this.AbsPaddleHost.y + this.gameConf.host.paddleHeight + step < (this.canvas?.height || 0))
+						this.hostPaddleDis += step;
 				} else {
-					if (this.AbsPaddleGuest.y + this.gameConf.host.paddleHeight + speedFactor * this.step <= (this.canvas?.height || 0))
-						this.guestPaddleDis += speedFactor * this.step;
+					if (this.AbsPaddleGuest.y + this.gameConf.host.paddleHeight + step < (this.canvas?.height || 0))
+						this.guestPaddleDis += step;
 				}
+				console.log('ArrowDown')
+				console.log('paddle step : ' + step)
+				console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
 			}
 		},
 
-		// TODO
+		// TODO : resize amd angles
 		moveBall() {
+			// before step 100/15
+			const step : number = this.gameTime.deltaTime * this.gameConf.ball.speedFactor
 
-			if (this.gameConf.ball.start.x + (this.ballDisX ) + this.gameConf.ball.radius  >= (this.canvas?.width || 0)
-			|| this.gameConf.ball.start.x + (this.ballDisX ) - this.gameConf.ball.radius <= 0)
+			if (this.gameConf.ball.start.x + this.ballDisX + this.gameConf.ball.radius  > (this.canvas?.width || 0)
+			|| this.gameConf.ball.start.x + this.ballDisX - this.gameConf.ball.radius < 0)
 			{
 				this.ballDirX *= -1;//Math.random() * -1;
 			}
 
-			if (this.gameConf.ball.start.y + (this.ballDisY)  + this.gameConf.ball.radius  >= (this.canvas?.height || 0)
-			|| this.gameConf.ball.start.y + (this.ballDisY) - this.gameConf.ball.radius <= 0)
+			if (this.gameConf.ball.start.y + this.ballDisY  + this.gameConf.ball.radius  > (this.canvas?.height || 0)
+			|| this.gameConf.ball.start.y + this.ballDisY - this.gameConf.ball.radius < 0){
 				this.ballDirY *= -1;//Math.random() * -1;
+			}
 
 				
 			if (this.ballDirX == 1){
-				this.ballDisX += this.step; // this.deltaTime
+				this.ballDisX += step;
 			}
 			else{
-				this.ballDisX -= this.step; // this.deltaTime
+				this.ballDisX -= step;
 			}
 			if (this.ballDirY == 1)
 			{
-				this.ballDisY += this.step; // this.deltaTime
+				this.ballDisY += step;
 			}
 			else
 			{
-				this.ballDisY -= this.step; // this.deltaTime
+				this.ballDisY -= step;
 			}
+		},
+
+		gameLoop() {
+			if (this.gameState == 'Play' ||  this.gameState == 'Pause')
+				this.getDeltaTime();
+
+			if (this.gameState == 'Play'){
+				this.movePaddle();
+				this.moveBall();
+				this.drawOnCanvas();				
+			}
+			requestAnimationFrame(this.gameLoop);
 		},
 
 		// TODO
@@ -372,24 +438,32 @@ export default {
 					setTimeout(() => {
 					}, 100000);					
 				}
-				this.clock = true
+				this.startGame()
 			}
 		},
 
-		gameLoop() {
-			if (this.gameState == 'Play'){
-				this.getDeltaTime();
-				this.movePaddle();
-				this.moveBall();
-				this.drawOnCanvas();				
-			}
-			requestAnimationFrame(this.gameLoop);
+		startGame(){ // launching the clock changes the gameState and starts the game
+			this.gameTime.start = performance.now()
+			setTimeout(() => {
+				this.gameTime.clock = performance.now() - this.gameTime.start 
+				this.gameTime.lastTimeStamp = performance.now()
+				this.start = true
+			}, 1)
+		},
+
+		pauseGame(){
+
+		},
+		unPauseGame(){
+		},
+		cancelGame(){
+			// send server cancelation notification
+			this.$emit("close");
 		},
 
 		closeGame(){
 			this.$emit("close");
-		}
-
+		},
 	},
 	mounted() {
 		if (debug) console.log('| CanvasGame | mounted()')
@@ -402,16 +476,13 @@ export default {
 		// TODO
 		this.opponent.username = 'Opponent name'
 		this.opponent.id = 0
+		this.opponent.avatar = user.value.avatar
 
 		// assign host and guest values
 		// TODO
-		this.gameConf.host.id = this.user.id			// TODO
+		this.gameConf.host.id = user.value.id			// TODO
 		this.gameConf.guest.id = this.opponent.id		// TODO
 		
-		// initializing variables
-
-
-		// start game
 		this.canvasSetup();
 		this.gameLoop();
 
@@ -434,15 +505,35 @@ export default {
 	<v-card
 		class="component justify-center align-center"
 		style="display: flex; flex-direction: column;" 
-	>	
-	<v-card-item class="ma-7 justify-center" style="font-weight: bolder; font-size:x-large;" prepend-icon="mdi-cat" append-icon="mdi-cat">CAT PONG</v-card-item>
+	>
+	<v-card-item
+		class="mt-5 justify-end w-100" style="font-weight: bold; font-size: large;"
+	>
+		<v-btn
+			v-show="(gameState == 'Play' || gameState == 'Pause')"
+			@click="paused = !paused" 
+			class="rounded-pill"
+			flat
+			variant="text"
+			:prepend-icon="paused ? 'mdi-pause' : 'mdi-play'"
+			:text="paused ? 'paused' : 'currently live'"
+		>
+		</v-btn>
 
-	
+		<v-chip
+			size="large">
+			{{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}
+		</v-chip>
+	</v-card-item>
+
+
+
+
 	<v-card class="w-100" flat style="display: flex; flex-direction: row;">
 		<v-card flat class="w-50 justify-center text-overline ma-0">
 			<v-card-item class=" py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">Host</v-card-item>
 			<v-card class=" w-100" flat style="display: flex; flex-direction: row;">
-				<v-card-item class=" justify-center w-50">{{ user.username }}</v-card-item>
+				<v-card-item class=" justify-center w-50" :prepend-avatar="user.avatar">{{ user.username }}</v-card-item>
 				<v-card-item class=" justify-center w-50">
 					<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.host > score.guest ? 'success' : score.host === score.guest ? 'primary' : 'error'">
 					{{ score.host }}</v-chip>
@@ -456,14 +547,52 @@ export default {
 					<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.guest > score.host ? 'success' : score.guest === score.host ? 'primary' : 'error'">
 					{{ score.guest }}</v-chip>
 				</v-card-item>				
-				<v-card-item class=" justify-center w-50">{{ opponent.username }}</v-card-item>
+				<v-card-item class=" justify-center w-50" :append-avatar="opponent.avatar">{{ opponent.username }}</v-card-item>
 			</v-card>				
 		</v-card>
 	</v-card>
 
 	<canvas id="CanvasGame" ref="canvas" width="800" height="500" style="border:1px solid black;"></canvas>
 
-	<v-overlay
+
+	<v-card
+		style="display: flex; flex-direction: row;"
+		class="w-100 -5 justify-center"
+		flat
+	>
+		<v-btn
+			v-show="(gameState == 'Play' || gameState == 'Pause')"
+			color="primary"
+			variant="elevated"
+			size="x-large"
+			class="ma-2"
+			@click="paused = !paused" 
+		>
+			{{ paused? 'Unpause game ' : 'Pause game '  }}
+		</v-btn>
+
+		<v-btn
+			v-show="gameState == 'Start'"
+			color="primary"
+			variant="elevated"
+			size="x-large"
+			class="ma-2"
+			@click="startGame" 
+		> Start Game !
+		</v-btn>
+
+		<v-btn
+			color="primary"
+			variant="tonal"
+			size="x-large"
+			class="ma-2"
+			@click="cancelGame" 
+		> Cancel Game
+		</v-btn>
+	</v-card>
+
+<!-- TODO overlay pour lag -->
+	<!-- <v-overlay
 		:model-value="paused"
 		class="align-center justify-left"
 		persistent
@@ -477,12 +606,12 @@ export default {
 					size="x-large"
 					class="mt-10"
 					@click="paused = !paused" 
-				> Unpause game
+				> Click to continue
 				</v-btn>
 			</v-card-item>
 
 		</v-card>
-	</v-overlay>
+	</v-overlay> -->
 	<v-overlay
 		:model-value="end"
 		class="align-center justify-left"
@@ -504,21 +633,39 @@ export default {
 		</v-card>
 	</v-overlay>
 
-	<v-btn
-		color="primary"
-		variant="elevated"
-		size="x-large"
-		class="mt-10"
-		@click="paused = !paused" 
-	>
-		{{ paused? 'Unpause game ' : 'Pause game '  }}
-	</v-btn>
-	<v-card class="ma-5">
-		<p>| GAME STATE : {{ gameState }}</p>
-		<p>| host : {{ gameConf.host }}</p>
-		<p>| guest : {{ gameConf.guest }}</p>
-		<p>| ball : {{ gameConf.ball }}</p>
+
+	<v-card :width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
+		<v-card class="pa-1 ma-1 w-50">
+			<h2>| BALL |</h2>
+			<p>| ball  abs | x : {{ Math.round(AbsBall.x) }}, y : {{ Math.round(AbsBall.y) }}</p>
+			<p>| ball  start | x : {{ Math.round(gameConf.ball.start.x) }}, y : {{ Math.round(gameConf.ball.start.y) }}</p>
+			<p>| ball  radius | {{ Math.round(gameConf.ball.radius) }}</p>
+			<p>| ball  ballDis | x : {{Math.round(ballDisX)}}, y : {{ Math.round(ballDisY) }}</p>
+			<p>| ball  ballDir | x : {{ballDirX}}, y : {{ ballDirY }} </p>
+			<h2>| PADDLE |</h2>
+			<p>| host  | dim (w : {{ Math.round(gameConf.host.paddleWidth) }}, h : {{ Math.round(gameConf.host.paddleHeight) }})</p>
+			<p>| host  | abs (x : {{ Math.round(AbsPaddleHost.x) }}, y : {{ Math.round(AbsPaddleHost.y) }}) | start (x : {{ Math.round(gameConf.host.paddlePos.x) }}, y : {{ Math.round(gameConf.host.paddlePos.y) }}) | dis (y : {{ Math.round(hostPaddleDis) }})</p>
+			<p>| guest  | dim (w : {{ Math.round(gameConf.guest.paddleWidth) }}, h : {{ Math.round(gameConf.guest.paddleHeight) }})</p>
+			<p>| guest  | abs (x : {{ Math.round(AbsPaddleGuest.x) }}, y : {{ Math.round(AbsPaddleGuest.y) }}) | start (x : {{ Math.round(gameConf.guest.paddlePos.x) }}, y : {{ Math.round(gameConf.guest.paddlePos.y) }}) | dis (y : {{ Math.round(guestPaddleDis) }})</p>
+
+
+		</v-card>		
+		<v-card class="pa-1 ma-1 w-50">
+			<h2>| CONF |</h2>
+			<p>| canvas |  width : {{ canvas?.width }} | height : {{ canvas?.height }}</p>
+			<p>| host | {{ gameConf.host.id }}</p>
+			<p>| guest | {{ gameConf.guest.id }}</p>
+			<h2>| GAME STATE : {{ gameState }}</h2>
+			<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
+			<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
+			
+			<p>Game: {{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}</p>
+			<p>Paused: {{ String(gameTime.getMinutes(gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.pause)).padStart(2, '0') }}</p>
+			<p>Total: {{ String(gameTime.getMinutes(gameTime.clock + gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock + gameTime.pause)).padStart(2, '0') }}</p>
+
+		</v-card>
 	</v-card>
+
 </v-card>
 
 

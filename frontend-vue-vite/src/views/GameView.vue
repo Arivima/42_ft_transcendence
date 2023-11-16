@@ -1,4 +1,3 @@
-<!-- GAME -->
 <script lang="ts">
 import Notifications from '@/components/Notifications.vue';
 import NavSideBar from '../components/NavSideBar.vue'
@@ -18,58 +17,60 @@ export default {
 },
 	data: () => ({
 		newGame: false,
-		inGame: true,
+		inGame: false,
 	}),
+	methods: {
+		closeGame(){
+			this.inGame = false
+		}
+	}
 }
 </script>
+
+<!-- TODO About game should be linked to paused -->
 
 <template>
 	<NavSideBar />
 	<Notifications></Notifications>
-	<AboutGame v-if="false == inGame"></AboutGame>
+	<AboutGame v-if="false == inGame"></AboutGame> 
 	<v-main>
 		<v-card
 			class="game flex-column backgroundGame"
 		>
-				<Leaderboard v-if="false == inGame"></Leaderboard>				
-				<Customization v-if="false == inGame"></Customization>
+			<Leaderboard v-if="false == inGame"></Leaderboard>				
+			<Customization v-if="false == inGame"></Customization>
 
-		<v-card-item 
-			class="mt-7"
-		>
-			<v-btn
-				color="primary"
-				variant="elevated"
-				size="x-large"
-				class="mx-3"
-				@click="inGame = !inGame" 
+			<v-card-item 
+				class="ma-7"
 			>
-				{{ inGame? 'Stop Game' : 'Play now'  }}
-				<DialogQueue></DialogQueue>
-			</v-btn>
+				<!-- TODO delete when inGame = true -->
+				<v-btn
+					color="primary"
+					variant="elevated"
+					size="x-large"
+					class="mx-3"
+					@click="inGame = true" 
+				>
+					{{ inGame? 'Stop Game' : 'Play now'  }}
+					<DialogQueue
+						@close="closeGame"
+					></DialogQueue>
+				</v-btn>
 
-		</v-card-item>
+			</v-card-item>
 
-		<v-card-item v-if="false == inGame"
-			class="justify-center mt-7"
-		>
-			<v-btn
-				color="primary"
-				variant="tonal"
-				size="x-large"
-				@click="newGame = true"
+			<v-card-item
+				v-if="true == inGame"
+				class="text-center"
+				style="font-weight: bolder; font-size:x-large;" prepend-icon="mdi-cat" append-icon="mdi-cat"
 			>
-				test dialog end of game
-				<DialogEndGame></DialogEndGame>
-			</v-btn>
-		</v-card-item>
+				<h2>CAT PONG</h2>
+			</v-card-item>
 
-		<CanvasGame
-			v-if="inGame"
-			@close="inGame = false"
-
-		></CanvasGame>
-
+			<CanvasGame
+				v-if="true == inGame"
+				@close="closeGame"
+			></CanvasGame>
 
 		</v-card>
 	</v-main>
