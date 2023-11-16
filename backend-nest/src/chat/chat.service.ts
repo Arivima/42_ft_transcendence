@@ -12,7 +12,7 @@ export class ChatService {
   async createChatRoomMessage(createChatDto: CreateChatDto) {
     createChatDto.receiverID = null;
     createChatDto.receiversID = Number(createChatDto.receiversID);
-
+    // let senderName = null;
     try {
       const res = await this.prisma.message.create({
         data: {
@@ -47,14 +47,14 @@ export class ChatService {
         },
       });
 
-      let senderName = await this.prisma.player.findUnique({
-        where: {
-          id: createChatDto.senderID,
-        },
-        select: {
-          username: true,
-        },
-      });
+      // senderName = await this.prisma.player.findUnique({
+      //   where: {
+      //     id: createChatDto.senderID,
+      //   },
+      //   select: {
+      //     username: true,
+      //   },
+      // });
 
       const result = await this.prisma.chatRoom.findUnique({
         where: {
@@ -64,11 +64,6 @@ export class ChatService {
           subscriptions: {
             select: {
               playerID: true,
-              player: {
-                select: {
-                  username: true,
-                },
-              },
             },
             where: {
               isBanned: false,
@@ -79,7 +74,21 @@ export class ChatService {
           },
         },
       });
-      return {"subscriptions": result.subscriptions};
+      const senderName = await this.prisma.player.findUnique({
+        where: {
+          id: createChatDto.senderID,
+        },
+        select: {
+          username: true,
+        },
+      });
+      console.log(`DEBUG | chat.service | createChatRoomMessage | senderName: ${senderName.username}`);
+      return result.subscriptions.map((subscription) => ({
+        ...subscription,
+        senderName: senderName.username,
+      }));
+
+      // return result.subscriptions;
     } catch (error) {
       console.error(error);
       return null;
