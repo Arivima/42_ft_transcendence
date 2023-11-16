@@ -71,58 +71,67 @@ export default {
 </script>
 
 <template>
-	<v-navigation-drawer expand-on-hover rail permanent class="NavSideBar rounded ma-2">
-		<v-list>
-			<v-list-item
-				:prepend-avatar="avatar"
-				:title="user.firstName"
-				:subtitle="username"
-				:to="{ name: 'profile' }"
-				rounded
-				class="mx-2 px-2"
+	<v-navigation-drawer
+		expand-on-hover rail permanent class="NavSideBar rounded ma-2"
+		>
+		<v-card
+			style="display: flex; flex-direction: column; height: inherit; background-color: transparent;"
+			flat
+		>
+			<v-card
+				style="background-color: transparent;"
+				flat
 			>
-		</v-list-item>
-		</v-list>
-		<v-divider></v-divider>
-		<v-list class="navContent ">
-			<v-list nav>
-				<v-list-item
-					:to="{ name: 'game' }"
-					prepend-icon="mdi-controller"
-					title="Play PONG !"
-				></v-list-item>
+				<v-list>
+					<v-list-item
+						:prepend-avatar="avatar"
+						:title="user.firstName"
+						:subtitle="username"
+						:to="{ name: 'profile' }"
+						rounded
+						class="ma-2 pa-2"
+					>
+					</v-list-item>
+					<v-divider></v-divider>
+					<v-list nav>
+						<v-list-item
+							:to="{ name: 'game' }"
+							prepend-icon="mdi-controller"
+							title="Play Cat PONG !"
+						></v-list-item>
 
-				<v-list-item
-					:to="{ name: 'chat' }"
-					prepend-icon="mdi-chat"
-					title="Community chat"
-				></v-list-item>
-			</v-list>
-		</v-list>
+						<v-list-item
+							:to="{ name: 'chat' }"
+							prepend-icon="mdi-chat"
+							title="Community chat"
+						></v-list-item>
+					</v-list>
+				</v-list>
+			</v-card>
 
-
-		<v-list nav>
-			
-			<v-list-item
-				@click="logOut"
-				prepend-icon="mdi-logout"
-				title="Logout"
-				class="logout"
-				variant="tonal"
-			></v-list-item>
-			<v-list-item
-				disabled
-				prepend-icon="mdi-cat"
-				title="Cazzendence 2023"
-				variant="plain"
-			></v-list-item>
-		</v-list>
+			<v-card
+				style="flex-grow: 1; background-color: transparent;"
+				flat
+			></v-card>
+			<v-card
+				flat
+				style="background-color: transparent;"
+			>
+				<v-list nav style="justify-content: end;">
+					<v-list-item
+						@click="logOut"
+						prepend-icon="mdi-logout"
+						title="Logout"
+						variant="tonal"
+					></v-list-item>
+					<v-list-item
+						disabled
+						prepend-icon="mdi-cat"
+						title="Cazzendence 2023"
+						variant="plain"
+					></v-list-item>
+				</v-list>			
+			</v-card>
+		</v-card>
 	</v-navigation-drawer>
 </template>
-
-<style scoped>
-.navContent {
-	height: 70%;
-}
-
-</style>
