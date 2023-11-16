@@ -226,6 +226,7 @@ export class ChatGateway {
     for (let resId of resIds) {
       console.log(`DEBUG | chat.gateway | handleMessage | resId: ${resId.playerID}`);
       recClientId = this.clients.get(Number(resId.playerID));
+      data = JSON.stringify({ data: JSON.stringify({ ...CreateChatDto, senderName: resId.player.username}) });
       if (recClientId)
         this.server.to(`${recClientId.id}`).emit('message', data);
     }

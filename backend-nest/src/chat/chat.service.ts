@@ -47,6 +47,15 @@ export class ChatService {
         },
       });
 
+      let senderName = await this.prisma.player.findUnique({
+        where: {
+          id: createChatDto.senderID,
+        },
+        select: {
+          username: true,
+        },
+      });
+
       const result = await this.prisma.chatRoom.findUnique({
         where: {
           groupID: createChatDto.receiversID,
@@ -55,6 +64,11 @@ export class ChatService {
           subscriptions: {
             select: {
               playerID: true,
+              player: {
+                select: {
+                  username: true,
+                },
+              },
             },
             where: {
               isBanned: false,
@@ -65,18 +79,17 @@ export class ChatService {
           },
         },
       });
-      return result.subscriptions;
+      return {"subscriptions": result.subscriptions};
     } catch (error) {
-      // Handle errors here
       console.error(error);
-      throw error; // Rethrow the error or handle it as needed
+      return null;
     }
   }
 
   async createChatMessage(createChatDto: CreateChatDto) {
     createChatDto.receiverID = Number(createChatDto.receiverID);
     createChatDto.receiversID = null;
-
+    let senderName = null;
     try {
       const res = await this.prisma.message.create({
         data: {
@@ -96,6 +109,14 @@ export class ChatService {
       });
 
       console.log(`DEBUG | chat.service | createChatMessage | res: ${res}, ${createChatDto.receiverID}`);
+      senderName = await this.prisma.player.findUnique({
+        where: {
+          id: createChatDto.senderID,
+        },
+        select: {
+          username: true,
+        },
+      });
 
     } catch (error) {
       // Handle errors here
@@ -725,6 +746,8 @@ export class ChatService {
               select: {
                 username: true,
               },
+
+            
             },
           },
           orderBy: { timestamp: 'asc' },
@@ -734,8 +757,7 @@ export class ChatService {
             playerID: true,
             isAdmin: true,
             isMuted: true,
-            isBanned: true,
-
+            isBanned: true
           }
 
         },
@@ -744,7 +766,7 @@ export class ChatService {
     });
     let ret1 = res.messages.map((message) => ({
       ...message,
-      sender: message.sender.username,
+      senderName: message.sender.username,
     }));
     let ret2 = res.subscriptions.map((subscription) => ({
       ...subscription,

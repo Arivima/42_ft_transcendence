@@ -258,8 +258,7 @@ export default {
 				this.socket.emit("getmessages", { userId, chatId, isGroup }, (response) => {
 					let messages = response.messages;
 					let subscriptions = response.subscriptions;
-					console.log("messages", messages);
-					console.log("subscriptions", subscriptions);
+
 					for (let i = 0; i < messages.length; i++) {
 						if (messages[i].senderID == user.value.id)
 							messages[i].me = true;
@@ -271,7 +270,6 @@ export default {
 					{
 						subscriptions.forEach((subscription) => {
 							if (subscription.playerID == user.value.id) {
-								console.log("subscription", subscription.isAdmin);
 								this.$refs.groupInfoDialog.user.isAdmin = subscription.isAdmin;
 								this.$refs.groupInfoDialog.user.isMuted = subscription.isMuted;
 								this.$refs.groupInfoDialog.user.isBanned = subscription.isBanned;
