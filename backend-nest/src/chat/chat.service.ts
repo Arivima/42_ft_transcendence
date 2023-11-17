@@ -159,13 +159,32 @@ export class ChatService {
   }
 
   async createGroupChat(group: CreateGroupDto) {
-    console.log(`DEBUG | chat.service | createGroupChat | group: ${group.name}`);
-    const { name, members, founderId, isPublic, password } = group;
+    const { name, members, founderId, visibility, password } = group;
+    let visibility2 = null;
+    console.log(`DEBUG | chat.service | createGroupChat | name: ${name}, members: ${members}, founderId: ${founderId}, visibility: ${visibility}, password: ${password}`);
+    // switch (visibility) {
+    //   case "public":
+    //     visibility2 = "public";
+    //   case "private":
+    //     visibility2 = "private";
+    //   case "protected":
+    //     visibility2 = "protected";
+    //   default:
+    //     visibility2 = "private";
+    // }
+    if (visibility === "public")
+      visibility2 = "public";
+    else if (visibility === "private")
+      visibility2 = "private";
+    else if (visibility === "protected")
+      visibility2 = "protected";
+    else
+      visibility2 = "private";
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
         name,
         founder: { connect: { id: founderId } },
-        visibility: isPublic ? "public" : "private",
+        visibility: visibility2,
         password,
         subscriptions: {
           create: members.map((memberId) => ({
@@ -786,6 +805,61 @@ export class ChatService {
 
     }));
     return { messages: ret1, subscriptions: ret2 };
+  }
+  // searchGroups() {
+	// 	try {
+	// 		this.socket.emit("searchgroups", { groupSearch: this.groupSearch }, (response) => {
+	// 			console.log("response", response);
+	// 			this.groups = response.groups;
+	// 		});
+	// 	} catch (error) {
+	// 		console.error("Error emitting 'searchgroups':", error);
+	// 	}
+	//   },
+  async searchGroups(groupSearch: string) {
+    console.log(`DEBUG | chat.service | searchGroups | groupSearch: ${groupSearch}`);
+    // select where name contains groupSearch and is public or protected
+    let res = await this.prisma.chatRoom.findMany({
+      where: {
+        name: {
+          contains: groupSearch,
+        },
+        OR: [
+          {
+            visibility: "public",
+          },
+          {
+            visibility: "protected",
+          },
+        ],
+      },
+      select: {
+        groupID: true,
+        name: true,
+        founder: {
+          select: {
+            username: true,
+          },
+        },
+        subscriptions: {
+          select: {
+            playerID: true,
+          },
+        },
+      },
+    });
+    console.log(`DEBUG | chat.service | searchGroups | res: ${res}`);
+    
+    let ret = res.map((group) => ({
+      ...group,
+      founder: group.founder.username,
+      members: group.subscriptions.map((subscription) => ({
+        ...subscription,
+        playerID: subscription.playerID,
+      })),
+    }));
+    
+    return { groups: ret };
   }
 
   findOne(id: number) {

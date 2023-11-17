@@ -12,7 +12,7 @@ export class Group {
 	founderId: number;
   
 	@IsBoolean()
-	isPublic: boolean;
+	visibility: string;
   
 	@IsString()
 	password?: string;

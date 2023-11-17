@@ -230,4 +230,21 @@ export class ChatGateway {
         this.server.to(`${recClientId.id}`).emit('message', data);
     }
   }
+
+  // searchGroups() {
+	// 	try {
+	// 		this.socket.emit("searchgroups", { groupSearch: this.groupSearch }, (response) => {
+	// 			console.log("response", response);
+	// 			this.groups = response.groups;
+	// 		});
+	// 	} catch (error) {
+	// 		console.error("Error emitting 'searchgroups':", error);
+	// 	}
+	//   },
+
+  @SubscribeMessage("searchgroups")
+  searchGroups(@MessageBody("groupSearch") groupSearch: string) {
+    console.log(`DEBUG | chat.controller | searchGroups | groupSearch: ${groupSearch}`);
+    return this.chatService.searchGroups(groupSearch);
+  }
 }

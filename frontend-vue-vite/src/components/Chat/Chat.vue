@@ -7,6 +7,7 @@
 						<v-responsive class="overflow-y-auto fill-height" height="500">
 							<v-list subheader>
 								<v-btn @click="openGroupCreationPopup">Create Group Chat</v-btn>
+								<v-btn @click="openSearchGroupPopup">Search Group</v-btn>
 								<div class="">
 									
 								<v-item-group v-model="activeChat">
@@ -89,6 +90,7 @@
 				</v-row>
 			</v-container>
 		</v-app>
+		<GroupSearchDialog ref="groupSearchDialog" />
 		<GroupCreationDialog ref="groupCreationDialog" />
 		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userIdProp="this.userId" :userProp="this.userGroupData" @reload="reloadData"/>
 	</div>
@@ -102,6 +104,7 @@ import axios from 'axios';
 import { ref } from 'vue'
 import GroupCreationDialog from './GroupCreationDialog.vue'
 import GroupInfoDialog from './GroupInfoDialog.vue'
+import GroupSearchDialog from './GroupSearchDialog.vue'
 
 
 const { user } = storeToRefs(await usePlayerStore())
@@ -120,7 +123,8 @@ const showTime = (date) => {
 export default {
 	components: {
 		GroupCreationDialog,
-		GroupInfoDialog
+		GroupInfoDialog,
+		GroupSearchDialog
 		
 	},
 	data() {
@@ -288,6 +292,10 @@ export default {
 			this.$refs.groupCreationDialog.friends = this.friends;
 			this.$refs.groupCreationDialog.socket = this.socket;
 			this.$refs.groupCreationDialog.group.founderId = user.value.id;
+		},
+		openSearchGroupPopup() {
+			this.$refs.groupSearchDialog.dialog = true;
+			this.$refs.groupSearchDialog.socket = this.socket;
 		},
 		openGroupInfoPopup() {
 			this.$refs.groupInfoDialog.groupInfoDialog = true;

@@ -26,6 +26,14 @@
 				</span>
 				</template>
 			</v-select>
+			<v-card-title>Group privacy</v-card-title>
+			<v-radio-group v-model="group.visibility" row>
+				<v-radio label="Public" value="public"></v-radio>
+				<v-radio label="Protected" value="protected"></v-radio>
+				<v-radio label="Private" value="private"></v-radio>
+			</v-radio-group>
+			<v-card-title v-if="group.visibility === 'protected'">Group password</v-card-title>
+			<v-text-field v-if="group.visibility === 'protected'" v-model="group.password" label="Group password"></v-text-field>
 			<v-card-actions>
 		  <v-btn @click="createGroupChatWithSelectedFriends">Create Group Chat</v-btn>
 		  <v-btn @click="closeGroupChatPopup">Cancel</v-btn>
@@ -47,7 +55,7 @@
 			name: '',
 			founderId: 0,
 			members: [],
-			isPublic: false,
+			visibility: "",
 			password: ''
 		},
 	  };
