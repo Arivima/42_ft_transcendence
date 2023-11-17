@@ -14,15 +14,16 @@
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
 										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
 										>
-											<v-avatar color="grey lighten-1 white--text">
-												<v-icon>chat_bubble</v-icon>
+											<v-avatar color="grey lighten-1 white--text" size="36" v-if="!item.isGroup && item.avatar" :image="item.avatar">
+											</v-avatar>
+											<v-avatar color="grey lighten-1 white--text" size="36" v-if="!item.isGroup && !item.avatar">
+												<v-icon>mdi-account</v-icon>
+											</v-avatar>
+											<v-avatar color="grey lighten-1 white--text" size="36" v-if="item.isGroup">
+												<v-icon>mdi-account-group</v-icon>
 											</v-avatar>
 											<v-list-item-title v-text="item.name" />
 											<v-list-item-subtitle v-text="item.lastMessage" />
-											<!-- <v-list-item-icon> -->
-												<!-- <v-icon
-													:color="item.active ? 'deep-purple accent-4' : 'grey'">chat_bubble</v-icon> -->
-											<!-- </v-list-item-icon> -->
 										</v-list-item>
 										<v-divider class="my-0" />
 									</template>
@@ -92,7 +93,7 @@
 		</v-app>
 		<GroupSearchDialog ref="groupSearchDialog" />
 		<GroupCreationDialog ref="groupCreationDialog" />
-		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userIdProp="this.userId" :userProp="this.userGroupData" @reload="reloadData"/>
+		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userIdProp="this.userId" @reload="reloadData"/>
 	</div>
 </template>
   
@@ -107,7 +108,8 @@ import GroupInfoDialog from './GroupInfoDialog.vue'
 import GroupSearchDialog from './GroupSearchDialog.vue'
 
 
-const { user } = storeToRefs(await usePlayerStore())
+const { user, friends } = storeToRefs(await usePlayerStore())
+
 const showTime = (date) => {
 	console.log("date", date);
 	let d = new Date(date);
@@ -131,11 +133,12 @@ export default {
 		return {
 			activeChat: 0,
 			parents: [],
-			friends: [],
+			friendsChat: [],
 			groups: [],
 			messages: [],
 			userId: user.value.id,
 			isGroupActive: false,
+			// avatarUrls: {},
 			// user: {
 			// 	id: user.value.id,
 			// 	name: user.value.username,
@@ -159,6 +162,14 @@ export default {
 
 		};
 	},
+	computed: {
+		avatar() {
+			return async (avatar) => {
+				return await this.fetchAvatar(avatar);
+			};
+		},
+	},
+
 	created() {
 		// this.socket = io('ws://localhost:3000',{transports:['websocket']});
 		this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}`, {
@@ -169,8 +180,22 @@ export default {
 		});
 		try {
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				// map friends response avatar to friends array avatar
+				friends.value.forEach((friend) => {
+					response.sortedData.forEach((parentResponse) => {
+						if (friend.id == parentResponse.id) {
+							parentResponse.avatar = friend.avatar;
+						}
+					});
+					response.friends.forEach((friendResponse) => {
+						if (friend.id == friendResponse.id) {
+							friendResponse.avatar = friend.avatar;
+						}
+					});
+				});
+
 				this.parents = response.sortedData;
-				this.friends = response.friends;
+				this.friendsChat = response.friends;
 				this.groups = response.rooms;
 			});
 		} catch (error) {
@@ -182,9 +207,20 @@ export default {
 			console.log("parsedData", message);
 			const parsedData = JSON.parse(JSON.parse(message).data);
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
-				console.log("response", response);
+				friends.value.forEach((friend) => {
+					response.sortedData.forEach((parentResponse) => {
+						if (friend.id == parentResponse.id) {
+							parentResponse.avatar = friend.avatar;
+						}
+					});
+					response.friends.forEach((friendResponse) => {
+						if (friend.id == friendResponse.id) {
+							friendResponse.avatar = friend.avatar;
+						}
+					});
+				});
 				this.parents = response.sortedData;
-				this.friends = response.friends;
+				this.friendsChat = response.friends;
 				this.groups = response.rooms;
 			});
 			if (parsedData.senderID == user.value.id) {
@@ -201,15 +237,28 @@ export default {
 			this.parents.unshift(parent);
 		});
 	},
+	
 	mounted() {
-		console.log("Chat mounted");
 		this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+			friends.value.forEach((friend) => {
+					response.sortedData.forEach((parentResponse) => {
+						if (friend.id == parentResponse.id) {
+							parentResponse.avatar = friend.avatar;
+						}
+					});
+					response.friends.forEach((friendResponse) => {
+						if (friend.id == friendResponse.id) {
+							friendResponse.avatar = friend.avatar;
+						}
+					});
+			});
 			this.parents = response.sortedData;
-			this.friends = response.friends;
+			this.friendsChat = response.friends;
 			this.groups = response.rooms;
 		});
 	},
 	methods: {
+		
 		sendMessage() {
 			const newMessage = { ...this.messageForm };
 			if (this.isGroupActive && this.$refs.groupInfoDialog.user.isMuted)
@@ -223,8 +272,20 @@ export default {
 			console.log("newMessage", newMessage);
 			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				friends.value.forEach((friend) => {
+					response.sortedData.forEach((parentResponse) => {
+						if (friend.id == parentResponse.id) {
+							parentResponse.avatar = friend.avatar;
+						}
+					});
+					response.friends.forEach((friendResponse) => {
+						if (friend.id == friendResponse.id) {
+							friendResponse.avatar = friend.avatar;
+						}
+					});
+				});
 				this.parents = response.sortedData;
-				this.friends = response.friends;
+				this.friendsChat = response.friends;
 				this.groups = response.rooms;
 			});
 			newMessage.createdAt = showTime(newMessage.createdAt);
@@ -234,8 +295,20 @@ export default {
 		},
 		reloadData() {
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				friends.value.forEach((friend) => {
+					response.sortedData.forEach((parentResponse) => {
+						if (friend.id == parentResponse.id) {
+							parentResponse.avatar = friend.avatar;
+						}
+					});
+					response.friends.forEach((friendResponse) => {
+						if (friend.id == friendResponse.id) {
+							friendResponse.avatar = friend.avatar;
+						}
+					});
+				});
 				this.parents = response.sortedData;
-				this.friends = response.friends;
+				this.friendsChat = response.friends;
 				this.groups = response.rooms;
 			});
 		},
@@ -248,6 +321,30 @@ export default {
 			this.isGroupActive = isGroup;
 			this.fetchMessagesForChat(chatId, isGroup);
 		},
+
+		async fetchAvatarAsync(avatar) {
+			try {
+			const response = await axios.get(avatar, {
+				responseType: 'arraybuffer',
+			});
+			const contentType = response.headers['content-type'];
+			return `data:${contentType};base64,${Buffer.from(response.data, 'binary').toString('base64')}`;
+			} catch (error) {
+			console.log(`fetchAvatar() Exception: ${error}`);
+			return '';
+			}
+		},
+
+		fetchAvatar(avatar) {
+			// Use a regular function that returns a Promise
+			console.log("avatar", avatar);
+			return this.fetchAvatarAsync(avatar);
+		},
+
+		// fetchAvatarAwait(avatar) {
+		// 	// if (debug) console.log("/Store/ fetchAvatarAwait(" + avatar + ')');
+		// 	return ref(this.fetchAvatar(avatar))
+		// },
 
 		async fetchMessagesForChat(chatId, isGroup) {
 			let userId = user.value.id;
@@ -289,7 +386,7 @@ export default {
 
 		openGroupCreationPopup() {
 			this.$refs.groupCreationDialog.groupChatDialog = true;
-			this.$refs.groupCreationDialog.friends = this.friends;
+			this.$refs.groupCreationDialog.friends = this.friendsChat;
 			this.$refs.groupCreationDialog.socket = this.socket;
 			this.$refs.groupCreationDialog.group.founderId = user.value.id;
 		},

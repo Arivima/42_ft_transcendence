@@ -3,6 +3,10 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+// import { PlayersService } from 'src/players/players.service';
+// import * as path from 'path';//REMOVE
+// import * as fs from 'fs'
+
 import { use } from 'passport';
 
 @Injectable()
@@ -439,6 +443,33 @@ export class ChatService {
     });
   }
 
+  // async getAvatar(id: number) {
+  //   // perform a intern call to get avatar players/avatar/:id
+  //   const filePath = path.join(
+	// 		process.cwd(), (await this.playersService.findOne(Number(id))).avatar
+	// 	);
+
+	// 	fs.open(filePath, 'r', (err, fd) => {
+	// 		let returnedFilePath: string;
+
+	// 		if (err) {
+	// 			returnedFilePath = path.join(
+	// 				process.cwd(),
+	// 				process.env.BACKEND_DEFAULT_ONERR_PFP
+	// 			);
+	// 		}
+	// 		else {
+	// 			fs.close(fd)
+	// 			returnedFilePath = filePath;
+	// 		}
+	// 		const file = fs.createReadStream(returnedFilePath)
+  //     conso
+  //     return file;
+	// 		// res.setHeader("Content-Type", `img/${filePath.split('.')[1]}`)
+	// 		// file.pipe(res)
+	// 	});
+  // }
+
   async getParents(userId: number) {
     const user = await this.prisma.player.findUnique({
       where: { id: userId },
@@ -608,11 +639,14 @@ export class ChatService {
         orderBy: { timestamp: 'desc' },
       });
     }
+    
+    
     const friends = listoffriends.map((friendship) => ({
       id: friendship.id,
       name: friendship.username,
       lastMessage: friendship.lastMessage.length > 0 ? friendship.lastMessage[0].timestamp : null,
       isGroup: false,
+      avatar: "/players/avatar/" + friendship.id,
     }));
     const roomsWithLastMessage = user.chatroomSubscriptions.map((room) => ({
       id: room.chatroom.groupID,
