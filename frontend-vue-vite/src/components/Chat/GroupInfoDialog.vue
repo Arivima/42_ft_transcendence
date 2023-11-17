@@ -69,7 +69,6 @@ export default {
 			}
 		});
 
-		//           this.server.to(`${recClientId.id}`).emit('addusertogroup', {groupId, newUsers});
 
 		this.socket.on("addusertogroup", (data) => {
 			if (data.groupId === this.groupInfo.id) {
