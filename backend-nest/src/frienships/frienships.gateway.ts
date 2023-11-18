@@ -1,4 +1,4 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { FrienshipsService } from './frienships.service';
 import { CreateFrienshipDto } from './dto/create-frienship.dto';
 import { UpdateFrienshipDto } from './dto/update-frienship.dto';
@@ -7,12 +7,15 @@ import { Player } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { Public } from 'src/auth/decorators/auth.public.decorator';
 
+
+const debug = false;
+
 @WebSocketGateway({
 	cors: {
 		origin: process.env.FRONTEND_URL,
 	},
 })
-export class FrienshipsGateway implements OnGatewayConnection {
+export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@WebSocketServer()
 	private server: Server;
@@ -36,14 +39,14 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			secret: process.env.JWT_SECRET
 		});
 		
-		console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
+		if (debug) console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
 		// https://socket.io/docs/v4/client-options/#auth
 		this.clients.set(Number(user.sub), client);
 	}
 
 	@Public()
-	async handleDisconnection(socket: Socket) {
-		console.log(`friendships gateway: ${socket.id} disconnected`);
+	async handleDisconnect(socket: Socket) {
+		if (debug) console.log(`friendships gateway: ${socket.id} disconnected`);
 
 		let key: number = -1;
 		for (let [userID, csock] of this.clients) {
@@ -54,7 +57,7 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		}
 
 		if (-1 != key) {
-			console.log(`friendships gateway: user ${key} socket removed`);
+			if (debug) console.log(`friendships gateway: user ${key} socket removed`);
 			this.clients.delete(key);
 		}
 	}
@@ -66,7 +69,7 @@ export class FrienshipsGateway implements OnGatewayConnection {
 		@MessageBody('recipientID') recipientID: number,
 		@ConnectedSocket() socket: Socket
 	) {
-		console.log(`GATEWAY | createFrienshipRequest`);
+		if (debug) console.log(`GATEWAY | createFrienshipRequest`);
 		try {
 			//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
 			//TODO otherwise, anyone connected can act upon anyone friendships
@@ -161,14 +164,14 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	{
 		let [requestorID, recipientID] = await this.frienshipsService.getFriendship(userID, friendID);
 
-		console.log(`DEBUG| ToggleBlockUser: userID: ${userID}; friendID: ${friendID}; block: ${block}; requestorID: ${requestorID}; recipientID: ${recipientID}`);
+		if (debug) console.log(`DEBUG| ToggleBlockUser: userID: ${userID}; friendID: ${friendID}; block: ${block}; requestorID: ${requestorID}; recipientID: ${recipientID}`);
 		try {
 			[requestorID, recipientID] = await this.frienshipsService.toggleBlockUser(userID, friendID, requestorID, recipientID, block);
 
-			console.log(`DEBUG | after prisma: requestorID: ${requestorID}; recipientID: ${recipientID}; typeof requestorID: ${typeof requestorID}; typeof recipientID: ${typeof recipientID}`);
+			if (debug) console.log(`DEBUG | after prisma: requestorID: ${requestorID}; recipientID: ${recipientID}; typeof requestorID: ${typeof requestorID}; typeof recipientID: ${typeof recipientID}`);
 			let requestorSocket = this.clients.get(requestorID);
 			if (undefined != requestorSocket) {
-				console.log(`DEBUG | requestor not undefined`);
+				if (debug) console.log(`DEBUG | requestor not undefined`);
 				this.server
 					.to(requestorSocket.id)
 					.emit('toggle-block-user', {
@@ -180,7 +183,7 @@ export class FrienshipsGateway implements OnGatewayConnection {
 			}
 			let recipientSocket = this.clients.get(recipientID);
 			if (undefined != recipientSocket) {
-				console.log(`DEBUG | requestor not undefined`);
+				if (debug) console.log(`DEBUG | requestor not undefined`);
 				this.server
 					.to(recipientSocket.id)
 					.emit('toggle-block-user', {

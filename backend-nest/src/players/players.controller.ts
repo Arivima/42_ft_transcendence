@@ -29,6 +29,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 // import { ApiBody } from '@nestjs/swagger';
 
+const debug = false;
+
 @Controller('players')
 export class PlayersController {
 	constructor(private readonly playersService: PlayersService) {}
@@ -54,7 +56,7 @@ export class PlayersController {
 		if (player) {
 			player.avatar = `/players/avatar/${req.user.sub}`
 		}
-		console.log(`avatar address: ${player.avatar}`);
+		if (debug) if (debug) console.log(`avatar address: ${player.avatar}`);
 		return player;
 	}
 
@@ -89,19 +91,19 @@ export class PlayersController {
 	//TODO add interface "Connection" here for return type spec
 	@Get('friends/:id')
 	getFriends(@Param('id') id: string, @Query('includePending') includePending: string) {
-		console.log(`PlayersController | includePending: ${Boolean(includePending)}, ${typeof Boolean(includePending)}`);
+		if (debug) console.log(`PlayersController | includePending: ${Boolean(includePending)}, ${typeof Boolean(includePending)}`);
 		return this.playersService.getAllFriends(Number(id), includePending === 'true' ? true : false);
 	}
 
 	@Get('publicUsers/:id')
 	async getPublicUsers(@Param('id') id: string) {
-		// console.log(`CONTROLLER - getAllPublicUsers: id param = ${id}`);
+		// if (debug) console.log(`CONTROLLER - getAllPublicUsers: id param = ${id}`);
 		return this.playersService.getAllPublicUsers(Number(id));
 	}
 
 	@Get('pendingUsers/:id')
 	async getPendingUsers(@Param('id') id: string) {
-		// console.log(`CONTROLLER - getAllPendingUsers: id param = ${id}`);
+		// if (debug) console.log(`CONTROLLER - getAllPendingUsers: id param = ${id}`);
 		return this.playersService.getAllPendingUsers(Number(id));
 	}
 
@@ -113,7 +115,7 @@ export class PlayersController {
 
 	@Get('games/:id')
 	getGames(@Param('id') id: string, @Query('limit') limit: string) {
-		console.log(`CONTROLLER - getGames: id param = ${id}`);
+		if (debug) console.log(`CONTROLLER - getGames: id param = ${id}`);
 		return this.playersService.getAllGames(
 			Number(id),
 			limit ? Number(limit) : undefined,
@@ -122,7 +124,7 @@ export class PlayersController {
 
 	@Get('achievements/:id')
 	getAchievements(@Param('id') id: string) {
-		console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
+		if (debug) console.log(`DEBUG | players.controller | getAchievements | id: ${id}`);
 		return this.playersService.getAllAchievements(Number(id));
 	}
 
@@ -202,7 +204,7 @@ export class PlayersController {
 	@Patch('me')
 	async updateMe(@Request() req, @Body() updatePlaterDto: UpdatePlayerDto)
 	{
-		console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
+		if (debug) console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
 		try {
 			await this.playersService.update(Number(req.user.sub), updatePlaterDto);
 		}
