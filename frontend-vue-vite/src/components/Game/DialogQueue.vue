@@ -3,11 +3,12 @@ import { defineComponent } from 'vue'
 import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 import { IntersectingCirclesSpinner } from 'epic-spinners'
+import {io, Socket} from 'socket.io-client'
 
 // link to state of matchmaking
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, fetchPlayer } = storeToRefs(playerStore)
 const debug = true
 
 export default defineComponent({
@@ -24,6 +25,7 @@ export default defineComponent({
 			loading: false,
 			foundOpponent : false, // to delete :  take from store & put into computed & in store initialise to false
 			OpponentName : '',
+			gameSocket: null as Socket | null,
 		}
 	},
 	computed : {
@@ -49,19 +51,27 @@ export default defineComponent({
 				this.loading = false
 				this.foundOpponent = false
 				this.OpponentName = ''
-				
-				// to delete : here to reproduce a queue effect while no connection with store
-				setTimeout(() => {
-					this.foundOpponent = true
-					this.OpponentName = 'My Opponent'
-				}, 3000)
 
+				this.gameSocket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/game`, {
+							transports: ['websocket'],
+							auth: {
+								'token': user.value.token
+							}
+						}),
+
+				this.gameSocket?.emit('matchMaking', {
+					playerID: user.value.id,
+				});
+
+				this.gameSocket?.on('newGame', 
+				async (game: {hostID : number, guestID : number}) => {
+					let opponentID : number = (game.hostID == user.value.id)?
+						game.guestID : game.hostID;
+					this.OpponentName = (await fetchPlayer.value(opponentID)).username;
+					this.foundOpponent = true;
+				})
 			} 
 		},
-		// foundOpponent(newVal : Boolean){
-		// 	if (newVal == true) {
-		// 	}
-		// },
 	},
 	mounted() {}
 })

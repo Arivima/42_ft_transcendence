@@ -1,4 +1,4 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection } from '@nestjs/websockets';
+import { WebSocketGateway, SubscribeMessage, MessageBody, ConnectedSocket, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect } from '@nestjs/websockets';
 import { FrienshipsService } from './frienships.service';
 import { CreateFrienshipDto } from './dto/create-frienship.dto';
 import { UpdateFrienshipDto } from './dto/update-frienship.dto';
@@ -12,7 +12,7 @@ import { Public } from 'src/auth/decorators/auth.public.decorator';
 		origin: process.env.FRONTEND_URL,
 	},
 })
-export class FrienshipsGateway implements OnGatewayConnection {
+export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@WebSocketServer()
 	private server: Server;
@@ -42,7 +42,7 @@ export class FrienshipsGateway implements OnGatewayConnection {
 	}
 
 	@Public()
-	async handleDisconnection(socket: Socket) {
+	async handleDisconnect(socket: Socket) {
 		console.log(`friendships gateway: ${socket.id} disconnected`);
 
 		let key: number = -1;
