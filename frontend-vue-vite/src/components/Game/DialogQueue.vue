@@ -10,7 +10,7 @@ import { onUnmounted } from 'vue'
 // link to state of matchmaking
 
 const playerStore = usePlayerStore()
-const { user, fetchPlayer } = storeToRefs(playerStore)
+const { user, currentGame, fetchPlayer } = storeToRefs(playerStore)
 const debug = true
 
 export default defineComponent({
@@ -26,12 +26,24 @@ export default defineComponent({
 		return {
 			dialogBox: false,
 			loading: false,
-			foundOpponent : false, // to delete :  take from store & put into computed & in store initialise to false
-			OpponentName : '',
+			// foundOpponent : false, // to delete :  take from store & put into computed & in store initialise to false
+			// opponentName : '',
 			gameSocket: {} as any,
 		}
 	},
 	computed : {
+		opponentName() {
+			return user.value.id == currentGame.value.gameInfo.hostID ?
+				currentGame.value.gameInfo.guestName :
+			user.value.id == currentGame.value.gameInfo.guestID ?
+				currentGame.value.gameInfo.hostName :
+			'N/A';
+		},
+		foundOpponent() {
+			return user.value.id == currentGame.value.gameInfo.hostID ?
+				undefined != currentGame.value.gameInfo.guestID :
+				undefined != currentGame.value.gameInfo.hostID;
+		}
 		// foundOpponent(){
 		// 	return store
 		// },
@@ -63,41 +75,42 @@ export default defineComponent({
 			if (isActive == true) {
 				this.loading = false
 				this.foundOpponent = false
-				this.OpponentName = ''
+				this.opponentName = ''
 
-				console.log(`gameSocket: ${JSON.stringify(this.gameSocket)}`);
-				if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
-				{
-					console.log(`DialogQueue gameSocket SET`);
-					this.gameSocket = io(
-						`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/game`,
-						{
-							transports: ['websocket'],
-							auth: {'token': user.value.token}
-						}
-					),
+				// console.log(`gameSocket: ${JSON.stringify(this.gameSocket)}`);
+				// if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
+				// {
+					// console.log(`DialogQueue gameSocket SET`);
+					// this.gameSocket = io(
+					// 	`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/game`,
+					// 	{
+					// 		transports: ['websocket'],
+					// 		auth: {'token': user.value.token}
+					// 	}
+					// ),
 	
-					this.gameSocket.on('newGame', 
-					async (game: {hostID : number, guestID : number}) => {
-						if (debug) console.log('receive : newGame')
+					// this.gameSocket.on('newGame', 
+					// async (game: {hostID : number, guestID : number}) => {
+					// 	if (debug) console.log('receive : newGame')
 						
-						let opponentID : number = (game.hostID == user.value.id)?
-							game.guestID : game.hostID;
-						if (debug) console.log('opponentID : ' + opponentID)
+					// 	let opponentID : number = (game.hostID == user.value.id)?
+					// 		game.guestID : game.hostID;
+					// 	if (debug) console.log('opponentID : ' + opponentID)
 						
-						this.OpponentName = (await fetchPlayer.value(opponentID)).username;
-						if (debug) console.log('OpponentName : ' + this.OpponentName)
+					// 	this.opponentName = (await fetchPlayer.value(opponentID)).username;
+					// 	if (debug) console.log('opponentName : ' + this.opponentName)
 						
-						this.foundOpponent = true;
-						if (debug) console.log('foundOpponent : ' + this.foundOpponent)
-					})
-				}
-				console.log(`PORCO DIO`);
-				this.gameSocket.emit('matchMaking', {
-					playerID: user.value.id,
-				});
-				if (debug) console.log('emit : matchMaking')
-			} 
+					// 	this.foundOpponent = true;
+					// 	if (debug) console.log('foundOpponent : ' + this.foundOpponent)
+					// })
+				// }
+				// console.log(`PORCO DIO`);
+				playerStore.sendMatchMakingRequest();
+				// this.gameSocket.emit('matchMaking', {
+				// 	playerID: user.value.id,
+				// });
+				// if (debug) console.log('emit : matchMaking')
+			}
 		},
 	},
 	mounted() {},
@@ -142,7 +155,7 @@ export default defineComponent({
 				class="justify-center ma-5 text-center"
 			>
 				<h5 class="text-h5">You are playing against</h5>
-				<h5 class="text-h5">{{  OpponentName? OpponentName : 'error' }}</h5>
+				<h5 class="text-h5">{{  opponentName? opponentName : 'error' }}</h5>
 			</v-card-item>
 
 
