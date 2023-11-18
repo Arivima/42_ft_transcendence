@@ -363,6 +363,90 @@ export class ChatService {
           return ["not admin"];
         }
       }
+      // check if user is admin of group if is the unique admin randomize a new admin
+      let res = await this.prisma.subscribed.findMany({
+        where: {
+          chatroomID: groupId,
+          isAdmin: true,
+          playerID: {
+            not: userId,
+          },
+        },
+        select: {
+          playerID: true,
+        },
+      });
+
+      console.log(`DEBUG | chat.service | removeUserFromGroup | res.length: ${res.length}`);
+      if (res.length === 0) {
+        let res2 = await this.prisma.subscribed.findMany({
+          where: {
+            chatroomID: groupId,
+            playerID: {
+              not: userId,
+            },
+          },
+          select: {
+            playerID: true,
+            isMuted: true,
+            isBanned: true,
+          },
+        });
+        console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length: ${res2.length}`);
+        if (res2.length === 0) {
+          await this.prisma.chatRoom.delete({
+            where: {
+              groupID: groupId,
+            },
+          });
+          return ["delete group"]
+        }
+        res2 = res2.filter((user) => {
+          return user.isBanned === false;
+        });
+        console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length after filter: ${res2.length}`);
+        if (res2.length === 0) {
+          await this.prisma.chatRoom.delete({
+            where: {
+              groupID: groupId,
+            },
+          });
+          return ["delete group"]
+        }
+        let randomAdmin = res2[Math.floor(Math.random() * res2.length)];
+        console.log(`DEBUG | chat.service | removeUserFromGroup | randomAdmin: ${randomAdmin}`);
+        let res3 = await this.prisma.subscribed.update({
+          where: {
+            playerID_chatroomID: {
+              playerID: randomAdmin.playerID,
+              chatroomID: groupId,
+            },
+          },
+          data: {
+            isAdmin: true,
+          },
+        });
+        console.log(`DEBUG | chat.service | removeUserFromGroup | res3: ${res3}`);
+      }
+
+
+
+
+      // let isAdmin = await this.prisma.subscribed.findMany({
+      //   where: {
+      //     chatroomID: groupId,
+      //     isAdmin: true,
+      //     playerID: {
+      //       not: userId,
+      //     },
+      //   },
+      //   select: {
+      //     playerID: true,
+      //   },
+      // });
+
+
+
       await this.prisma.chatRoom.update({
         where: {
           groupID: groupId,
@@ -649,6 +733,7 @@ export class ChatService {
       isGroup: false,
       avatar: "/players/avatar/" + friendship.id,
     }));
+
     const roomsWithLastMessage = user.chatroomSubscriptions.map((room) => ({
       id: room.chatroom.groupID,
       name: room.chatroom.name,
@@ -672,8 +757,21 @@ export class ChatService {
     return { friends: friends, rooms: roomsWithLastMessage, sortedData: sortedData };
   }
 
-  async getGroupInfo(groupId: number) {
+  async getGroupInfo(groupId: number, userId: number) {
     console.log(`DEBUG | chat.service | getGroupInfo | groupId: ${groupId}`);
+
+    let isInGroup = await this.prisma.subscribed.findMany({
+      where: {
+        chatroomID: groupId,
+        playerID: userId,
+      },
+      select: {
+        playerID: true,
+      },
+    });
+    if (isInGroup.length === 0) {
+      return {error: "not in group"};
+    }
     const group = await this.prisma.chatRoom.findUnique({
       where: { groupID: groupId },
       include: {

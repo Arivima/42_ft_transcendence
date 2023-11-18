@@ -5,9 +5,11 @@
 				<v-row class="no-gutters elevation-4">
 					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
 						<v-responsive class="overflow-y-auto fill-height" height="500">
-							<v-list subheader>
-								<v-btn @click="openGroupCreationPopup">Create Group Chat</v-btn>
-								<v-btn @click="openSearchGroupPopup">Search Group</v-btn>
+							<v-list subheader >
+								<v-btn @click="openGroupCreationPopup" style="margin-right: 5px;margin-bottom: 10px;">Create Group Chat</v-btn>
+								<v-btn @click="openSearchGroupPopup" style="margin-bottom: 10px;">
+									<v-icon>mdi-magnify</v-icon>
+								</v-btn>
 								<div class="">
 									
 								<v-item-group v-model="activeChat">
@@ -172,7 +174,8 @@ export default {
 
 	created() {
 		// this.socket = io('ws://localhost:3000',{transports:['websocket']});
-		this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}`, {
+		// namespace: chat
+		this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/chat`, {
 			transports: ['websocket'],
 			auth: {
 				'token': user.value.token
@@ -235,6 +238,16 @@ export default {
 
 		this.socket.on("newparent", (parent) => {
 			this.parents.unshift(parent);
+		});
+
+		this.socket.on("removeparent", (parent) => {
+			console.log("removeparent", parent);
+			this.parents.forEach((item, index) => {
+				console.log("item", item);
+				if (item.id == parent.id) {
+					this.parents.splice(index, 1);
+				}
+			});
 		});
 	},
 	
@@ -396,6 +409,10 @@ export default {
 		openGroupInfoPopup() {
 			this.$refs.groupInfoDialog.groupInfoDialog = true;
 			this.socket.emit("getgroupinfo", { groupId: this.parents[this.activeChat - 1].id }, (response) => {
+				if (response.error) {
+					alert(response.error);
+					return;
+				}
 				this.$refs.groupInfoDialog.groupInfo = response;
 				this.$refs.groupInfoDialog.user.isAdmin = false;
 				this.$refs.groupInfoDialog.user.isMuted = false;

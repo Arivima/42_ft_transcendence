@@ -5,8 +5,7 @@
 				<!-- <v-avatar class="mr-2"> -->
 				<v-card-title>{{ groupInfo.name }}</v-card-title>
 				<v-btn icon @click="addusertogroup()" v-if="this.user.isAdmin">
-					<v-icon>edit</v-icon>
-					+
+					<v-icon>mdi-account-plus</v-icon>
 				</v-btn>
 			</div>
 			<v-card-text>

@@ -12,6 +12,7 @@ import { response } from 'express';
   cors: {
     origin: '*',
   },
+	namespace: "chat"
 })
 export class ChatGateway {
   @WebSocketServer()
@@ -71,9 +72,10 @@ export class ChatGateway {
   }
 
   @SubscribeMessage("getgroupinfo")
-  getGroupInfo(@MessageBody("groupId") groupId: string) {
+  getGroupInfo(@MessageBody("groupId") groupId: string, @ConnectedSocket() client: Socket) {
     console.log(`DEBUG | chat.controller | getGroupInfo | groupId: ${groupId}`);
-    return this.chatService.getGroupInfo(Number(groupId));
+    let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    return this.chatService.getGroupInfo(Number(groupId), Number(userId));
   }
 
   // @SubscribeMessage("addusertogroup")
@@ -146,6 +148,7 @@ export class ChatGateway {
   @SubscribeMessage("removemefromgroup")
   removeMeFromGroup(@MessageBody("groupId") groupId: string, @ConnectedSocket() client: Socket) {
     let me = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    let recClientId: Socket;
     if (!me)
       return { success: false };
     this.chatService.removeUserFromGroup(Number(me), Number(groupId), Number(me)).then((otherMembers) => {
@@ -153,13 +156,17 @@ export class ChatGateway {
       if (!otherMembers)
         return { success: false };
       otherMembers.forEach((memberId) => {
-        let recClientId = this.clients.get(Number(memberId.playerID));
+        recClientId = this.clients.get(Number(memberId.playerID));
         console.log(`DEBUG | chat.controller | removeMeFromGroup | memberId: ${recClientId}`);
         if (recClientId)
-          this.server.to(`${recClientId.id}`).emit('removemefromgroup', { groupId });
+          this.server.to(`${recClientId.id}`).emit('removeuserfromgroup', { userId: me, groupId });
         return { success: true };
-      }
-      )
+      });
+      recClientId = this.clients.get(Number(me));
+      if (recClientId)
+        this.server.to(`${recClientId.id}`).emit('removeparent', { id: groupId });
+
+
       return { success: true };
     });
     return { success: true };
@@ -201,7 +208,7 @@ export class ChatGateway {
     this.chatService.createGroupChat(group).then((newparent) => {
       let id = newparent.groupID;
       let name = newparent.name;
-      let lastMessage = null;
+      let lastMessage = newparent.createdAt;
       let isGroup = true;
 
       group.members.forEach((memberId) => {
