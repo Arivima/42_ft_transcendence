@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   PlayerStore.ts                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: earendil <earendil@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/23 18:48:38 by earendil         ###   ########.fr       */
+/*   Updated: 2023/11/18 21:46:25 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,6 +63,56 @@ export interface FriendRequestError {
 	recipientID: number
 }
 
+
+export interface PlayerGameData {
+	paddle: {
+		w: number
+		h: number
+		sx: number
+		sy: number
+		y: number
+	}
+	score: number
+}
+
+export interface Frame {
+	seq: number,
+	ball: {
+		radius: number
+		sx: number, sy: number
+		x: number, y: number
+		dx: number, dy: number
+	}
+	host: PlayerGameData
+	guest: PlayerGameData
+}
+
+export interface CustomizationOptions {
+	pitch_color: string,
+	paddle_color: string,
+	ball_color: string
+}
+
+export interface GameInfo {
+	hostID: number,
+	hostName: string,
+	guestID: number,
+	guestName: string
+}
+
+export interface currentGame {
+	gameInfo: GameInfo,
+	customizations: CustomizationOptions,
+	frame: Frame
+}
+
+const emptyCurrentGame = {
+	gameInfo: {hostID: -1, hostName: 'N/A', guestID: -1, guestName: 'N/A'},
+	customizations: {pitch_color: 'N/A', paddle_color: 'N/A', ball_color: 'N/A'},
+	frame: {seq: -1, ball: {radius: -1, sx: -1, sy: -1, x: -1, y: -1, dx: -1, dy: -1} }
+} as currentGame;
+
+
 export interface Player {
 	id: number
 	username: string
@@ -114,6 +164,7 @@ const emptyUser = {
 export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		state: (): {
 			user: Player
+			currentGame: currentGame
 			loading: boolean //TODO ? forse rimuovere
 			friends: Player[],
 			blockedUsers: Player[],
@@ -130,6 +181,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		} => {
 			return {
 				user: emptyUser,
+				currentGame: {} as currentGame,
 				friends: [],
 				blockedUsers: [],
 				publicUsers: [],
@@ -203,8 +255,9 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			// matchmaking
 			sendMatchMakingRequest() {
 				if (debug) console.log("/Store/ sendMatchMakingRequest");
+				
 				this.user.gameSocket?.emit('matchMaking', {
-					playerID: this.user.id,
+					userID: this.user.id
 				});
 			},
 
@@ -250,13 +303,17 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			// game
-			sendCustomizationOptions() {
+			sendCustomizationOptions(customization: CustomizationOptions) {
 				if (debug) console.log("/Store/ sendCustomizationOptions");
+				
 				this.user.gameSocket?.emit('customization', {
+					customization: customization,
+					game_info: this.currentGame.gameInfo,
+					userID: this.user.id
 				});
 			},
 
-			sendFrame(frame: FrameDto) {
+			sendFrame(frame: Frame) {
 				if (debug) console.log("/Store/ sendFrame");
 				this.user.gameSocket?.emit('newFrame', {
 					frame: frame
@@ -840,6 +897,16 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 	
 	// this.foundOpponent = true;
 	// if (debug) console.log('foundOpponent : ' + this.foundOpponent)
+
+	// filling game info <--- game identifying data
+	this.currentGame.game_info.hostID = game.hostID;
+	this.currentGame.game_info.hostName = this.user.id == game.hostID ?
+		this.user.username :
+		(await fetchPlayer(game.hostID)).username;
+	this.currentGame.game_info.guestID = game.guestID;
+	this.currentGame.game_info.guestName = this.user.id == game.guestID ?
+		this.user.username :
+		(await fetchPlayer(game.guestID)).username;
 }
 
 async function handleStart(this: any) {

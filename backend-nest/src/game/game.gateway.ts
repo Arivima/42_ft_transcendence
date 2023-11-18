@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/18 19:25:35 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/18 21:18:29 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	{
 		this.queue = new Map<number, Socket>();
 		this.games = new Map<number, GameSocket>();
+		/**
+		 * key: roomID
+		 * value: next frame data
+		 */
 		this.frames = new Map<string, FrameDto>();
 	}
 
@@ -147,7 +151,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	// joining game through matchmaking
 	@SubscribeMessage('matchMaking')
 	async matchMaking(
-		@MessageBody() playerDto: PlayerDto,
+		@MessageBody('userID') userID: number,
 		@ConnectedSocket() playerSocket: Socket
 	)
 	{
@@ -157,10 +161,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let matched: boolean = false;
 		
 		for (let [hostID, hostSocket] of this.queue) {
-			if (await this.gameService.playerMatch(hostID, playerDto.playerID))
+			if (await this.gameService.playerMatch(hostID, userID))
 			{
 				// create the room
-				let roomId = `${playerDto.playerID}:${hostID}`;
+				let roomId = `${userID}:${hostID}`;
 				hostSocket.join(roomId);
 				playerSocket.join(roomId);
 				console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket} & ${playerSocket} joined ${roomId} `);
@@ -178,12 +182,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				};
 				this.queue.delete(hostID);
 				this.games.set(hostID, hostGameSocket);
-				this.games.set(playerDto.playerID, guestGameSocket);
+				this.games.set(userID, guestGameSocket);
 
 				// emit event in the room
 				this.server.to(roomId).emit('newGame', {
 					hostID,
-					guestID: playerDto.playerID
+					guestID: userID
 				} as CreateGameDto);
 				console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
 
@@ -197,7 +201,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (false == matched)
 		{
 			console.log(`| GATEWAY GAME | 'matchMaking' | not matched `);
-			this.queue.set(playerDto.playerID, playerSocket);
+			this.queue.set(userID, playerSocket);
 		}
 		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 		console.log(`| GATEWAY GAME | current live games : ${this.games.size / 2} `);

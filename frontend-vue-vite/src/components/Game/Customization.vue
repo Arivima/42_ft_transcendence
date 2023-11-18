@@ -18,7 +18,13 @@ export default {
 	methods : {
 		send() {
 			// playerStore.sendCustomization({})
-
+			playerStore.sendCustomizationOptions.value({
+				customization: {
+					pitch_color: this.colorPitch,
+					paddle_color: this.colorPaddle,
+					ball_color: this.colorBall
+				},
+			});
 		},
 	}
 
