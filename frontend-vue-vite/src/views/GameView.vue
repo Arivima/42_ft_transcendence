@@ -10,18 +10,20 @@ import CanvasGame from '@/components/Game/CanvasGame.vue';
 
 export default {
 	components : {
-    NavSideBar, Notifications, Customization, Leaderboard, DialogQueue,
-    AboutGame,
-    DialogEndGame,
-    CanvasGame
-},
+		NavSideBar, Notifications, Customization, Leaderboard, DialogQueue,
+		AboutGame,
+		DialogEndGame,
+		CanvasGame
+	},
 	data: () => ({
-		newGame: false,
 		inGame: false,
 	}),
 	methods: {
 		closeGame(){
 			this.inGame = false
+		},
+		newGame(){
+			this.inGame = true
 		}
 	}
 }
@@ -38,25 +40,22 @@ export default {
 			class="game flex-column backgroundGame"
 		>
 			<Leaderboard v-if="false == inGame"></Leaderboard>				
-			<Customization v-if="false == inGame"></Customization>
 
 			<v-card-item 
 				class="ma-7"
 			>
-				<!-- TODO delete when inGame = true -->
 				<v-btn
 					color="primary"
 					variant="elevated"
 					size="x-large"
 					class="mx-3"
-					@click="inGame = true" 
+					@click="newGame"
 				>
-					{{ inGame? 'Stop Game' : 'Play now'  }}
+					Play now !
 					<DialogQueue
 						@close="closeGame"
 					></DialogQueue>
 				</v-btn>
-
 			</v-card-item>
 
 			<v-card-item
