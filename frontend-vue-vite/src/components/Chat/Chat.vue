@@ -269,7 +269,6 @@ export default {
 			else if (newMessage.groupID)
 				newMessage.receiversID = this.parents[this.activeChat - 1].id;
 			newMessage.createdAt = new Date();
-			console.log("newMessage", newMessage);
 			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
 				friends.value.forEach((friend) => {

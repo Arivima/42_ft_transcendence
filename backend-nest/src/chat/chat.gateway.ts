@@ -243,8 +243,22 @@ export class ChatGateway {
 	//   },
 
   @SubscribeMessage("searchgroups")
-  searchGroups(@MessageBody("groupSearch") groupSearch: string) {
+  searchGroups(@MessageBody("groupSearch") groupSearch: string, @ConnectedSocket() client: Socket) {
     console.log(`DEBUG | chat.controller | searchGroups | groupSearch: ${groupSearch}`);
-    return this.chatService.searchGroups(groupSearch);
+    let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    return this.chatService.searchGroups(groupSearch, Number(userId));
+  }
+
+  @SubscribeMessage("joingroup")
+  async joinGroup(@MessageBody("groupId") groupId: string, @MessageBody("password") password: string, @ConnectedSocket() client: Socket) {
+    console.log(`DEBUG | chat.controller | joinGroup | groupId: ${groupId}`);
+    let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    let res = await this.chatService.joinGroup(Number(groupId), Number(userId), password);
+    if (!res)
+      return { error: "wrong password" };
+    let recClientId = this.clients.get(Number(userId));
+    console.log(`DEBUG | chat.controller | joinGroup | memberId: ${recClientId}`);
+    if (recClientId)
+      this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0]?.createdAt, isGroup: true });
   }
 }

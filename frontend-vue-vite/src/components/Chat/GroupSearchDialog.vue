@@ -14,11 +14,16 @@
 						<v-list-item-title>{{ group.name }}</v-list-item-title>
 						<v-list-item-subtitle v-if="group.visibility === 'public'">Public</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="group.visibility === 'protected'">Protected</v-list-item-subtitle>
-						<v-list-item-action class="float-right">
-							<v-btn color="primary" class="mr-2" outlined>
-								View Group
+						<!-- insert group password if protected on click -->
+						<v-list-item-action class="">
+							<v-text-field v-if="group.visibility === 'protected'" v-model="group.password" label="Password for protected groups" style="width: 200px; margin-top: 10px; padding-right: 10px;"></v-text-field>
+							<div>{{ group.id }}, {{ group.password }}, {{ group.groupId }}, {{ group.groupID }}</div>
+							<v-btn color="primary" class="mr-2" outlined @click="joinGroup(group.groupID, group.password)">
+								Join Group
 							</v-btn>
 						</v-list-item-action>
+
+
 					</v-list-item>
 				</div>
 			</v-list>
@@ -62,6 +67,7 @@
 		this.groups = [];
 	  
 	  },
+
 	  searchGroups() {
 		try {
 			this.socket.emit("searchgroups", { groupSearch: this.groupSearch }, (response) => {
@@ -70,6 +76,22 @@
 			});
 		} catch (error) {
 			console.error("Error emitting 'searchgroups':", error);
+		}
+	  },
+
+	  joinGroup(groupId, password) {
+		try {
+			console.log("groupId", groupId, "password", password);
+			this.socket.emit("joingroup", { groupId: groupId, password: password }, (response) => {
+				if (response.error) {
+					alert(response.error);
+				}
+			});
+			this.dialog = false;
+			this.groupSearch = '';
+			this.groups = [];
+		} catch (error) {
+			console.error("Error emitting 'joingroup':", error);
 		}
 	  },
 	//   viewGroup(groupId) {
