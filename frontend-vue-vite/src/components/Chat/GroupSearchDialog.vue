@@ -15,9 +15,8 @@
 						<v-list-item-subtitle v-if="group.visibility === 'public'">Public</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="group.visibility === 'protected'">Protected</v-list-item-subtitle>
 						<!-- insert group password if protected on click -->
-						<v-list-item-action class="">
+						<v-list-item-action class="float-right">
 							<v-text-field v-if="group.visibility === 'protected'" v-model="group.password" label="Password for protected groups" style="width: 200px; margin-top: 10px; padding-right: 10px;"></v-text-field>
-							<div>{{ group.id }}, {{ group.password }}, {{ group.groupId }}, {{ group.groupID }}</div>
 							<v-btn color="primary" class="mr-2" outlined @click="joinGroup(group.groupID, group.password)">
 								Join Group
 							</v-btn>
