@@ -118,9 +118,9 @@ export default defineComponent({
 		activator="parent"
 		persistent
 		class="align-center justify-center"
-		min-width="500"
+		min-width="1000"
 	>
-		<v-card rounded class="dialog bg-white ma-auto pa-4 w-75">
+		<v-card rounded class="dialog bg-white ma-auto pa-4">
 			
 			<v-card-title class="text-button text-center">
 					{{ foundOpponent? 'Found player ! ': 'Waiting for your opponent' }}
@@ -145,17 +145,14 @@ export default defineComponent({
 				<h5 class="text-h5">{{  OpponentName? OpponentName : 'error' }}</h5>
 			</v-card-item>
 
-			<v-card-item
+
+			<Customization
 				v-show="true == foundOpponent"
-				class="justify-center ma-5 text-center"
-			>
-				<Customization></Customization>
-			</v-card-item>
+			></Customization>
 
 
 			<v-card-item class="text-center ma-2">
 				<v-btn v-show="false == foundOpponent" text="Cancel" @click="cancelGameRequest" border class="me-4" color="primary" variant="tonal"></v-btn>
-				<v-btn v-show="true == foundOpponent" text="Send preferences" @click="sendOk" border class="me-4" color="primary" variant="tonal"></v-btn>
 			</v-card-item>
 
 		</v-card>

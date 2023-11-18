@@ -11,36 +11,17 @@ export default {
 	components:	{
 },
 	data: () => ({
-		showCustomization: false,
+		colorPaddle: '#00000000',
+		colorBall: '#00000000',
+		colorPitch: '#FFFFFFFF',
 	}),
-	computed : {
-	},
-	watch : {
-	},
-	beforeCreate() {
-	if (debug) console.log('| BlockedSent | beforeCreate()')
-	},
-	created() {
-		if (debug) console.log('| BlockedSent | created()')
-	},
-	beforeMount() {
-		if (debug) console.log('| BlockedSent | beforeMount()')
-	},
-	mounted() {
-		if (debug) console.log('| BlockedSent | mounted()')
-	},
-	beforeUpdate() {
-		if (debug) console.log('| BlockedSent | beforeUpdate()')
-	},
-	updated() {
-		if (debug) console.log('| BlockedSent | updated()')
-	},
-	beforeUnmount() {
-		if (debug) console.log('| BlockedSent | beforeUnmount()')
-	},
-	unmounted() {
-		if (debug) console.log('| BlockedSent | unmounted()')
-	},
+	methods : {
+		send() {
+			// playerStore.sendCustomization({})
+
+		},
+	}
+
 	}
 </script>
   
@@ -48,13 +29,12 @@ export default {
 
 <template>
 	<v-card
-		class="component justify-center align-center "
-		min-width="500"
+		class="justify-center align-center"
+		flat
 	>	
 
 		<v-card-item
 			density="compact"
-			style="background-color: lavender;"
 			class="rounded-pill"
 			prepend-icon="mdi-brush"
 		>
@@ -64,38 +44,32 @@ export default {
 				Customize your game
 			</v-card-subtitle>
 
-			<template v-slot:append>
-				<v-btn
-					:icon="showCustomization ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-					size="small"
-					variant="outlined"
-					class="mr-1"
-					:color="showCustomization ? 'grey' : 'primary'"
-					@click="showCustomization = !showCustomization"
-				>
-				</v-btn>
-			</template>
 		</v-card-item>
 
-		<v-card-item
-			v-if="showCustomization == true"
+
+		<v-card
+			style="display: flex; flex-direction: row; justify-content: space-around;"
+			flat
 		>
-			<v-card-item
-			>	
-				<v-btn> A</v-btn>
-				<v-btn> B</v-btn>
-				<v-btn> C</v-btn>				
+			<v-card-item class="ma-1 pa-1">
+				<p class="text-overline">Paddles</p>
+				<v-color-picker width="130" :modes="['hexa']" hide-inputs v-model="colorPaddle"></v-color-picker>
+				{{ colorPaddle }}
 			</v-card-item>
+			<v-card-item class="ma-1 pa-1">
+				<p class="text-overline">Pitch</p>
+				<v-color-picker  width="130" :modes="['hexa']" hide-inputs v-model="colorPitch"></v-color-picker>
+				{{ colorPitch }}
+			</v-card-item>
+			<v-card-item  class="ma-1 pa-1">
+				<p class="text-overline">Ball</p>
+				<v-color-picker  width="130" :modes="['hexa']" hide-inputs v-model="colorBall"></v-color-picker>
+				{{ colorBall }}
+			</v-card-item>
+		</v-card>
+		<v-card-item class="w-100 justify-center">
+			<v-btn text="Send preferences" @click="send" border class="ma-4" color="primary" variant="tonal"></v-btn>
 		</v-card-item>
 
 	</v-card>
 </template>
-
-<style scoped>
-.component {
-	max-width:  100%;
-	max-height:  100%;
-	width: fit-content;
-}
-
-</style>

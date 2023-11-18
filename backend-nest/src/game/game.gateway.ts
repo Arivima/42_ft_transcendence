@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/18 18:10:31 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/18 19:25:35 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,11 +17,13 @@ import { UpdateGameDto } from './dto/update-game.dto';
 import { PlayerDto } from './dto/player.dto';
 import { Socket, Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
-import { FrameDto } from './dto/game.dto';
+import { FrameDto } from './dto/frame.dto';
+import { CustomizationOptions } from './dto/customization.dto';
 
 export class GameSocket {
 	user_socket: Socket
 	roomId: string
+	customization: CustomizationOptions
 };
 
 @WebSocketGateway({
@@ -166,11 +168,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				// update data structures
 				let hostGameSocket: GameSocket = {
 					user_socket: hostSocket,
-					roomId
+					roomId,
+					customization: {} as CustomizationOptions
 				};
 				let guestGameSocket: GameSocket = {
 					user_socket: playerSocket,
-					roomId
+					roomId,
+					customization: {} as CustomizationOptions
 				};
 				this.queue.delete(hostID);
 				this.games.set(hostID, hostGameSocket);
@@ -199,18 +203,46 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		console.log(`| GATEWAY GAME | current live games : ${this.games.size / 2} `);
 	}
 
-	/*
 	// customization
 	@SubscribeMessage('sendCustomizationOptions')
-	sendCustOptions(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.sendCustOptions(playerDto);
+	sendCustOptions(
+		@MessageBody('customization') customization: CustomizationOptions,
+		@MessageBody('gameInfo') game_info: CreateGameDto,
+		@MessageBody('userID') userID: number
+	) {
+		const other_customizations = this.games.get(
+			userID == game_info.hostID ?
+			game_info.guestID :
+			game_info.hostID
+		).customization;
+		
+		if (JSON.stringify({}) != JSON.stringify(other_customizations))
+		{
+			const roomId = this.games.get(userID).roomId;
+			const final_customization = {
+				pitch_color: Math.random() * 1024 % 2 == 0 ?
+					other_customizations.pitch_color :
+					customization.pitch_color,
+				paddle_color: Math.random() * 1024 % 2 == 0 ?
+					other_customizations.paddle_color :
+					customization.paddle_color,
+				ball_color:  Math.random() * 1024 % 2 == 0 ?
+					other_customizations.ball_color :
+					customization.ball_color,
+			} as CustomizationOptions;
+
+			this.server.to(roomId).emit('startGame', {
+				customization: final_customization
+			})
+		}
+		Object.assign(this.games.get(userID).customization, customization);
 	}
 
 	// joining game for livestream
-	@SubscribeMessage('joinGame')
-	joinGame(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.joinGame(playerDto);
-	}*/
+	// @SubscribeMessage('joinGame')
+	// joinGame(@MessageBody() playerDto: PlayerDto) {
+	// 	return this.gameService.joinGame(playerDto);
+	// }
 
 	@SubscribeMessage('newFrame')
 	getNewFrame(
