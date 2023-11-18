@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/18 13:58:34 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/18 18:10:31 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	async handleDisconnect(client: any) {
-		console.log(`| GATEWAY GAME | {client.id} disconnected`);
+		console.log(`| GATEWAY GAME | ${client.id} disconnected`);
 		
 		let key: number = -1;
 		
@@ -144,7 +144,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}*/
 	// joining game through matchmaking
 	@SubscribeMessage('matchMaking')
-	matchMaking(
+	async matchMaking(
 		@MessageBody() playerDto: PlayerDto,
 		@ConnectedSocket() playerSocket: Socket
 	)
@@ -155,7 +155,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		let matched: boolean = false;
 		
 		for (let [hostID, hostSocket] of this.queue) {
-			if (this.gameService.playerMatch(hostID, playerDto.playerID))
+			if (await this.gameService.playerMatch(hostID, playerDto.playerID))
 			{
 				// create the room
 				let roomId = `${playerDto.playerID}:${hostID}`;
@@ -196,7 +196,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.queue.set(playerDto.playerID, playerSocket);
 		}
 		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.games.size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.games.size / 2} `);
 	}
 
 	/*
