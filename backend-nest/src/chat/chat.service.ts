@@ -600,6 +600,7 @@ export class ChatService {
                   take: 1,
                   orderBy: { timestamp: 'desc' },
                 },
+                createdAt: true,
 
                 },
               },
@@ -651,7 +652,7 @@ export class ChatService {
     const roomsWithLastMessage = user.chatroomSubscriptions.map((room) => ({
       id: room.chatroom.groupID,
       name: room.chatroom.name,
-      lastMessage: room.chatroom.messages.length > 0 ? room.chatroom.messages[0].timestamp : null,
+      lastMessage: room.chatroom.messages.length > 0 ? room.chatroom.messages[0].timestamp : room.chatroom.createdAt,
       isGroup: true,
     }));
 
@@ -850,13 +851,14 @@ export class ChatService {
 	// 		console.error("Error emitting 'searchgroups':", error);
 	// 	}
 	//   },
-  async searchGroups(groupSearch: string) {
-    console.log(`DEBUG | chat.service | searchGroups | groupSearch: ${groupSearch}`);
-    // select where name contains groupSearch and is public or protected
+  async searchGroups(groupSearch: string, userId: number) {
+    console.log(`DEBUG | chat.service | searchGroups | groupSearch: ${groupSearch}, userId: ${userId}`);
+    // select where name contains groupSearch and is public or protected and user is not in group members
     let res = await this.prisma.chatRoom.findMany({
       where: {
         name: {
           contains: groupSearch,
+          
         },
         OR: [
           {
@@ -866,6 +868,11 @@ export class ChatService {
             visibility: "protected",
           },
         ],
+        subscriptions: {
+          none: {
+            playerID: userId,
+          },
+        },
       },
       select: {
         groupID: true,
@@ -880,9 +887,42 @@ export class ChatService {
             playerID: true,
           },
         },
+        visibility: true,
       },
     });
-    console.log(`DEBUG | chat.service | searchGroups | res: ${res}`);
+    
+    // let res = await this.prisma.chatRoom.findMany({
+    //   where: {
+    //     name: {
+    //       contains: groupSearch,
+          
+    //     },
+    //     OR: [
+    //       {
+    //         visibility: "public",
+    //       },
+    //       {
+    //         visibility: "protected",
+    //       },
+    //     ],
+    //   },
+    //   select: {
+    //     groupID: true,
+    //     name: true,
+    //     founder: {
+    //       select: {
+    //         username: true,
+    //       },
+    //     },
+    //     subscriptions: {
+    //       select: {
+    //         playerID: true,
+    //       },
+    //     },
+    //     visibility: true,
+    //   },
+    // });
+    // console.log(`DEBUG | chat.service | searchGroups | res: ${res}`);
     
     let ret = res.map((group) => ({
       ...group,
@@ -891,9 +931,67 @@ export class ChatService {
         ...subscription,
         playerID: subscription.playerID,
       })),
+      password: ""
+
     }));
     
     return { groups: ret };
+  }
+
+  async joinGroup(groupId: number, userId: number, password: string) {
+    console.log(`DEBUG | chat.service | joinGroup | groupId: ${groupId} | userId: ${userId} | password: ${password}`);
+    let res = await this.prisma.chatRoom.findUnique({
+      where: {
+        groupID: groupId,
+      },
+      select: {
+        visibility: true,
+        password: true,
+      },
+    });
+    console.log(`DEBUG | chat.service | joinGroup | res: ${res}`);
+    if (res.visibility === "public" || (res.visibility === "protected" && res.password === password)) {
+      
+      await this.prisma.chatRoom.update({
+        where: {
+            groupID: groupId,
+        },
+        data: {
+          subscriptions: {
+            create: [{
+              isAdmin: false,
+              isMuted: false,
+              isBanned: false,
+              player: {
+                connect: {
+                  id: userId,
+                },
+              },
+              
+            }],
+          },
+        },
+      });
+      return await this.prisma.chatRoom.findUnique({
+        where: {
+          groupID: groupId,
+        },
+        select: {
+          name: true,
+          messages: {
+            take: 1,
+            orderBy: { timestamp: 'desc' },
+          },
+          subscriptions: {
+            select: {
+              player: true,
+            },
+          },
+        },
+      });
+    }
+    else
+      return null;
   }
 
   findOne(id: number) {
