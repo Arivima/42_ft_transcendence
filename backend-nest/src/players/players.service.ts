@@ -8,6 +8,8 @@ export class Connection {
 	playing: boolean;
 }
 
+const debug = false;
+
 @Injectable()
 export class PlayersService {
 	private connections: Map<number, Connection>;
@@ -31,7 +33,7 @@ export class PlayersService {
 	// async downloadFile(url: path)
 
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
-        console.log('DEBUG | Players.Service | create() : called');
+        if (debug) console.log('DEBUG | Players.Service | create() : called');
 
 
 		return this.prisma.player.create({
@@ -99,15 +101,15 @@ export class PlayersService {
 
 
 	async getAllPlayers(): Promise<Player[]> {
-		console.log(`DEBUG | Players.Service | getAllPlayers `);
+		if (debug) console.log(`DEBUG | Players.Service | getAllPlayers `);
 		const players: Player[] = await this.prisma.player.findMany();
 		const playerIds: number[] = players.map(player => player.id);
-		console.log(`DEBUG | Players.Service | getAllPlayers | players : ` + playerIds);
+		if (debug) console.log(`DEBUG | Players.Service | getAllPlayers | players : ` + playerIds);
 		return players
 	}
 
 	async getAllPublicUsers(userID: number): Promise<Player[]> {
-		console.log(`DEBUG | Players.Service | getAllPublicUsers | userID: ${userID}`);
+		if (debug) console.log(`DEBUG | Players.Service | getAllPublicUsers | userID: ${userID}`);
 		const players = await this.getAllPlayers();
 		const friends = await this.getAllFriends(userID, true);
 		const blocked = await this.getAllBlockedUsers(userID);
@@ -120,7 +122,7 @@ export class PlayersService {
 				   !isKnownId(userID, player.id);
 		});
 		const publicUsersIds: number[] = publicUsers.map(publicUser => publicUser.id);
-		console.log(`DEBUG | Players.Service | getAllPublicUsers | publicUsers : ` + publicUsersIds);
+		if (debug) console.log(`DEBUG | Players.Service | getAllPublicUsers | publicUsers : ` + publicUsersIds);
 
 		publicUsers.forEach(
 			(user) => {
@@ -131,7 +133,7 @@ export class PlayersService {
 	}
 
 	async getAllPendingUsers(userID: number): Promise<Player[]> {
-		console.log(`DEBUG | Players.Service | getAllPublicUsers | userID: ${userID}`);
+		if (debug) console.log(`DEBUG | Players.Service | getAllPublicUsers | userID: ${userID}`);
 		const allfriends = await this.getAllFriends(userID, true);
 		const myfriends = await this.getAllFriends(userID, false);
 
@@ -141,7 +143,7 @@ export class PlayersService {
 			return !myfriends.some(friend => isKnownId(friend.id, player.id))
 		});
 		// const pendingUsersIds: number[] = pendingUsers.map(publicUser => publicUser.id);
-		// console.log(`DEBUG | Players.Service | getAllPendingUsers | pendingUsers : ` + pendingUsersIds);
+		// if (debug) console.log(`DEBUG | Players.Service | getAllPendingUsers | pendingUsers : ` + pendingUsersIds);
 
 		pendingUsers.forEach(
 			(user) => {
@@ -204,7 +206,7 @@ export class PlayersService {
 	}
 
 	async getAllFriends(userID: number, includePending: boolean): Promise<(Player & Connection)[]> {
-		console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
+		if (debug) console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
 				requestorID: userID,
@@ -237,7 +239,7 @@ export class PlayersService {
 		for (const friend of friendsAsRecipientIDs) {
 			friendsIDs.push(friend.requestorID);
 		}
-		console.log(`DEBUG | Players.Service | getAllFriends | friendsIDs: ${friendsIDs}`);
+		if (debug) console.log(`DEBUG | Players.Service | getAllFriends | friendsIDs: ${friendsIDs}`);
 		const friends = [];
 		for (const friendID of friendsIDs) {
 			// friends.push(await this.findOne(friendID));
@@ -252,7 +254,7 @@ export class PlayersService {
 	// TODO make achievementName unique
 
 	async getAllAchievements(userID: number): Promise<(Player & Connection)[]> {
-		console.log(`DEBUG | Players.Service | getAllAchievements | userID: ${userID}`);
+		if (debug) console.log(`DEBUG | Players.Service | getAllAchievements | userID: ${userID}`);
 		const achievementNames = await this.prisma.achieved.findMany({
 			where: {
 				playerID: userID,
@@ -262,7 +264,7 @@ export class PlayersService {
 			},
 		});
 
-        console.log(`DEBUG | Players.Service | getAllAchievements | achievementNames: ${achievementNames}`);
+        if (debug) console.log(`DEBUG | Players.Service | getAllAchievements | achievementNames: ${achievementNames}`);
 		const achievements = [];
 		for (const achievementName of achievementNames) {
 			achievements.push(
@@ -305,7 +307,7 @@ export class PlayersService {
 			guest_score: number;
 		}[]
 	> {
-		console.log(`DEBUG | Players.Service | getAllGames | userID: ${userID}`);
+		if (debug) console.log(`DEBUG | Players.Service | getAllGames | userID: ${userID}`);
 		const gamesAsHost = await this.prisma.plays.findMany({
 			where: {
 				hostID: userID,
@@ -367,7 +369,7 @@ export class PlayersService {
 		// 		}),
 		// 	)
 		// 	.slice(0, limit);
-        console.log(`DEBUG | Players.Service | getAllGames | games : ` + games);
+        if (debug) console.log(`DEBUG | Players.Service | getAllGames | games : ` + games);
 
 		return games;
 	}

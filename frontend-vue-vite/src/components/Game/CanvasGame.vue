@@ -382,6 +382,7 @@ export default {
 		// TODO : resize amd angles
 		moveBall() {
 			// before step 100/15
+			// const step = 100/15
 			const step : number = this.gameTime.deltaTime * this.gameConf.ball.speedFactor
 
 			if (this.gameConf.ball.start.x + this.ballDisX + this.gameConf.ball.radius  > (this.canvas?.width || 0)

@@ -7,6 +7,9 @@ import { Player } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
 import { Public } from 'src/auth/decorators/auth.public.decorator';
 
+
+const debug = false;
+
 @WebSocketGateway({
 	cors: {
 		origin: process.env.FRONTEND_URL,
@@ -36,14 +39,14 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 			secret: process.env.JWT_SECRET
 		});
 		
-		console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
+		if (debug) console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
 		// https://socket.io/docs/v4/client-options/#auth
 		this.clients.set(Number(user.sub), client);
 	}
 
 	@Public()
 	async handleDisconnect(socket: Socket) {
-		console.log(`friendships gateway: ${socket.id} disconnected`);
+		if (debug) console.log(`friendships gateway: ${socket.id} disconnected`);
 
 		let key: number = -1;
 		for (let [userID, csock] of this.clients) {
@@ -54,7 +57,7 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 		}
 
 		if (-1 != key) {
-			console.log(`friendships gateway: user ${key} socket removed`);
+			if (debug) console.log(`friendships gateway: user ${key} socket removed`);
 			this.clients.delete(key);
 		}
 	}
@@ -66,7 +69,7 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 		@MessageBody('recipientID') recipientID: number,
 		@ConnectedSocket() socket: Socket
 	) {
-		console.log(`GATEWAY | createFrienshipRequest`);
+		if (debug) console.log(`GATEWAY | createFrienshipRequest`);
 		try {
 			//TODO add jwt service to check if id user that sent the request matches either requestor or recipient
 			//TODO otherwise, anyone connected can act upon anyone friendships
@@ -161,14 +164,14 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 	{
 		let [requestorID, recipientID] = await this.frienshipsService.getFriendship(userID, friendID);
 
-		console.log(`DEBUG| ToggleBlockUser: userID: ${userID}; friendID: ${friendID}; block: ${block}; requestorID: ${requestorID}; recipientID: ${recipientID}`);
+		if (debug) console.log(`DEBUG| ToggleBlockUser: userID: ${userID}; friendID: ${friendID}; block: ${block}; requestorID: ${requestorID}; recipientID: ${recipientID}`);
 		try {
 			[requestorID, recipientID] = await this.frienshipsService.toggleBlockUser(userID, friendID, requestorID, recipientID, block);
 
-			console.log(`DEBUG | after prisma: requestorID: ${requestorID}; recipientID: ${recipientID}; typeof requestorID: ${typeof requestorID}; typeof recipientID: ${typeof recipientID}`);
+			if (debug) console.log(`DEBUG | after prisma: requestorID: ${requestorID}; recipientID: ${recipientID}; typeof requestorID: ${typeof requestorID}; typeof recipientID: ${typeof recipientID}`);
 			let requestorSocket = this.clients.get(requestorID);
 			if (undefined != requestorSocket) {
-				console.log(`DEBUG | requestor not undefined`);
+				if (debug) console.log(`DEBUG | requestor not undefined`);
 				this.server
 					.to(requestorSocket.id)
 					.emit('toggle-block-user', {
@@ -180,7 +183,7 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 			}
 			let recipientSocket = this.clients.get(recipientID);
 			if (undefined != recipientSocket) {
-				console.log(`DEBUG | requestor not undefined`);
+				if (debug) console.log(`DEBUG | requestor not undefined`);
 				this.server
 					.to(recipientSocket.id)
 					.emit('toggle-block-user', {

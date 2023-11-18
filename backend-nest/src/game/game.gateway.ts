@@ -53,12 +53,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			secret: process.env.JWT_SECRET
 		});
 
-		console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
-		this.queue.set(Number(user.sub), client);
+		console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
+		// this.queue.set(Number(user.sub), client);
+		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 	}
 
 	async handleDisconnect(client: any) {
-		console.log(`friendships gateway: ${client.id} disconnected`);
+		console.log(`| GATEWAY GAME | {client.id} disconnected`);
 		
 		let key: number = -1;
 		
@@ -70,7 +71,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 
 		if (-1 != key) {
-			console.log(`game gateway: user ${key} socket removed`);
+			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
 			this.queue.delete(key);
 			return ;
 		}
@@ -83,35 +84,41 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 
 		if (-1 != key) {
-			console.log(`game gateway: user ${key} socket removed`);
+			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
 			this.games.delete(key);
 			return ;
 		}
+		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 	}
 
 	@SubscribeMessage('createGame')
 	create(@MessageBody() createGameDto: CreateGameDto) {
+		console.log(`| GATEWAY GAME | createGame |`);
 		return this.gameService.create(createGameDto);
 	}
 
 	@SubscribeMessage('findAllGame')
 	findAll() {
-	return this.gameService.findAll();
+	console.log(`| GATEWAY GAME | findAllGame |`);
+		return this.gameService.findAll();
 	}
 
 	@SubscribeMessage('findOneGame')
 	findOne(@MessageBody() id: number) {
-	return this.gameService.findOne(id);
+		console.log(`| GATEWAY GAME | findOneGame |`);
+		return this.gameService.findOne(id);
 	}
 
 	@SubscribeMessage('updateGame')
 	update(@MessageBody() updateGameDto: UpdateGameDto) {
-	return this.gameService.update(updateGameDto.id, updateGameDto);
+		console.log(`| GATEWAY GAME | updateGame |`);
+		return this.gameService.update(updateGameDto.id, updateGameDto);
 	}
 
 	@SubscribeMessage('removeGame')
 	remove(@MessageBody() id: number) {
-	return this.gameService.remove(id);
+		console.log(`| GATEWAY GAME | removeGame |`);
+		return this.gameService.remove(id);
 	}
 
 	/*
@@ -142,6 +149,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@ConnectedSocket() playerSocket: Socket
 	)
 	{
+		console.log(`| GATEWAY GAME | 'matchMaking' |`);
+		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.games.size} `);
 		let matched: boolean = false;
 		
 		for (let [hostID, hostSocket] of this.queue) {
@@ -151,6 +161,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				let roomId = `${playerDto.playerID}:${hostID}`;
 				hostSocket.join(roomId);
 				playerSocket.join(roomId);
+				console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket} & ${playerSocket} joined ${roomId} `);
 
 				// update data structures
 				let hostGameSocket: GameSocket = {
@@ -170,6 +181,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					hostID,
 					guestID: playerDto.playerID
 				} as CreateGameDto);
+				console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
 
 				// exit loop
 				matched = true;
@@ -180,8 +192,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		// add to queue if could not find match
 		if (false == matched)
 		{
+			console.log(`| GATEWAY GAME | 'matchMaking' | not matched `);
 			this.queue.set(playerDto.playerID, playerSocket);
 		}
+		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.games.size} `);
 	}
 
 	/*
@@ -202,6 +217,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody() frame: FrameDto
 	)
 	{
+		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.queue} `);
 		const	userID: number = frame.hostId || frame.guestID;
 		const	roomId: string = this.games.get(userID).roomId;
 		const	currentFrame: FrameDto = this.frames.get(roomId);
