@@ -5,9 +5,11 @@
 				<v-row class="no-gutters elevation-4">
 					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
 						<v-responsive class="overflow-y-auto fill-height" height="500">
-							<v-list subheader>
-								<v-btn @click="openGroupCreationPopup">Create Group Chat</v-btn>
-								<v-btn @click="openSearchGroupPopup">Search Group</v-btn>
+							<v-list subheader >
+								<v-btn @click="openGroupCreationPopup" style="margin-right: 5px;margin-bottom: 10px;">Create Group Chat</v-btn>
+								<v-btn @click="openSearchGroupPopup" style="margin-bottom: 10px;">
+									<v-icon>mdi-magnify</v-icon>
+								</v-btn>
 								<div class="">
 									
 								<v-item-group v-model="activeChat">
@@ -83,7 +85,12 @@
 									<v-text-field v-model="messageForm.content" label="type_a_message" type="text"
 										no-details outlined append-outer-icon="send" @keyup.enter="sendMessage"
 										@click:append-outer="sendMessage" hide-details v-if="!this.isGroupActive || !this.$refs.groupInfoDialog.user.isMuted"/>
-
+									
+									<!-- show message "You are muted" -->
+									<v-list-item v-if="this.isGroupActive && this.$refs.groupInfoDialog.user.isMuted" class="pa-4 pointer elevation-1 mb-2 bg-blue-grey lighten-5">
+										<v-list-item-title>You are muted</v-list-item-title>
+									</v-list-item>
+									
 								</v-card-text>
 							</v-card>
 						</v-responsive>
@@ -172,7 +179,8 @@ export default {
 
 	created() {
 		// this.socket = io('ws://localhost:3000',{transports:['websocket']});
-		this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}`, {
+		// namespace: chat
+		this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/chat`, {
 			transports: ['websocket'],
 			auth: {
 				'token': user.value.token
@@ -235,6 +243,14 @@ export default {
 
 		this.socket.on("newparent", (parent) => {
 			this.parents.unshift(parent);
+		});
+
+		this.socket.on("removeparent", (parent) => {
+			this.parents.forEach((item, index) => {
+				if (item.id == parent.id) {
+					this.parents.splice(index, 1);
+				}
+			});
 		});
 	},
 	
@@ -396,6 +412,10 @@ export default {
 		openGroupInfoPopup() {
 			this.$refs.groupInfoDialog.groupInfoDialog = true;
 			this.socket.emit("getgroupinfo", { groupId: this.parents[this.activeChat - 1].id }, (response) => {
+				if (response.error) {
+					alert(response.error);
+					return;
+				}
 				this.$refs.groupInfoDialog.groupInfo = response;
 				this.$refs.groupInfoDialog.user.isAdmin = false;
 				this.$refs.groupInfoDialog.user.isMuted = false;

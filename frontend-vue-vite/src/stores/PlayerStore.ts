@@ -73,6 +73,7 @@ export interface Player {
 	status: PlayerStatus
 	my_friend: boolean
 	notificationsSocket: Socket | null
+	gameSocket: Socket | null
 	token:	string | null
 	twofaSecret: string//?RIMUOVERE
 	profile_completed: boolean
@@ -103,6 +104,7 @@ const emptyUser = {
 	status: PlayerStatus.offline,
 	my_friend: true,
 	notificationsSocket: null,
+	gameSocket: null,
 	token: null,
 	twofaSecret: 'Nan',
 	profile_completed: false,
@@ -194,6 +196,83 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				});
 			},
 
+
+
+			
+			// game socket actions
+			// matchmaking
+			sendMatchMakingRequest() {
+				if (debug) console.log("/Store/ sendMatchMakingRequest");
+				this.user.gameSocket?.emit('matchMaking', {
+					playerID: this.user.id,
+				});
+			},
+
+			// invitation
+			sendInvitation(guestID : number) {
+				if (debug) console.log("/Store/ sendInvitation");
+				this.user.gameSocket?.emit('sendInvite', {
+					playerID: this.user.id,
+					guestID: guestID,
+				});
+			},
+
+			cancelInvitation(guestID : number) {
+				if (debug) console.log("/Store/ cancelInvitation");
+				this.user.gameSocket?.emit('cancelInvite', {
+					playerID: this.user.id,
+					guestID: guestID,
+				});
+			},
+
+			acceptInvitation(guestID : number) {
+				if (debug) console.log("/Store/ acceptInvitation");
+				this.user.gameSocket?.emit('acceptInvite', {
+					playerID: this.user.id,
+					guestID: guestID,
+				});
+			},
+
+			rejectInvitation(guestID : number) {
+				if (debug) console.log("/Store/ rejectInvitation");
+				this.user.gameSocket?.emit('rejectInvite', {
+					playerID: this.user.id,
+					guestID: guestID,
+				});
+			},
+
+			// streaming
+			sendStreamingRequest() {
+				if (debug) console.log("/Store/ sendStreamingRequest");
+				this.user.gameSocket?.emit('streaming', {
+					playerID: this.user.id,
+				});
+			},
+
+			// game
+			sendCustomizationOptions() {
+				if (debug) console.log("/Store/ sendCustomizationOptions");
+				this.user.gameSocket?.emit('customization', {
+				});
+			},
+
+			sendFrame(frame: FrameDto) {
+				if (debug) console.log("/Store/ sendFrame");
+				this.user.gameSocket?.emit('newFrame', {
+					frame: frame
+				});
+			},
+
+			sendDisconnect() {
+				if (debug) console.log("/Store/ sendDisconnect");
+				this.user.gameSocket?.disconnect()
+			},
+
+
+
+
+
+			// profile actions
 			async updateAvatar(id? : number) : Promise<string> {
 				if (debug) console.log("/Store/ updateAvatar(" + id + ')');
 				try {
@@ -259,6 +338,12 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 								'token': token
 							}
 						}),
+						gameSocket: io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/game`,
+							{
+								transports: ['websocket'],
+								auth: {'token': token}
+							}
+						),
 						status:
 							player.playing === undefined
 								? PlayerStatus.offline
@@ -268,6 +353,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						my_friend: true
 					}
 					this.user.avatar = await fetchAvatar('/players/avatar/' + this.user.id);
+
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
 					this.user.notificationsSocket?.on('new-friendship-request', handleNewRequest.bind(this));
 					this.user.notificationsSocket?.on('reject-friendship-request', handleFriendshipReject.bind(this))
@@ -275,6 +361,13 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
+
+					this.user.gameSocket?.on('newInvite', handleNewInvite.bind(this));
+					this.user.gameSocket?.on('newGame', handleNewGame.bind(this));
+					this.user.gameSocket?.on('start', handleStart.bind(this));
+					this.user.gameSocket?.on('end', handleEnd.bind(this));
+					this.user.gameSocket?.on('newFrame', handlenewFrame.bind(this));
+
 					this.friends = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data
 					this.friends = this.friends.map((friend) => ({
 						...friend,
@@ -729,3 +822,35 @@ async function handleNotificationsError(this: any, data: FriendRequestError) {
 		}`
 	);
 }
+
+// Game Sockets Events
+
+async function handleNewInvite(this: any) {
+	if (debug) console.log("/Store/ handleNewInvite()");
+}
+
+async function handleNewGame(this: any, game: {hostID : number, guestID : number}) {
+	if (debug) console.log("/Store/ handleNewGame()");
+
+	// let opponentID : number = (game.hostID == this.user.id)? game.guestID : game.hostID;
+	// if (debug) console.log('opponentID : ' + opponentID)
+	
+	// this.OpponentName = (await fetchPlayer.value(opponentID)).username;
+	// if (debug) console.log('OpponentName : ' + this.OpponentName)
+	
+	// this.foundOpponent = true;
+	// if (debug) console.log('foundOpponent : ' + this.foundOpponent)
+}
+
+async function handleStart(this: any) {
+	if (debug) console.log("/Store/ handleStart()");
+}
+
+async function handleEnd(this: any) {
+	if (debug) console.log("/Store/ handleEnd()");
+}
+
+async function handlenewFrame(this: any) {
+	if (debug) console.log("/Store/ handlenewFrame()");
+}
+

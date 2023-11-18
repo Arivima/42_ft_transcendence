@@ -3,11 +3,23 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+// const bcrypt = require('bcrypt');
+// const saltRounds = 10;
+// const myPlaintextPassword = 's0/\/\P4$$w0rD';
+// const someOtherPlaintextPassword = 'not_bacon';
+
+import * as bcrypt from 'bcrypt';
 // import { PlayersService } from 'src/players/players.service';
 // import * as path from 'path';//REMOVE
-// import * as fs from 'fs'
+import * as dotenv from 'dotenv';
 
-import { use } from 'passport';
+const saltRounds = 10;
+
+dotenv.config();
+
+// const iv = process.env.SALT;
+
+
 
 @Injectable()
 export class ChatService {
@@ -18,6 +30,21 @@ export class ChatService {
     createChatDto.receiversID = Number(createChatDto.receiversID);
     // let senderName = null;
     try {
+      const res1 = await this.prisma.subscribed.findMany({
+        where: {
+          playerID: createChatDto.senderID,
+          OR: [
+            {
+              isBanned: true,
+            },
+            {
+              isMuted: true,
+            },
+          ],
+        },
+      });
+      if (res1.length > 0)
+        return null;
       const res = await this.prisma.message.create({
         data: {
           content: createChatDto.content,
@@ -184,12 +211,21 @@ export class ChatService {
       visibility2 = "protected";
     else
       visibility2 = "private";
+    // const iv = 
+    let hash = null;
+    if (visibility2 === "protected") {
+      hash = await bcrypt.hash(password, saltRounds);
+    }
+
+    
+
+
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
         name,
         founder: { connect: { id: founderId } },
         visibility: visibility2,
-        password,
+        password:hash,
         subscriptions: {
           create: members.map((memberId) => ({
             isAdmin: memberId === founderId,
@@ -363,6 +399,90 @@ export class ChatService {
           return ["not admin"];
         }
       }
+      // check if user is admin of group if is the unique admin randomize a new admin
+      let res = await this.prisma.subscribed.findMany({
+        where: {
+          chatroomID: groupId,
+          isAdmin: true,
+          playerID: {
+            not: userId,
+          },
+        },
+        select: {
+          playerID: true,
+        },
+      });
+
+      console.log(`DEBUG | chat.service | removeUserFromGroup | res.length: ${res.length}`);
+      if (res.length === 0) {
+        let res2 = await this.prisma.subscribed.findMany({
+          where: {
+            chatroomID: groupId,
+            playerID: {
+              not: userId,
+            },
+          },
+          select: {
+            playerID: true,
+            isMuted: true,
+            isBanned: true,
+          },
+        });
+        console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length: ${res2.length}`);
+        if (res2.length === 0) {
+          await this.prisma.chatRoom.delete({
+            where: {
+              groupID: groupId,
+            },
+          });
+          return ["delete group"]
+        }
+        res2 = res2.filter((user) => {
+          return user.isBanned === false;
+        });
+        console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length after filter: ${res2.length}`);
+        if (res2.length === 0) {
+          await this.prisma.chatRoom.delete({
+            where: {
+              groupID: groupId,
+            },
+          });
+          return ["delete group"]
+        }
+        let randomAdmin = res2[Math.floor(Math.random() * res2.length)];
+        console.log(`DEBUG | chat.service | removeUserFromGroup | randomAdmin: ${randomAdmin}`);
+        let res3 = await this.prisma.subscribed.update({
+          where: {
+            playerID_chatroomID: {
+              playerID: randomAdmin.playerID,
+              chatroomID: groupId,
+            },
+          },
+          data: {
+            isAdmin: true,
+          },
+        });
+        console.log(`DEBUG | chat.service | removeUserFromGroup | res3: ${res3}`);
+      }
+
+
+
+
+      // let isAdmin = await this.prisma.subscribed.findMany({
+      //   where: {
+      //     chatroomID: groupId,
+      //     isAdmin: true,
+      //     playerID: {
+      //       not: userId,
+      //     },
+      //   },
+      //   select: {
+      //     playerID: true,
+      //   },
+      // });
+
+
+
       await this.prisma.chatRoom.update({
         where: {
           groupID: groupId,
@@ -649,6 +769,7 @@ export class ChatService {
       isGroup: false,
       avatar: "/players/avatar/" + friendship.id,
     }));
+
     const roomsWithLastMessage = user.chatroomSubscriptions.map((room) => ({
       id: room.chatroom.groupID,
       name: room.chatroom.name,
@@ -672,8 +793,21 @@ export class ChatService {
     return { friends: friends, rooms: roomsWithLastMessage, sortedData: sortedData };
   }
 
-  async getGroupInfo(groupId: number) {
+  async getGroupInfo(groupId: number, userId: number) {
     console.log(`DEBUG | chat.service | getGroupInfo | groupId: ${groupId}`);
+
+    let isInGroup = await this.prisma.subscribed.findMany({
+      where: {
+        chatroomID: groupId,
+        playerID: userId,
+      },
+      select: {
+        playerID: true,
+      },
+    });
+    if (isInGroup.length === 0) {
+      return {error: "not in group"};
+    }
     const group = await this.prisma.chatRoom.findUnique({
       where: { groupID: groupId },
       include: {
@@ -950,7 +1084,7 @@ export class ChatService {
       },
     });
     console.log(`DEBUG | chat.service | joinGroup | res: ${res}`);
-    if (res.visibility === "public" || (res.visibility === "protected" && res.password === password)) {
+    if (res.visibility === "public" || (res.visibility === "protected" && await bcrypt.compare(password, res.password))) {
       
       await this.prisma.chatRoom.update({
         where: {
