@@ -10,28 +10,44 @@ export class GameService {
 
 	async playerMatch(hostID: number, guestID: number): Promise<boolean>
 	{
-		const friendship = await this.prisma.beFriends.findUnique({
+		console.log(`playerMatch: hostID: ${hostID} ${typeof hostID}, guestID: ${guestID} ${typeof guestID}`);
+
+		let friendship = await this.prisma.beFriends.findUnique({
 			where: {
 				requestorID_recipientID: {
 					requestorID: hostID,
 					recipientID: guestID,
 				}
-			}
-		})
-		||
-		await this.prisma.beFriends.findUnique({
-			where: {
-				requestorID_recipientID: {
-					requestorID: hostID,
-					recipientID: guestID,
-				}
+			},
+			select: {
+				requestor_blacklisted: true,
+				recipient_blacklisted: true
 			}
 		});
 
-		if (null == friendship)
+		if (null === friendship) {
+			console.log(`frienship take 2`);
+			friendship = await this.prisma.beFriends.findUnique({
+					where: {
+						requestorID_recipientID: {
+							requestorID: guestID,
+							recipientID: hostID,
+						}
+					},
+					select: {
+						requestor_blacklisted: true,
+						recipient_blacklisted: true
+					}
+				});
+		}
+
+		if (null === friendship)
 			return true;
 		if (friendship.recipient_blacklisted || friendship.requestor_blacklisted)
+		{
+			console.log(`user blacklisted`)
 			return false;
+		}
 
 		return true;
 	}

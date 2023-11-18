@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import { IntersectingCirclesSpinner } from 'epic-spinners'
 import {io, Socket} from 'socket.io-client'
 import Customization from './Customization.vue'
+import { onUnmounted } from 'vue'
 
 // link to state of matchmaking
 
@@ -37,14 +38,21 @@ export default defineComponent({
 	},
 	methods: {
 		cancelGameRequest(){
-			if (debug) console.log('cancelGameRequest')
-			this.dialogBox = false
-			// send cancelation notification to server
-			this.$emit("close");
+			this.gameSocket.close();
+			this.gameSocket = {};
+			if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
+				console.log(`request canceled successfully`)
+			this.dialogBox = false;
+			// if (debug) console.log('cancelGameRequest')
+			// this.dialogBox = false
+			// // send cancelation notification to server
+			// this.$emit("close");
 		},
 		sendOk(){
 			if (debug) console.log('sendOk')
 			this.dialogBox = false
+			//! until un-implemented
+			this.cancelGameRequest();
 			// send ok to start game to server
 			// this.$emit("ok");
 		},
@@ -57,36 +65,50 @@ export default defineComponent({
 				this.foundOpponent = false
 				this.OpponentName = ''
 
-				this.gameSocket = io(
-					`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/game`,
-					{
-						transports: ['websocket'],
-						auth: {'token': user.value.token}
-					}
-				),
+				console.log(`gameSocket: ${JSON.stringify(this.gameSocket)}`);
+				if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
+				{
+					console.log(`DialogQueue gameSocket SET`);
+					this.gameSocket = io(
+						`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/game`,
+						{
+							transports: ['websocket'],
+							auth: {'token': user.value.token}
+						}
+					),
+	
+					this.gameSocket.on('newGame', 
+					async (game: {hostID : number, guestID : number}) => {
+						if (debug) console.log('receive : newGame')
+						
+						let opponentID : number = (game.hostID == user.value.id)?
+							game.guestID : game.hostID;
+						if (debug) console.log('opponentID : ' + opponentID)
+						
+						this.OpponentName = (await fetchPlayer.value(opponentID)).username;
+						if (debug) console.log('OpponentName : ' + this.OpponentName)
+						
+						this.foundOpponent = true;
+						if (debug) console.log('foundOpponent : ' + this.foundOpponent)
+					})
+				}
+				console.log(`PORCO DIO`);
 				this.gameSocket.emit('matchMaking', {
 					playerID: user.value.id,
 				});
 				if (debug) console.log('emit : matchMaking')
-
-				this.gameSocket.on('newGame', 
-				async (game: {hostID : number, guestID : number}) => {
-					if (debug) console.log('receive : newGame')
-					
-					let opponentID : number = (game.hostID == user.value.id)?
-						game.guestID : game.hostID;
-					if (debug) console.log('opponentID : ' + opponentID)
-					
-					this.OpponentName = (await fetchPlayer.value(opponentID)).username;
-					if (debug) console.log('OpponentName : ' + this.OpponentName)
-					
-					this.foundOpponent = true;
-					if (debug) console.log('foundOpponent : ' + this.foundOpponent)
-				})
 			} 
 		},
 	},
-	mounted() {}
+	mounted() {},
+	unmounted() {
+		// this.gameSocket.disconnect();
+		// this.gameSocket = {};
+		// if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
+		// 	console.log(`component successfully unmounted`);
+		// else
+		// 	console.log(`component unmount FAIL`);
+	}
 })
 </script>
 
@@ -94,6 +116,7 @@ export default defineComponent({
 	<v-overlay
 		v-model="dialogBox"
 		activator="parent"
+		persistent
 		class="align-center justify-center"
 		min-width="500"
 	>
