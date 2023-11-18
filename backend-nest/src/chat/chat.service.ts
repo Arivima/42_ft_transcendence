@@ -3,11 +3,23 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+// const bcrypt = require('bcrypt');
+// const saltRounds = 10;
+// const myPlaintextPassword = 's0/\/\P4$$w0rD';
+// const someOtherPlaintextPassword = 'not_bacon';
+
+import * as bcrypt from 'bcrypt';
 // import { PlayersService } from 'src/players/players.service';
 // import * as path from 'path';//REMOVE
-// import * as fs from 'fs'
+import * as dotenv from 'dotenv';
 
-import { use } from 'passport';
+const saltRounds = 10;
+
+dotenv.config();
+
+// const iv = process.env.SALT;
+
+
 
 @Injectable()
 export class ChatService {
@@ -18,6 +30,21 @@ export class ChatService {
     createChatDto.receiversID = Number(createChatDto.receiversID);
     // let senderName = null;
     try {
+      const res1 = await this.prisma.subscribed.findMany({
+        where: {
+          playerID: createChatDto.senderID,
+          OR: [
+            {
+              isBanned: true,
+            },
+            {
+              isMuted: true,
+            },
+          ],
+        },
+      });
+      if (res1.length > 0)
+        return null;
       const res = await this.prisma.message.create({
         data: {
           content: createChatDto.content,
@@ -184,12 +211,21 @@ export class ChatService {
       visibility2 = "protected";
     else
       visibility2 = "private";
+    // const iv = 
+    let hash = null;
+    if (visibility2 === "protected") {
+      hash = await bcrypt.hash(password, saltRounds);
+    }
+
+    
+
+
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
         name,
         founder: { connect: { id: founderId } },
         visibility: visibility2,
-        password,
+        password:hash,
         subscriptions: {
           create: members.map((memberId) => ({
             isAdmin: memberId === founderId,
@@ -1048,7 +1084,7 @@ export class ChatService {
       },
     });
     console.log(`DEBUG | chat.service | joinGroup | res: ${res}`);
-    if (res.visibility === "public" || (res.visibility === "protected" && res.password === password)) {
+    if (res.visibility === "public" || (res.visibility === "protected" && await bcrypt.compare(password, res.password))) {
       
       await this.prisma.chatRoom.update({
         where: {

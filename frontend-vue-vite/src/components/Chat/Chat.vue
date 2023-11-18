@@ -85,7 +85,12 @@
 									<v-text-field v-model="messageForm.content" label="type_a_message" type="text"
 										no-details outlined append-outer-icon="send" @keyup.enter="sendMessage"
 										@click:append-outer="sendMessage" hide-details v-if="!this.isGroupActive || !this.$refs.groupInfoDialog.user.isMuted"/>
-
+									
+									<!-- show message "You are muted" -->
+									<v-list-item v-if="this.isGroupActive && this.$refs.groupInfoDialog.user.isMuted" class="pa-4 pointer elevation-1 mb-2 bg-blue-grey lighten-5">
+										<v-list-item-title>You are muted</v-list-item-title>
+									</v-list-item>
+									
 								</v-card-text>
 							</v-card>
 						</v-responsive>
@@ -241,9 +246,7 @@ export default {
 		});
 
 		this.socket.on("removeparent", (parent) => {
-			console.log("removeparent", parent);
 			this.parents.forEach((item, index) => {
-				console.log("item", item);
 				if (item.id == parent.id) {
 					this.parents.splice(index, 1);
 				}
