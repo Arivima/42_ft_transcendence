@@ -191,7 +191,8 @@ export interface currentGame {
 	frame: Frame
 
 	invite: boolean;
-	status: 'undefined' | 'loading' | 'waiting' | 'start' | 'playing' | 'end'
+	status: 'undefined' | 'building' | 'playing' | 'end'
+	waiting: 'undefined' | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'
 	role: 'undefined' | 'player' | 'watcher'
 };
 
@@ -204,7 +205,8 @@ const emptyCurrentGame = {
 	frame: emptyFrame,
 
 	invite: false,
-	status: 'undefined' as  'undefined' | 'loading' | 'waiting' | 'start' | 'playing' | 'end',
+	status: 'undefined' as  'undefined' | 'building' | 'playing' | 'end',
+	waiting: 'undefined' as  'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',
 	role: 'undefined' as 'undefined' | 'player' | 'watcher',
 } as currentGame;
 
@@ -310,7 +312,15 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit('matchMaking', {
 					userID: this.user.id
 				});
-				this.currentGame.status = 'waiting'
+				this.currentGame.waiting = 'matchmaking'
+			},
+			cancelMatchMakingRequest() {
+				if (debug) console.log("/Store/ cancelMatchMakingRequest");
+				
+				this.user.gameSocket?.emit('cancelMatchMaking', {
+					userID: this.user.id
+				});
+				this.currentGame.waiting = 'undefined'
 			},
 
 			// invitation
@@ -320,16 +330,15 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					playerID: this.user.id,
 					guestID: guestID,
 				});
-				this.currentGame.status = 'waiting'
+				this.currentGame.waiting = 'invite'
 			},
-
 			cancelInvitation(guestID : number) {
 				if (debug) console.log("/Store/ cancelInvitation");
 				this.user.gameSocket?.emit('cancelInvite', {
 					playerID: this.user.id,
 					guestID: guestID,
 				});
-				this.currentGame.status = 'undefined'
+				this.currentGame.waiting = 'undefined'
 			},
 
 			acceptInvitation(guestID : number) {
@@ -339,7 +348,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					guestID: guestID,
 				});
 				this.currentGame.invite = false
-				this.currentGame.status = 'loading'
 			},
 
 			rejectInvitation(guestID : number) {
@@ -354,9 +362,17 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			// streaming
 			sendStreamingRequest() {
 				if (debug) console.log("/Store/ sendStreamingRequest");
-				this.user.gameSocket?.emit('streaming', {
+				this.user.gameSocket?.emit('joinStreaming', {
 					playerID: this.user.id,
 				});
+				this.currentGame.waiting = 'streaming'
+			},
+			cancelStreamingRequest() {
+				if (debug) console.log("/Store/ cancelStreamingRequest");
+				this.user.gameSocket?.emit('leaveStreaming', {
+					playerID: this.user.id,
+				});
+				this.currentGame.waiting = 'undefined'
 			},
 
 			// game
@@ -368,7 +384,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					gameInfo: this.currentGame.gameInfo,
 					userID: this.user.id
 				});
-				// this.currentGame.status = 'waiting'
+				this.currentGame.waiting = 'customization'
 			},
 
 			sendFrame(frame: Frame) {
@@ -376,9 +392,10 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit('newFrame', frame);
 			},
 
-			sendDisconnect() {
-				if (debug) console.log("/Store/ sendDisconnect");
+			exitGame() {
+				if (debug) console.log("/Store/ exitGame");
 				this.user.gameSocket?.disconnect()
+				this.currentGame.waiting = 'undefined'
 				this.currentGame.status = 'end'
 			},
 
@@ -387,7 +404,10 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.currentGame = emptyCurrentGame;
 			},
 
-
+			updateWaitingTesting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',
+			){
+				this.currentGame.waiting = value;
+			},
 
 
 
@@ -943,6 +963,7 @@ async function handleNotificationsError(this: any, data: FriendRequestError) {
 	);
 }
 
+
 // Game Sockets Events
 async function handleNewInvite(this: any) {
 	if (debug) console.log("/Store/ handleNewInvite()");
@@ -975,7 +996,7 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 		this.currentGame.host = (await fetchPlayer(game.hostID))
 		this.currentGame.guest = (await fetchPlayer(game.guestID))
 	}
-	this.currentGame.status = 'start'
+	this.currentGame.status = 'building'
 }
 
 async function handleStart(this: any, customization: CustomizationOptions) {
