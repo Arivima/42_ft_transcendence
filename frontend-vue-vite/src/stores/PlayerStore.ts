@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/19 11:34:01 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 17:22:18 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -327,7 +327,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			sendInvitation(guestID : number) {
 				if (debug) console.log("/Store/ sendInvitation");
 				this.user.gameSocket?.emit('sendInvite', {
-					playerID: this.user.id,
+					hostID: this.user.id,
 					guestID: guestID,
 				});
 				this.currentGame.waiting = 'invite'
@@ -335,7 +335,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			cancelInvitation(guestID : number) {
 				if (debug) console.log("/Store/ cancelInvitation");
 				this.user.gameSocket?.emit('cancelInvite', {
-					playerID: this.user.id,
+					hostID: this.user.id,
 					guestID: guestID,
 				});
 				this.currentGame.waiting = 'undefined'
@@ -344,7 +344,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			acceptInvitation(guestID : number) {
 				if (debug) console.log("/Store/ acceptInvitation");
 				this.user.gameSocket?.emit('acceptInvite', {
-					playerID: this.user.id,
+					hostID: this.user.id,
 					guestID: guestID,
 				});
 				this.currentGame.invite = false
@@ -353,20 +353,22 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			rejectInvitation(guestID : number) {
 				if (debug) console.log("/Store/ rejectInvitation");
 				this.user.gameSocket?.emit('rejectInvite', {
-					playerID: this.user.id,
+					hostID: this.user.id,
 					guestID: guestID,
 				});
 				this.currentGame.invite = false
 			},
 
 			// streaming
-			sendStreamingRequest() {
+			sendStreamingRequest(playerID: number) {
 				if (debug) console.log("/Store/ sendStreamingRequest");
-				this.user.gameSocket?.emit('joinStreaming', {
-					playerID: this.user.id,
+				this.user.gameSocket?.emit('joinGame', {
+					userID: this.user.id,
+					playerID,//: this.user.id,
 				});
 				this.currentGame.waiting = 'streaming'
 			},
+			//??????
 			cancelStreamingRequest() {
 				if (debug) console.log("/Store/ cancelStreamingRequest");
 				this.user.gameSocket?.emit('leaveStreaming', {
@@ -374,6 +376,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				});
 				this.currentGame.waiting = 'undefined'
 			},
+			//??????
 
 			// game
 			sendCustomizationOptions(customization: CustomizationOptions) {
@@ -394,7 +397,10 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 			exitGame() {
 				if (debug) console.log("/Store/ exitGame");
-				this.user.gameSocket?.disconnect()
+				// this.user.gameSocket?.disconnect()
+				this.user.gameSocket?.emit("endGame", {
+					userID: this.user.id
+				})
 				this.currentGame.waiting = 'undefined'
 				this.currentGame.status = 'end'
 			},

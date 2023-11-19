@@ -6,12 +6,12 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/19 14:32:40 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 17:24:02 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, ConnectedSocket } from '@nestjs/websockets';
-import { GameService } from './game.service';
+import { GameService, GameSocket } from './game.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { PlayerDto } from './dto/player.dto';
@@ -22,15 +22,6 @@ import { CustomizationOptions } from './dto/customization.dto';
 import { endGameDto } from './dto/endGame.dto';
 import { InviteDto } from './dto/invite.dto';
 
-export class GameSocket {
-	user_socket: Socket
-	roomId: string
-
-	customization: CustomizationOptions
-	hostID: number
-	guestID: number
-};
-
 // TODO
 // TODO		1.1 move maps in service
 // TODO		1.2 move code in service
@@ -38,7 +29,7 @@ export class GameSocket {
 // TODO			and keep disconnection simple
 // TODO		1.4 
 
-
+const debug = true;
 
 @WebSocketGateway({
 	cors: {
@@ -52,44 +43,27 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	private server: Server;
 	private clients: Map<number, Socket>;
 
-	/**
-	 * key: userID
-	 * value: user socket
-	 */
-	private queue: Map<number, Socket>;
-	/**
-	 * key: userID
-	 * value: sockets + game info
-	 */
-	private games: Map<number, GameSocket>;
-	/**
-	 * key: roomID
-	 * value: next frame data
-	 */
-	private frames: Map<string, FrameDto>;
-
 	constructor(
 		private readonly gameService: GameService,
 		private readonly jwtService: JwtService
 		)
 	{
 		this.clients = new Map<number, Socket>();
-
-		this.queue = new Map<number, Socket>();
-		this.games = new Map<number, GameSocket>();
-		this.frames = new Map<string, FrameDto>();
 	}
 
 	async handleConnection(client: Socket, ...args: any[]) {
+		
+		// validating user
 		const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
 			secret: process.env.JWT_SECRET
 		});
 
+		// setting user socket
+		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
 		this.clients.set(Number(user.sub), client);
 		
 		console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
-		// this.queue.set(Number(user.sub), client);
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
 	}
 
 	async handleDisconnect(client: any) {
@@ -108,161 +82,84 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (-1 != key) {
 			this.clients.delete(key);
 		}
-		key = -1;
 		
-		// make endGame a function
-		// make endGame a function
-		// make endGame a function
-		// make endGame a function
-		for (let [userID, csock] of this.queue) {
-			if (client.id == csock.id) {
-				key = userID;
-				break ;
-			}
-		}
-
-		if (-1 != key) {
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
-			this.queue.delete(key);
-			return ;
-		}
-
-		for (let [userID, {user_socket: csock, ...rest}] of this.games) {
-			if (client.id == csock.id) {
-				key = userID;
-				break ;
-			}
-		}
-
-		if (-1 != key) {
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
-			
-			let game = this.games.get(key);
-			const roomId = game.roomId;
-		
-			// leave the room
-			game.user_socket.leave(roomId);
-
-			// signaling end of game to whole room
-			this.server.to(roomId).emit("endGame", {
-				hostWin: false,
-				guestWin: false,
-			} as endGameDto)
-
-			// deleting user game
-			this.games.delete(key);
-
-			// deleting room if all players left
-			for (let [userID, game] of this.games) {
-				if (roomId === game.roomId)
-					return ;
-			}
-			this.frames.delete(roomId);
-		}
-
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+		this.gameService.endGame(client, this.server);
 	}
 
-	@SubscribeMessage('createGame')
-	create(@MessageBody() createGameDto: CreateGameDto) {
-		console.log(`| GATEWAY GAME | createGame |`);
-		return this.gameService.create(createGameDto);
-	}
-
-	@SubscribeMessage('findAllGame')
-	findAll() {
-	console.log(`| GATEWAY GAME | findAllGame |`);
-		return this.gameService.findAll();
-	}
-
-	@SubscribeMessage('findOneGame')
-	findOne(@MessageBody() id: number) {
-		console.log(`| GATEWAY GAME | findOneGame |`);
-		return this.gameService.findOne(id);
-	}
-
-	@SubscribeMessage('updateGame')
-	update(@MessageBody() updateGameDto: UpdateGameDto) {
-		console.log(`| GATEWAY GAME | updateGame |`);
-		return this.gameService.update(updateGameDto.id, updateGameDto);
-	}
-
-	@SubscribeMessage('removeGame')
-	remove(@MessageBody() id: number) {
-		console.log(`| GATEWAY GAME | removeGame |`);
-		return this.gameService.remove(id);
-	}
-
-	//TODO was doing this
 	// joining game through invite
-	// @SubscribeMessage('sendInvite')
-	// sendInvite(
-	// 	@MessageBody('invite') invite: InviteDto
-	// )
-	// {
-	// 	this.server.
-	// }
+	@SubscribeMessage('sendInvite')
+	sendInvite(
+		@MessageBody('invite') invite: InviteDto
+	)
+	{
+		let recipientSocket = this.clients.get(invite.guestID);
 
-
-
-
+		if (recipientSocket)
+		{
+			this.server.to(`${invite.guestID}`).emit("newInvite", invite);
+		}
+	}
 	
+	@SubscribeMessage('cancelInvite')
+	cancelInvite(@MessageBody('invite') invite: InviteDto )
+	{
+		let recipientSocket = this.clients.get(invite.guestID);
 
-	
-	// @SubscribeMessage('cancelInvite')
-	// cancelInvite(@MessageBody() playerDto: PlayerDto) {
-	// 	return this.gameService.cancelInvite(playerDto);
-	// }
+		if (recipientSocket)
+		{
+			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
+		}
+	}
+	@SubscribeMessage('rejectInvite')
+	rejectInvite(@MessageBody('invite') invite: InviteDto )
+	{
+		let requestorSocket = this.clients.get(invite.guestID);
 
-	// @SubscribeMessage('rejectInvite')
-	// rejectInvite(@MessageBody() playerDto: PlayerDto) {
-	// 	return this.gameService.rejectInvite(playerDto);
-	// }
+		if (requestorSocket)
+		{
+			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
+		}
+	}
 
-	// @SubscribeMessage('acceptInvite')
-	// acceptInvite(@MessageBody() playerDto: PlayerDto) {
-	// 	return this.gameService.acceptInvite(playerDto);
-	// }
+	@SubscribeMessage('acceptInvite')
+	acceptInvite(@MessageBody() invite: InviteDto) {
+
+		const host_socket = this.clients.get(invite.hostID);
+		const guest_socket = this.clients.get(invite.guestID);
+		
+		// Create game instance
+		let roomId = this.gameService.matchPlayers(
+			invite.guestID, invite.hostID,
+			host_socket, guest_socket
+		);
+		
+		// start game
+		this.server.to(roomId).emit("newGame", {
+			hostID: invite.hostID,
+			guestID: invite.guestID,
+			watcher: false
+		} as CreateGameDto);
+		
+	}
 
 	// joining game through matchmaking
 	@SubscribeMessage('matchMaking')
 	async matchMaking(
 		@MessageBody('userID') userID: number,
-		@ConnectedSocket() playerSocket: Socket
+		@ConnectedSocket() userSocket: Socket
 	)
 	{
 		console.log(`| GATEWAY GAME | 'matchMaking' |`);
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.games.size} `);
+		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size} `);
 		let matched: boolean = false;
+		let roomId: string;
 		
-		for (let [hostID, hostSocket] of this.queue) {
+		for (let [hostID, hostSocket] of this.gameService.getQueue()) {
 			if (await this.gameService.playerMatch(hostID, userID))
 			{
-				// create the room
-				let roomId = `${userID}:${hostID}`;
-				hostSocket.join(roomId);
-				playerSocket.join(roomId);
-				console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket} & ${playerSocket} joined ${roomId} `);
-
-				// update data structures
-				let hostGameSocket: GameSocket = {
-					user_socket: hostSocket,
-					roomId,
-					customization: {} as CustomizationOptions,
-					hostID,
-					guestID: userID
-				};
-				let guestGameSocket: GameSocket = {
-					user_socket: playerSocket,
-					roomId,
-					customization: {} as CustomizationOptions,
-					hostID,
-					guestID: userID
-				};
-				this.queue.delete(hostID);
-				this.games.set(hostID, hostGameSocket);
-				this.games.set(userID, guestGameSocket);
+				// create match
+				roomId = this.gameService.matchPlayers(userID, hostID, hostSocket, userSocket);
 
 				// emit event in the room
 				this.server.to(roomId).emit('newGame', {
@@ -282,10 +179,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (false == matched)
 		{
 			console.log(`| GATEWAY GAME | 'matchMaking' | not matched `);
-			this.queue.set(userID, playerSocket);
+			this.gameService.getQueue().set(userID, userSocket);
 		}
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.games.size / 2} `);
+		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size / 2} `);
+	}
+
+	@SubscribeMessage("cancelMatchMaking")
+	cancelMatchMaking(
+		@MessageBody('userID') userID: number,
+		@ConnectedSocket() socket: Socket
+	) {
+		if(this.gameService.removeFromQueue(userID))
+			this.server.to(socket.id).emit("cancelMatchMaking");
 	}
 
 	// customization
@@ -295,32 +201,18 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('gameInfo') game_info: CreateGameDto,
 		@MessageBody('userID') userID: number
 	) {
-		const other_customizations = this.games.get(
-			userID == game_info.hostID ?
-			game_info.guestID :
-			game_info.hostID
-		).customization;
-		
-		if (JSON.stringify({}) != JSON.stringify(other_customizations))
-		{
-			const roomId = this.games.get(userID).roomId;
-			const final_customization = {
-				pitch_color: Math.random() * 1024 % 2 == 0 ?
-					other_customizations.pitch_color :
-					customization.pitch_color,
-				paddle_color: Math.random() * 1024 % 2 == 0 ?
-					other_customizations.paddle_color :
-					customization.paddle_color,
-				ball_color:  Math.random() * 1024 % 2 == 0 ?
-					other_customizations.ball_color :
-					customization.ball_color,
-			} as CustomizationOptions;
+		const resp = this.gameService.sendCustomizationOptions(
+			userID,
+			game_info,
+			customization
+		);
 
-			this.server.to(roomId).emit('startGame', {
-				customization: final_customization
+		if (resp)
+		{
+			this.server.to(resp.roomId).emit('startGame', {
+				customization: resp.final_customization
 			})
 		}
-		Object.assign(this.games.get(userID).customization, customization);
 	}
 
 	//joining game for livestream
@@ -330,23 +222,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('playerID') playerID: number,
 		@ConnectedSocket() client: Socket
 	) {
-		const game = this.games.get(playerID);
+		const game = this.gameService.joinGame(userID, playerID, client);
 
 		if (game)
 		{
-			const roomId = game.roomId;
-			let my_gameSocket: GameSocket = {} as GameSocket;
-
-			// updating structures
-			Object.assign(my_gameSocket, game);
-			my_gameSocket.user_socket = client;
-			this.games.set(userID, my_gameSocket);
-
 			// joining the room
-			client.join(roomId);
+			client.join(game.roomId);
 
 			// emitting start
-			this.server.to(`${userID}`).emit('newGame', {
+			this.server.to(`${userID}`).emit('startGame', {
 				hostID: game.hostID,
 				guestID: game.guestID,
 				watcher: true
@@ -360,9 +244,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('userID') userID: number
 	)
 	{
-		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.queue} `);
-		const	roomId: string = this.games.get(userID).roomId;
-		const	currentFrame: FrameDto = this.frames.get(roomId);
+		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
+		const	roomId: string = this.gameService.getGames().get(userID).roomId;
+		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
 		const	hostWin: boolean = (10 == frame.data.host.score);
 		const	guestWin: boolean = (10 == frame.data.guest.score);
 
@@ -384,8 +268,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				this.server.to(roomId).emit("newFrame", frame);
 			}
 			
-			this.frames.set(roomId, frame);
+			this.gameService.getFrames().set(roomId, frame);
 		}
+	}
+
+	@SubscribeMessage("endGame")
+	endGame(
+		@MessageBody('userID') userID: number,
+		@ConnectedSocket() socket: Socket
+	) {
+		this.gameService.endGame(socket, this.server);
 	}
 
 }
@@ -396,9 +288,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 // 	@MessageBody('userID') userID: number
 // )
 // {
-// 	console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.queue} `);
-// 	const	roomId: string = this.games.get(userID).roomId;
-// 	const	currentFrame: FrameDto = this.frames.get(roomId);
+// 	console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
+// 	const	roomId: string = this.gameService.getGames().get(userID).roomId;
+// 	const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
 
 // 	if (frame.seq > currentFrame.seq)
 // 	{
@@ -457,11 +349,43 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 // 				frame.data.ball.dx
 // 			}
 
-// 			this.frames.set(roomId, frame);
+// 			this.gameService.getFrames().set(roomId, frame);
 // 			this.server.to(roomId).emit("newFrame", frame);
 // 		}
 
 // 	}
 // }
 
+// }
+
+// STANDARD CRUD ENDPOINTS
+
+// @SubscribeMessage('createGame')
+// create(@MessageBody() createGameDto: CreateGameDto) {
+// 	console.log(`| GATEWAY GAME | createGame |`);
+// 	return this.gameService.create(createGameDto);
+// }
+
+// @SubscribeMessage('findAllGame')
+// findAll() {
+// console.log(`| GATEWAY GAME | findAllGame |`);
+// 	return this.gameService.findAll();
+// }
+
+// @SubscribeMessage('findOneGame')
+// findOne(@MessageBody() id: number) {
+// 	console.log(`| GATEWAY GAME | findOneGame |`);
+// 	return this.gameService.findOne(id);
+// }
+
+// @SubscribeMessage('updateGame')
+// update(@MessageBody() updateGameDto: UpdateGameDto) {
+// 	console.log(`| GATEWAY GAME | updateGame |`);
+// 	return this.gameService.update(updateGameDto.id, updateGameDto);
+// }
+
+// @SubscribeMessage('removeGame')
+// remove(@MessageBody() id: number) {
+// 	console.log(`| GATEWAY GAME | removeGame |`);
+// 	return this.gameService.remove(id);
 // }
