@@ -18,7 +18,7 @@ export default {
 	methods : {
 		send() {
 			// playerStore.sendCustomization({})
-			playerStore.sendCustomizationOptions.value({
+			playerStore.sendCustomizationOptions({
 				customization: {
 					pitch_color: this.colorPitch,
 					paddle_color: this.colorPaddle,

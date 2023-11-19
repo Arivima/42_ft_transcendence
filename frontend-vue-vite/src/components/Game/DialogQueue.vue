@@ -34,19 +34,15 @@ export default defineComponent({
 	computed : {
 		opponentName() {
 			return user.value.id == currentGame.value.gameInfo.hostID ?
-				currentGame.value.gameInfo.guestName :
+				currentGame.value.guest.username :
 			user.value.id == currentGame.value.gameInfo.guestID ?
-				currentGame.value.gameInfo.hostName :
+				currentGame.value.host.username :
 			'N/A';
 		},
 		foundOpponent() {
-			return user.value.id == currentGame.value.gameInfo.hostID ?
-				undefined != currentGame.value.gameInfo.guestID :
-				undefined != currentGame.value.gameInfo.hostID;
+			return -1 != currentGame.value.gameInfo.guestID &&
+				 -1 != currentGame.value.gameInfo.hostID;
 		}
-		// foundOpponent(){
-		// 	return store
-		// },
 	},
 	methods: {
 		cancelGameRequest(){
@@ -74,8 +70,6 @@ export default defineComponent({
 			if (debug) console.log('watchers | dialogBox : ' + isActive)
 			if (isActive == true) {
 				this.loading = false
-				this.foundOpponent = false
-				this.opponentName = ''
 
 				// console.log(`gameSocket: ${JSON.stringify(this.gameSocket)}`);
 				// if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
