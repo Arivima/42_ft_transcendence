@@ -494,6 +494,7 @@ export default {
 		window.removeEventListener('keydown', this.onKeyDown);
 		window.removeEventListener('keyup', this.onKeyUp);
 		window.removeEventListener('resize', this.onResize);
+		playerStore.resetGame()
 	},
 	}
 </script>

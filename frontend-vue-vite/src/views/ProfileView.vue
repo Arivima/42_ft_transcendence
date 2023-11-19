@@ -12,6 +12,7 @@ import Achievements from '../components/Profile/Achievements.vue'
 // import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
 import BlockedSent from '@/components/Profile/BlockedSent.vue'
 import DialogWaiting from '@/components/Game/DialogWaiting.vue'
+import DialogInvite from '@/components/Game/DialogInvite.vue'
 
 
 const playerStore = usePlayerStore()
@@ -23,7 +24,8 @@ export default {
     NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
     Notifications,
     BlockedSent,
-    DialogWaiting
+    DialogWaiting,
+    DialogInvite
 },
 	data() {
 		return {
@@ -122,6 +124,7 @@ export default {
 	<NavSideBar />
 	<Notifications />
 	<DialogWaiting></DialogWaiting>
+	<DialogInvite></DialogInvite>
 	<!-- <v-main> -->
 		<v-card class="parent">
 			<v-card class="child1">

@@ -13,6 +13,7 @@
 import { defineStore, type StoreDefinition } from 'pinia'
 import axios from 'axios'
 import {io, Socket} from 'socket.io-client'
+import router from '@/router'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
 
@@ -191,6 +192,7 @@ export interface currentGame {
 	frame: Frame
 
 	invite: boolean;
+	streamUserID: number,
 	status: 'undefined' | 'building' | 'playing' | 'end'
 	waiting: 'undefined' | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'
 	role: 'undefined' | 'player' | 'watcher'
@@ -205,6 +207,7 @@ const emptyCurrentGame = {
 	frame: emptyFrame,
 
 	invite: false,
+	streamUserID: 0,
 	status: 'undefined' as  'undefined' | 'building' | 'playing' | 'end',
 	waiting: 'undefined' as  'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',
 	role: 'undefined' as 'undefined' | 'player' | 'watcher',
@@ -366,14 +369,17 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					userID: this.user.id,
 					playerID,//: this.user.id,
 				});
+				this.currentGame.streamUserID = userID
 				this.currentGame.waiting = 'streaming'
 			},
 			//??????
 			cancelStreamingRequest() {
 				if (debug) console.log("/Store/ cancelStreamingRequest");
 				this.user.gameSocket?.emit('leaveStreaming', {
-					playerID: this.user.id,
+					watcherID: this.user.id,
+					userID: this.currentGame.streamUserID,
 				});
+				this.currentGame.streamUserID = 0
 				this.currentGame.waiting = 'undefined'
 			},
 			//??????
@@ -407,14 +413,16 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 			resetGame() {
 				if (debug) console.log("/Store/ resetGame");
+				//TODO attention do it properly, check with variables to reset
 				this.currentGame = emptyCurrentGame;
 			},
 
-			updateWaitingTesting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',
-			){
+			updateWaitingTesting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',){
 				this.currentGame.waiting = value;
 			},
-
+			updateInviteTesting(value : boolean){
+				this.currentGame.invite = value;
+			},
 
 
 			// profile actions
@@ -977,12 +985,14 @@ async function handleNewInvite(this: any) {
 }
 
 async function handleDeleteInvite(this: any) {
-	if (debug) console.log("/Store/ handleNewInvite()");
+	if (debug) console.log("/Store/ handleDeleteInvite()");
 	this.currentGame.invite = false
 }
 
 async function handleNewGame(this: any, game: {hostID : number, guestID : number}) {
 	if (debug) console.log("/Store/ handleNewGame()");
+	router.push('/game')
+	this.user.status = 'playing'
 
 	this.currentGame.gameInfo.hostID = game.hostID;
 	this.currentGame.gameInfo.guestID = game.guestID;
@@ -1003,6 +1013,7 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 		this.currentGame.guest = (await fetchPlayer(game.guestID))
 	}
 	this.currentGame.status = 'building'
+	this.currentGame.waiting = 'customization'
 }
 
 async function handleStart(this: any, customization: CustomizationOptions) {
@@ -1014,6 +1025,7 @@ async function handleStart(this: any, customization: CustomizationOptions) {
 async function handleEnd(this: any) {
 	if (debug) console.log("/Store/ handleEnd()");
 	this.currentGame.status = 'end'
+	this.user.status = 'online'
 }
 
 async function handlenewFrame(this: any) {

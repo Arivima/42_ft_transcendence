@@ -96,23 +96,23 @@ export default defineComponent({
 		persistent
 		class="align-center justify-center"
 	>
-		<v-card rounded class="dialog bg-white ma-auto pa-4 border">
+		<v-card rounded class="dialog bg-white ma-auto pa-4 ">
 			
-			<v-card-title class="text-button text-center border">
+			<v-card-title class="text-button text-center ">
 				{{ title}}
 			</v-card-title>
 			
 			<v-card-item
-				class="justify-center ma-5 border"
+				class="justify-center ma-5 "
 				v-show="isCancelActive == false"
 			>
 				<intersecting-circles-spinner :animation-duration="1200" :size="70" color="purple"/>
 			</v-card-item>
 			
-			<v-card-item class="text-center ma-2 border">
+			<v-card-item class="text-center ma-2 ">
 				<v-btn
 					:text="buttonText" @click="buttonAction" :disabled="isCancelActive"
-					border color="primary" variant="elevated"
+					color="primary" variant="elevated"
 				></v-btn>
 			</v-card-item>
 

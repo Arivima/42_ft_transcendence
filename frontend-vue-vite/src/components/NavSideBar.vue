@@ -31,7 +31,14 @@ export default {
 		},
 		waiting() : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing' {
 			return currentGame.value.waiting
+		},
+		invite() : boolean {
+			return currentGame.value.invite
+		},
+		streaming() : number {
+			return currentGame.value.streamUserID
 		}
+
 	},
 	methods : {
 		async logOut() {
@@ -45,8 +52,11 @@ export default {
 				console.log(err)
 			}
 		},
-		update(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'){
+		updateWaiting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'){
 			playerStore.updateWaitingTesting(value)
+		},
+		updateInvite(value : boolean){
+			playerStore.updateInviteTesting(value)
 		}
 	},
 
@@ -93,17 +103,23 @@ export default {
 			</v-card>
 
 			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
-				<p>TESTING DIALOG BOX</p>
-				<p>current value : </p>
 				<p>waiting = {{ waiting }}</p>
-				<v-btn @click="update('undefined')">undefined</v-btn>
-				<v-btn @click="update('matchmaking')">matchmaking</v-btn>
-				<v-btn @click="update('invite')">invite</v-btn>
-				<v-btn @click="update('streaming')">streaming</v-btn>
-				<v-btn @click="update('customization')">customization</v-btn>
-				<v-btn @click="update('playing')">playing</v-btn>
+				<v-btn @click="updateWaiting('undefined')">undefined</v-btn>
+				<v-btn @click="updateWaiting('matchmaking')">matchmaking</v-btn>
+				<v-btn @click="updateWaiting('invite')">invite</v-btn>
+				<v-btn @click="updateWaiting('streaming')">streaming</v-btn>
+				<v-btn @click="updateWaiting('customization')">customization</v-btn>
+				<v-btn @click="updateWaiting('playing')">playing</v-btn>
 			</v-card>
 
+			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
+				<p>invite = {{ invite }}</p>
+				<v-btn @click="updateInvite(true)">new invite</v-btn>
+			</v-card>
+
+			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
+				<p>streaming = {{ streaming }}</p>
+			</v-card>
 
 			<v-card
 				style="flex-grow: 1; background-color: transparent;"
