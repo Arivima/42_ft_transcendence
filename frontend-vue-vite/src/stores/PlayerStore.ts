@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/19 11:03:34 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 11:34:01 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -485,7 +485,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.gameSocket?.on('deleteInvite', handleDeleteInvite.bind(this));
 					this.user.gameSocket?.on('newGame', handleNewGame.bind(this));
 					this.user.gameSocket?.on('startGame', handleStart.bind(this));
-					this.user.gameSocket?.on('end', handleEnd.bind(this));
+					this.user.gameSocket?.on('endGame', handleEnd.bind(this));
 					this.user.gameSocket?.on('newFrame', handlenewFrame.bind(this));
 
 					this.friends = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data

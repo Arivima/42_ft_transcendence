@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { FrameDto } from './dto/frame.dto';
 
 @Injectable()
 export class GameService {
@@ -50,6 +51,49 @@ export class GameService {
 		}
 
 		return true;
+	}
+
+	/**
+	 * @brief this function updates db MatchHistory info AND PlayerStats info.
+	 * @param finalFrame 
+	 */
+	async setGameasFinished(finalFrame: FrameDto)
+	{
+		const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
+			finalFrame.hostId :
+			finalFrame.guestID;
+		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
+			finalFrame.hostId :
+			finalFrame.guestID;
+		
+		// updating match info
+		await this.prisma.plays.create({
+			data: {
+				score_host: finalFrame.data.host.score,
+				score_Guest: finalFrame.data.guest.score,
+
+				hostID: finalFrame.hostId,
+				guestID: finalFrame.guestID
+			}
+		})
+
+		// updating player stats
+		await this.prisma.player.update({
+			where: {
+				id: winnerID
+			},
+			data: {
+				wins: {increment: 1}
+			}
+		});
+		await this.prisma.player.update({
+			where: {
+				id: loserID
+			},
+			data: {
+				losses: {increment: 1}
+			}
+		});
 	}
 
 	create(createGameDto: CreateGameDto) {

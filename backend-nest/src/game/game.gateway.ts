@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/18 21:18:29 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 14:32:40 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,26 @@ import { Socket, Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { FrameDto } from './dto/frame.dto';
 import { CustomizationOptions } from './dto/customization.dto';
+import { endGameDto } from './dto/endGame.dto';
+import { InviteDto } from './dto/invite.dto';
 
 export class GameSocket {
 	user_socket: Socket
 	roomId: string
+
 	customization: CustomizationOptions
+	hostID: number
+	guestID: number
 };
+
+// TODO
+// TODO		1.1 move maps in service
+// TODO		1.2 move code in service
+// TODO		1.3 make endGame a function
+// TODO			and keep disconnection simple
+// TODO		1.4 
+
+
 
 @WebSocketGateway({
 	cors: {
@@ -36,8 +50,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@WebSocketServer()
 	private server: Server;
+	private clients: Map<number, Socket>;
+
+	/**
+	 * key: userID
+	 * value: user socket
+	 */
 	private queue: Map<number, Socket>;
+	/**
+	 * key: userID
+	 * value: sockets + game info
+	 */
 	private games: Map<number, GameSocket>;
+	/**
+	 * key: roomID
+	 * value: next frame data
+	 */
 	private frames: Map<string, FrameDto>;
 
 	constructor(
@@ -45,12 +73,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		private readonly jwtService: JwtService
 		)
 	{
+		this.clients = new Map<number, Socket>();
+
 		this.queue = new Map<number, Socket>();
 		this.games = new Map<number, GameSocket>();
-		/**
-		 * key: roomID
-		 * value: next frame data
-		 */
 		this.frames = new Map<string, FrameDto>();
 	}
 
@@ -59,6 +85,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			secret: process.env.JWT_SECRET
 		});
 
+		this.clients.set(Number(user.sub), client);
+		
 		console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
 		// this.queue.set(Number(user.sub), client);
 		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
@@ -69,6 +97,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		
 		let key: number = -1;
 		
+		// deleting among the list of clients
+		for (let [userID, csock] of this.clients) {
+			if (client.id == csock.id) {
+				key = userID;
+				break ;
+			}
+		}
+
+		if (-1 != key) {
+			this.clients.delete(key);
+		}
+		key = -1;
+		
+		// make endGame a function
+		// make endGame a function
+		// make endGame a function
+		// make endGame a function
 		for (let [userID, csock] of this.queue) {
 			if (client.id == csock.id) {
 				key = userID;
@@ -91,9 +136,30 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		if (-1 != key) {
 			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
+			
+			let game = this.games.get(key);
+			const roomId = game.roomId;
+		
+			// leave the room
+			game.user_socket.leave(roomId);
+
+			// signaling end of game to whole room
+			this.server.to(roomId).emit("endGame", {
+				hostWin: false,
+				guestWin: false,
+			} as endGameDto)
+
+			// deleting user game
 			this.games.delete(key);
-			return ;
+
+			// deleting room if all players left
+			for (let [userID, game] of this.games) {
+				if (roomId === game.roomId)
+					return ;
+			}
+			this.frames.delete(roomId);
 		}
+
 		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 	}
 
@@ -127,27 +193,37 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		return this.gameService.remove(id);
 	}
 
-	/*
+	//TODO was doing this
 	// joining game through invite
-	@SubscribeMessage('sendInvite')
-	sendInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.sendInvite(playerDto);
-	}
+	// @SubscribeMessage('sendInvite')
+	// sendInvite(
+	// 	@MessageBody('invite') invite: InviteDto
+	// )
+	// {
+	// 	this.server.
+	// }
 
-	@SubscribeMessage('cancelInvite')
-	cancelInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.cancelInvite(playerDto);
-	}
 
-	@SubscribeMessage('rejectInvite')
-	rejectInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.rejectInvite(playerDto);
-	}
 
-	@SubscribeMessage('acceptInvite')
-	acceptInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.acceptInvite(playerDto);
-	}*/
+
+	
+
+	
+	// @SubscribeMessage('cancelInvite')
+	// cancelInvite(@MessageBody() playerDto: PlayerDto) {
+	// 	return this.gameService.cancelInvite(playerDto);
+	// }
+
+	// @SubscribeMessage('rejectInvite')
+	// rejectInvite(@MessageBody() playerDto: PlayerDto) {
+	// 	return this.gameService.rejectInvite(playerDto);
+	// }
+
+	// @SubscribeMessage('acceptInvite')
+	// acceptInvite(@MessageBody() playerDto: PlayerDto) {
+	// 	return this.gameService.acceptInvite(playerDto);
+	// }
+
 	// joining game through matchmaking
 	@SubscribeMessage('matchMaking')
 	async matchMaking(
@@ -173,12 +249,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				let hostGameSocket: GameSocket = {
 					user_socket: hostSocket,
 					roomId,
-					customization: {} as CustomizationOptions
+					customization: {} as CustomizationOptions,
+					hostID,
+					guestID: userID
 				};
 				let guestGameSocket: GameSocket = {
 					user_socket: playerSocket,
 					roomId,
-					customization: {} as CustomizationOptions
+					customization: {} as CustomizationOptions,
+					hostID,
+					guestID: userID
 				};
 				this.queue.delete(hostID);
 				this.games.set(hostID, hostGameSocket);
@@ -187,7 +267,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				// emit event in the room
 				this.server.to(roomId).emit('newGame', {
 					hostID,
-					guestID: userID
+					guestID: userID,
+					watcher: false
 				} as CreateGameDto);
 				console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
 
@@ -242,32 +323,145 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		Object.assign(this.games.get(userID).customization, customization);
 	}
 
-	// joining game for livestream
-	// @SubscribeMessage('joinGame')
-	// joinGame(@MessageBody() playerDto: PlayerDto) {
-	// 	return this.gameService.joinGame(playerDto);
-	// }
+	//joining game for livestream
+	@SubscribeMessage('joinGame')
+	joinGame(
+		@MessageBody('userID') userID: number,
+		@MessageBody('playerID') playerID: number,
+		@ConnectedSocket() client: Socket
+	) {
+		const game = this.games.get(playerID);
+
+		if (game)
+		{
+			const roomId = game.roomId;
+			let my_gameSocket: GameSocket = {} as GameSocket;
+
+			// updating structures
+			Object.assign(my_gameSocket, game);
+			my_gameSocket.user_socket = client;
+			this.games.set(userID, my_gameSocket);
+
+			// joining the room
+			client.join(roomId);
+
+			// emitting start
+			this.server.to(`${userID}`).emit('newGame', {
+				hostID: game.hostID,
+				guestID: game.guestID,
+				watcher: true
+			} as CreateGameDto);
+		}
+	}
 
 	@SubscribeMessage('newFrame')
-	getNewFrame(
-		@MessageBody() frame: FrameDto
+	async getNewFrame(
+		@MessageBody() frame: FrameDto,
+		@MessageBody('userID') userID: number
 	)
 	{
 		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.queue} `);
-		const	userID: number = frame.hostId || frame.guestID;
 		const	roomId: string = this.games.get(userID).roomId;
 		const	currentFrame: FrameDto = this.frames.get(roomId);
-		let		nextFrame: FrameDto = {} as FrameDto;
+		const	hostWin: boolean = (10 == frame.data.host.score);
+		const	guestWin: boolean = (10 == frame.data.guest.score);
 
 		if (frame.seq > currentFrame.seq)
 		{
-			// update seq number
-			Object.assign(nextFrame, currentFrame);
-			nextFrame.seq += 1
-			this.frames.set(roomId, nextFrame);
+			// check end of game
+			if (hostWin || guestWin)
+			{
+				this.server.to(roomId).emit("endGame", {
+					hostWin,
+					guestWin
+				} as endGameDto);
 
-			this.server.to(roomId).emit("newFrame", nextFrame);
+				await this.gameService.setGameasFinished(frame);
+			}
+			// send next frame
+			else
+			{
+				this.server.to(roomId).emit("newFrame", frame);
+			}
+			
+			this.frames.set(roomId, frame);
 		}
 	}
 
 }
+
+// @SubscribeMessage('newFrame')
+// async getNewFrame(
+// 	@MessageBody() frame: FrameDto,
+// 	@MessageBody('userID') userID: number
+// )
+// {
+// 	console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.queue} `);
+// 	const	roomId: string = this.games.get(userID).roomId;
+// 	const	currentFrame: FrameDto = this.frames.get(roomId);
+
+// 	if (frame.seq > currentFrame.seq)
+// 	{
+// 		// update score
+// 		if ((frame.data.ball.x + frame.data.ball.sx + frame.data.ball.radius) >=
+// 			frame.data.canvas.w)
+// 		{
+// 			frame.data.host.score += 1;
+
+// 			// check end of game
+// 			if (10 == frame.data.host.score) {
+// 				this.server.to(roomId).emit("endGame", {
+// 					hostWin: true,
+// 					guestWin: false
+// 				} as endGameDto);
+
+// 				// update db
+// 				await this.gameService.setGameasFinished(frame);
+// 			}
+// 		}
+// 		else
+// 		if ((frame.data.ball.x + frame.data.ball.sx - frame.data.ball.radius) <= 0)
+// 		{
+// 			frame.data.guest.score += 1;
+			
+// 			// check end of game
+// 			if (10 == frame.data.guest.score) {
+// 				this.server.to(roomId).emit("endGame", {
+// 					hostWin: false,
+// 					guestWin: true
+// 				} as endGameDto);
+
+// 				// update db
+// 				await this.gameService.setGameasFinished(frame);
+// 			}
+// 		}
+// 		// send next frame
+// 		else
+// 		{
+
+// 			// check guest collisions
+// 			if (
+// 				(
+// 					(
+// 						frame.data.ball.y + frame.data.ball.sy + frame.data.ball.radius >=
+// 						frame.data.guest.paddle.y + frame.data.guest.paddle.sy &&
+// 						frame.data.ball.y + frame.data.ball.sy - frame.data.ball.radius <=
+// 						frame.data.guest.paddle.y + frame.data.guest.paddle.sy + frame.data.guest.paddle.h
+// 					) &&
+// 					(
+// 						frame.data.ball.x + frame.data.ball.sx + frame.data.ball.radius >=
+// 						frame.data.canvas.w - frame.data.guest.paddle.w
+// 					)
+// 				)
+// 			) {
+// 				frame.data.ball.dx
+// 			}
+
+// 			this.frames.set(roomId, frame);
+// 			this.server.to(roomId).emit("newFrame", frame);
+// 		}
+
+// 	}
+// }
+
+// }

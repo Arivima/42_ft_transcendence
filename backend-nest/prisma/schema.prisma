@@ -104,11 +104,10 @@ model Achievement {
 //JOIN TABLES (many-to-many relations)
 model Plays {
 	matchID					Int			@id @default(autoincrement())
+
 	createdAt				DateTime	@default(now())
 	score_host				Int
 	score_Guest				Int
-	mode					GameMode
-	duration_sec			Int
 
 	host					Player @relation("HostGame", fields: [hostID], references: [id])
 	hostID					Int
