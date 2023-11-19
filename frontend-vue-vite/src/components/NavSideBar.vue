@@ -7,7 +7,7 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, currentGame } = storeToRefs(playerStore)
 const debug = false
 
 export default {
@@ -28,6 +28,9 @@ export default {
 		username() : string {
 			if (debug) console.log('| NavSideBar | computed | username(' + user.value.username + ')')
 			return user.value.username
+		},
+		waiting() : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing' {
+			return currentGame.value.waiting
 		}
 	},
 	methods : {
@@ -41,32 +44,12 @@ export default {
 				//TODO TOAST ERROR
 				console.log(err)
 			}
+		},
+		update(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'){
+			playerStore.updateWaitingTesting(value)
 		}
 	},
-	beforeCreate() {
-		if (debug) console.log('| NavSideBar | beforeCreate()' )
-	},
-	created() {
-		if (debug) console.log('| NavSideBar | created(' + (user.value.id) + ')')
-	},
-	beforeMount() {
-		if (debug) console.log('| NavSideBar | beforeMount(' + (user.value.id) + ')')
-	},
-	mounted() {
-		if (debug) console.log('| NavSideBar | mounted(' + (user.value.id) + ')')
-	},
-	beforeUpdate() {
-		if (debug) console.log('| NavSideBar | beforeUpdate(' + (user.value.id) + ')')
-	},
-	updated() {
-		if (debug) console.log('| NavSideBar | updated(' + (user.value.id) + ')')
-	},
-	beforeUnmount() {
-		if (debug) console.log('| NavSideBar | beforeUnmount(' + (user.value.id) + ')')
-	},
-	unmounted() {
-		if (debug) console.log('| NavSideBar | unmounted(' + (user.value.id) + ')')
-	},
+
 }
 </script>
 
@@ -108,6 +91,19 @@ export default {
 					</v-list>
 				</v-list>
 			</v-card>
+
+			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
+				<p>TESTING DIALOG BOX</p>
+				<p>current value : </p>
+				<p>waiting = {{ waiting }}</p>
+				<v-btn @click="update('undefined')">undefined</v-btn>
+				<v-btn @click="update('matchmaking')">matchmaking</v-btn>
+				<v-btn @click="update('invite')">invite</v-btn>
+				<v-btn @click="update('streaming')">streaming</v-btn>
+				<v-btn @click="update('customization')">customization</v-btn>
+				<v-btn @click="update('playing')">playing</v-btn>
+			</v-card>
+
 
 			<v-card
 				style="flex-grow: 1; background-color: transparent;"

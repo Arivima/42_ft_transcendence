@@ -7,14 +7,18 @@ import AboutGame from '@/components/Game/AboutGame.vue';
 import DialogQueue from '@/components/Game/DialogQueue.vue';
 import DialogEndGame from '@/components/Game/DialogEndGame.vue';
 import CanvasGame from '@/components/Game/CanvasGame.vue';
+import DialogWaiting from '@/components/Game/DialogWaiting.vue';
+
+// import { user, currentGame } from '@/stores/PlayerStore';
 
 export default {
 	components : {
-		NavSideBar, Notifications, Customization, Leaderboard, DialogQueue,
-		AboutGame,
-		DialogEndGame,
-		CanvasGame
-	},
+    NavSideBar, Notifications, Customization, Leaderboard, DialogQueue,
+    AboutGame,
+    DialogEndGame,
+    CanvasGame,
+    DialogWaiting
+},
 	data: () => ({
 		inGame: false,
 	}),
@@ -34,6 +38,7 @@ export default {
 <template>
 	<NavSideBar />
 	<Notifications></Notifications>
+	<DialogWaiting></DialogWaiting>
 	<AboutGame v-if="false == inGame"></AboutGame> 
 	<v-main>
 		<v-card
