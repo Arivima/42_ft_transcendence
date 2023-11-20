@@ -215,10 +215,19 @@ export default {
 			console.log("parsedData", message);
 			const parsedData = JSON.parse(JSON.parse(message).data);
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				let fg = false;
 				friends.value.forEach((friend) => {
-					response.sortedData.forEach((parentResponse) => {
+					response.sortedData.forEach((parentResponse, index) => {
+						console.log("this.activeChat", !fg, this.activeChat, this.parents[this.activeChat - 1 ].id, this.parents[this.activeChat - 1 ].name,  "index", index, "parentResponse.id", parentResponse.id, "parentResponse.name", parentResponse.name, "friend.id", friend.id, "friend.name", friend.name);
+						if (this.activeChat && !fg && this.parents[this.activeChat - 1].id == parentResponse.id) {
+							console.log("indexing", this.activeChat, this.parents[this.activeChat - 1].name, "index", index  + 1, "parentResponse.id", parentResponse.id);
+							this.activeChat = index + 1;
+							fg = true;
+							console.log("res index", index, "parentResponse.id", parentResponse.id, response.sortedData[index].id, parentResponse.name, response.sortedData[index].name);
+							
+						}
 						if (friend.id == parentResponse.id) {
-							parentResponse.avatar = friend.avatar;
+								parentResponse.avatar = friend.avatar;
 						}
 					});
 					response.friends.forEach((friendResponse) => {
@@ -237,7 +246,38 @@ export default {
 			} else {
 				parsedData.me = false;
 				parsedData.createdAt = showTime(parsedData.createdAt);
-				this.messages.push(parsedData);
+				// console.log("this.parents[this.activeChat - 1].id", this.parents[this.activeChat - 1].name);
+				//if (this.activeChat && this.parents[this.activeChat - 1].id == parsedData.senderID)  // TODO: check if this is a group chat
+				//	this.messages.push(parsedData);
+				if (this.activeChat) {
+					console.log("this.activated chat prompt", this.activeChat, this.parents[this.activeChat - 1].id, "parsedData.senderID", parsedData.senderID, this.parents[this.activeChat - 1].isGroup);
+					this.socket.emit("getmessages", { userId: user.value.id, chatId: this.parents[this.activeChat - 1].id, isGroup: this.parents[this.activeChat - 1].isGroup }, (response) => {
+						let messages = response.messages;
+						let subscriptions = response.subscriptions;
+
+						for (let i = 0; i < messages.length; i++) {
+							if (messages[i].senderID == user.value.id)
+								messages[i].me = true;
+							else
+								messages[i].me = false;
+							messages[i].createdAt = showTime(messages[i].createdAt);
+						}
+						if (this.parents[this.activeChat -1 ].isGroup)
+						{
+							subscriptions.forEach((subscription) => {
+								if (subscription.playerID == user.value.id) {
+									this.$refs.groupInfoDialog.user.isAdmin = subscription.isAdmin;
+									this.$refs.groupInfoDialog.user.isMuted = subscription.isMuted;
+									this.$refs.groupInfoDialog.user.isBanned = subscription.isBanned;
+								}
+							});
+						}
+						this.messages = messages
+					});
+				}
+
+				
+				// this.messages.push(parsedData);
 			}
 		});
 
@@ -286,6 +326,7 @@ export default {
 				newMessage.receiversID = this.parents[this.activeChat - 1].id;
 			newMessage.createdAt = new Date();
 			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
+			console.log("newMessage", newMessage);
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
 				friends.value.forEach((friend) => {
 					response.sortedData.forEach((parentResponse) => {
@@ -299,7 +340,9 @@ export default {
 						}
 					});
 				});
+				console.log("response", response);
 				this.parents = response.sortedData;
+				this.activeChat = 1;
 				this.friendsChat = response.friends;
 				this.groups = response.rooms;
 			});

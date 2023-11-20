@@ -212,13 +212,10 @@ export class ChatService {
     else
       visibility2 = "private";
     // const iv = 
-    let hash = null;
-    if (visibility2 === "protected") {
+    let hash = "";
+    if (visibility2 === "protected")
       hash = await bcrypt.hash(password, saltRounds);
-    }
-
     
-
 
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
@@ -430,6 +427,21 @@ export class ChatService {
         });
         console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length: ${res2.length}`);
         if (res2.length === 0) {
+          await this.prisma.chatRoom.update({
+            where: {
+              groupID: groupId,
+            },
+            data: {
+              subscriptions: {
+                delete: {
+                  playerID_chatroomID: {
+                    playerID: userId,
+                    chatroomID: groupId,
+                  },
+                },
+              },
+            },
+          });
           await this.prisma.chatRoom.delete({
             where: {
               groupID: groupId,
@@ -437,11 +449,32 @@ export class ChatService {
           });
           return ["delete group"]
         }
-        res2 = res2.filter((user) => {
+        let users = res2.filter((user) => {
           return user.isBanned === false;
         });
         console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length after filter: ${res2.length}`);
-        if (res2.length === 0) {
+        if (users.length === 0) {
+          // await this.prisma.chatRoom.update({
+          //   where: {
+          //     groupID: groupId,
+          //   },
+          //   data: {
+          //     subscriptions: {
+          //       delete: {
+          //         playerID_chatroomID: {
+          //           playerID: userId,
+          //           chatroomID: groupId,
+          //         },
+          //       },
+          //     },
+          //   },
+          // });
+          // delete all entries in subscribed 
+          await this.prisma.subscribed.deleteMany({
+            where: {
+              chatroomID: groupId,
+            },
+          });
           await this.prisma.chatRoom.delete({
             where: {
               groupID: groupId,
@@ -449,7 +482,7 @@ export class ChatService {
           });
           return ["delete group"]
         }
-        let randomAdmin = res2[Math.floor(Math.random() * res2.length)];
+        let randomAdmin = users[Math.floor(Math.random() * users.length)];
         console.log(`DEBUG | chat.service | removeUserFromGroup | randomAdmin: ${randomAdmin}`);
         let res3 = await this.prisma.subscribed.update({
           where: {
@@ -723,7 +756,8 @@ export class ChatService {
                 createdAt: true,
 
                 },
-              },
+              }
+              
               // include: {
               //   messages: {
               //     take: 1,
@@ -1024,7 +1058,8 @@ export class ChatService {
         visibility: true,
       },
     });
-    
+    console.log(`DEBUG | chat.service | searchGroups | res: ${res.length}`);
+
     // let res = await this.prisma.chatRoom.findMany({
     //   where: {
     //     name: {
@@ -1068,6 +1103,7 @@ export class ChatService {
       password: ""
 
     }));
+    console.log(`DEBUG | chat.service | searchGroups | ret: ${ret.length}`);
     
     return { groups: ret };
   }
