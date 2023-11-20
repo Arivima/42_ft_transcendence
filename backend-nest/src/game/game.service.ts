@@ -80,7 +80,7 @@ export class GameService {
 		return this.getFrames();
 	}
 
-	endGame(client: Socket, server: Server) {
+	leaveGame(client: Socket, server: Server) {
 		
 		let key: number = -1;
 		
@@ -121,13 +121,15 @@ export class GameService {
 				server.to(roomId).emit("endGame", {
 					hostWin: false,
 					guestWin: false,
+					hostScore: -1,
+					guestScore: -1,
 				} as endGameDto)
 			}
 			
 			// deleting user game
 			this.games.delete(key);
 			
-			// deleting room iff all players left
+			// deleting room if all players left
 			for (let [userID, game] of this.games) {
 				if (roomId === game.roomId)
 					return ;

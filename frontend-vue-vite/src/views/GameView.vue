@@ -24,7 +24,6 @@ export interface currentGame {
 	frame: Frame
 
 	invite: boolean;
-	streamUserID: number,
 	status: 'undefined' | 'building' | 'playing' | 'end'
 	waiting: 'undefined' | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'
 	role: 'undefined' | 'player' | 'watcher'
@@ -32,13 +31,14 @@ export interface currentGame {
 
 export default {
 	components : {
-    NavSideBar, Notifications, Leaderboard,
+    NavSideBar, Notifications, 
     AboutGame,
-    DialogEndGame,
+	Leaderboard,
     CanvasGame,
     DialogWaiting,
     DialogInvite,
-	DialogCustomization
+	DialogCustomization,
+    DialogEndGame,
 },
 	data: () => ({
 	}),
@@ -73,6 +73,7 @@ export default {
 	<DialogWaiting></DialogWaiting>
 	<DialogInvite></DialogInvite>
 	<DialogCustomization></DialogCustomization>
+	<DialogEndGame></DialogEndGame>
 
 	<v-main>
 		<v-card

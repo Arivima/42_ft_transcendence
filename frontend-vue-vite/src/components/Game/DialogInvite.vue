@@ -18,6 +18,10 @@ export default defineComponent({
 			console.log('| DialogInvite | computed | dialogBox : ' + currentGame.value.invite)
 			return currentGame.value.invite
 		},
+		HostName() : string {
+			console.log('| DialogInvite | computed | HostName : ' + currentGame.value.inviteSender)
+			return currentGame.value.inviteSender
+		},
 	},
 	methods: {
 		accept(){
@@ -52,9 +56,7 @@ export default defineComponent({
 	>
 		<v-card rounded class="dialog bg-white ma-auto pa-4">
 			
-			<v-card-title class="text-button text-">
-				You have been invited to a game !
-			</v-card-title>
+			<v-card-title class="text-button text-"> {{ HostName }} has invited you to a game !</v-card-title>
 			
 			<v-card
 				class="text-center ma-2"

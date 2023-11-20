@@ -4,7 +4,7 @@ import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { user, currentGame, fetchPlayer } = storeToRefs(playerStore)
+const { user, currentGame } = storeToRefs(playerStore)
 const debug = true
 
 // TODO check if not elsewhere
@@ -28,14 +28,14 @@ export default defineComponent({
 	data() {
 		return {
 			colorPaddle:	currentGame.value.customizations.colorPaddle,
-			colorBall:		currentGame.value.customizations.colorPaddle,
-			colorPitch:		currentGame.value.customizations.colorPaddle,
+			colorBall:		currentGame.value.customizations.colorBall,
+			colorPitch:		currentGame.value.customizations.colorPitch,
 		}
 	},
 	computed : {
 		dialogBox(){
 			console.log('| DialogCustomization | computed | dialogBox : ' + (currentGame.value.status == 'building' && currentGame.value.waiting == ''))
-			return (currentGame.value.status == 'building' && currentGame.value.waiting == '')
+			return (currentGame.value.status == 'building' && currentGame.value.waiting == 'undefined')
 		},
 		opponentName() {
 			console.log('| DialogCustomization | computed | opponentName : ' + (user.value.id == currentGame.value.gameInfo.hostID ? currentGame.value.guest.username : user.value.id == currentGame.value.gameInfo.guestID ? currentGame.value.host.username :'N/A'))
@@ -62,9 +62,9 @@ export default defineComponent({
 		dialogBox(isActive: boolean) {
 			console.log('| DialogCustomization | watcher | dialogBox : ' + isActive)
 			if (isActive == false){
-				this.colorPaddle = currentGame.value.customization.colorPaddle;
-				this.colorBall = currentGame.value.customization.colorPaddle;
-				this.colorPitch = currentGame.value.customization.colorPaddle;				
+				this.colorPaddle = currentGame.value.customizations.colorPaddle;
+				this.colorBall = currentGame.value.customizations.colorBall;
+				this.colorPitch = currentGame.value.customizations.colorPitch;				
 			}
 		},
 	},

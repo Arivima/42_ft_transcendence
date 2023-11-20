@@ -83,21 +83,23 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.clients.delete(key);
 		}
 		
-		this.gameService.endGame(client, this.server);
+		this.gameService.leaveGame(client, this.server);
 	}
 
 	// joining game through invite
 	@SubscribeMessage('sendInvite')
 	sendInvite(
 		@MessageBody('invite') invite: InviteDto
-	)
+	) : boolean
 	{
 		let recipientSocket = this.clients.get(invite.guestID);
 
 		if (recipientSocket)
 		{
 			this.server.to(`${invite.guestID}`).emit("newInvite", invite);
+			return true
 		}
+		return false
 	}
 	
 	@SubscribeMessage('cancelInvite')
@@ -110,14 +112,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
 		}
 	}
+	// TODO chekc here logic
 	@SubscribeMessage('rejectInvite')
 	rejectInvite(@MessageBody('invite') invite: InviteDto )
 	{
-		let requestorSocket = this.clients.get(invite.guestID);
+		let requestorSocket = this.clients.get(invite.hostID);
 
 		if (requestorSocket)
 		{
-			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
+			this.server.to(`${invite.hostID}`).emit("rejectedInvite", invite);
 		}
 	}
 
@@ -189,9 +192,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	cancelMatchMaking(
 		@MessageBody('userID') userID: number,
 		@ConnectedSocket() socket: Socket
-	) {
-		if(this.gameService.removeFromQueue(userID))
-			this.server.to(socket.id).emit("cancelMatchMaking");
+	) : boolean {
+		// if(this.gameService.removeFromQueue(userID))
+		// 	this.server.to(socket.id).emit("cancelMatchMaking");
+		return this.gameService.removeFromQueue(userID);
 	}
 
 	// customization
@@ -221,7 +225,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('userID') userID: number,
 		@MessageBody('playerID') playerID: number,
 		@ConnectedSocket() client: Socket
-	) {
+	) : boolean {
+		// fetching the room where playerID is playing
 		const game = this.gameService.joinGame(userID, playerID, client);
 
 		if (game)
@@ -230,12 +235,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client.join(game.roomId);
 
 			// emitting start
-			this.server.to(`${userID}`).emit('startGame', {
-				hostID: game.hostID,
-				guestID: game.guestID,
-				watcher: true
-			} as CreateGameDto);
+			this.server.to(`${userID}`).emit('startStream', {
+				game : {
+					hostID: game.hostID,
+					guestID: game.guestID,
+				},
+				customization: game.customization
+			});
+			return true
 		}
+		return false
 	}
 
 	@SubscribeMessage('newFrame')
@@ -249,6 +258,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
 		const	hostWin: boolean = (10 == frame.data.host.score);
 		const	guestWin: boolean = (10 == frame.data.guest.score);
+		const	hostScore: number = (frame.data.host.score);
+		const	guestScore: number = (frame.data.guest.score);
 
 		if (frame.seq > currentFrame.seq)
 		{
@@ -257,7 +268,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			{
 				this.server.to(roomId).emit("endGame", {
 					hostWin,
-					guestWin
+					guestWin,
+					hostScore,
+					guestScore
 				} as endGameDto);
 
 				await this.gameService.setGameasFinished(frame);
@@ -272,12 +285,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 	}
 
-	@SubscribeMessage("endGame")
-	endGame(
+	@SubscribeMessage("leaveGame")
+	leaveGame(
 		@MessageBody('userID') userID: number,
 		@ConnectedSocket() socket: Socket
 	) {
-		this.gameService.endGame(socket, this.server);
+		console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
+		this.gameService.leaveGame(socket, this.server);
 	}
 
 }

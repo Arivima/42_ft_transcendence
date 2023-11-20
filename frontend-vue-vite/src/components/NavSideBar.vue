@@ -36,6 +36,8 @@ export default {
 			return currentGame.value.invite
 		},
 		streaming() : number {
+
+			// update!
 			return currentGame.value.streamUserID
 		}
 
