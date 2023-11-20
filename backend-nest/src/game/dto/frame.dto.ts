@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   game.dto.ts                                        :+:      :+:    :+:   */
+/*   frame.dto.ts                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 12:04:04 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/18 12:28:35 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 11:29:39 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,10 @@ export class PlayerData {
 }
 
 export class FrameData {
+	canvas: {
+		w: number,
+		h: number
+	}
 	ball: {
 		radius: number,
 		sx: number, sy: number,

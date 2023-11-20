@@ -1,31 +1,65 @@
 <script lang="ts">
 import Notifications from '@/components/Notifications.vue';
 import NavSideBar from '../components/NavSideBar.vue'
-import Customization from '@/components/Game/Customization.vue'
 import Leaderboard from '@/components/Game/Leaderboard.vue'
 import AboutGame from '@/components/Game/AboutGame.vue';
-import DialogQueue from '@/components/Game/DialogQueue.vue';
 import DialogEndGame from '@/components/Game/DialogEndGame.vue';
 import CanvasGame from '@/components/Game/CanvasGame.vue';
+import DialogWaiting from '@/components/Game/DialogWaiting.vue';
+import DialogInvite from '@/components/Game/DialogInvite.vue';
+import DialogCustomization from '@/components/Game/DialogCustomization.vue';
+
+import { storeToRefs } from 'pinia'
+import { usePlayerStore, type Player, type GameInfo, type CustomizationOptions, type Frame } from '@/stores/PlayerStore';
+
+const playerStore = usePlayerStore()
+const { user, currentGame } = storeToRefs(playerStore)
+
+export interface currentGame {
+	host: Player
+	guest: Player
+
+	gameInfo: GameInfo
+	customizations: CustomizationOptions
+	frame: Frame
+
+	invite: boolean;
+	status: 'undefined' | 'building' | 'playing' | 'end'
+	waiting: 'undefined' | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'
+	role: 'undefined' | 'player' | 'watcher'
+};
 
 export default {
 	components : {
-		NavSideBar, Notifications, Customization, Leaderboard, DialogQueue,
-		AboutGame,
-		DialogEndGame,
-		CanvasGame
-	},
+    NavSideBar, Notifications, 
+    AboutGame,
+	Leaderboard,
+    CanvasGame,
+    DialogWaiting,
+    DialogInvite,
+	DialogCustomization,
+    DialogEndGame,
+},
 	data: () => ({
-		inGame: false,
 	}),
-	methods: {
-		closeGame(){
-			this.inGame = false
+	computed: {
+		status() : 'undefined' | 'building' | 'playing' | 'end' {
+			console.log('| GameView | computed | status : ' + currentGame.value.status)
+			return currentGame.value.status
 		},
-		newGame(){
-			this.inGame = true
+		// role() : 'undefined' | 'player' | 'watcher' {
+		// 	console.log('| GameView | computed | role : ' + currentGame.value.role)
+		// 	return currentGame.value.role
+		// },
+	},
+	methods: {
+		sendMatchMakingRequest(){
+			playerStore.sendMatchMakingRequest()
 		}
-	}
+	},
+	unmounted() {
+		// which variables to reset
+	},
 }
 </script>
 
@@ -34,14 +68,19 @@ export default {
 <template>
 	<NavSideBar />
 	<Notifications></Notifications>
-	<AboutGame v-if="false == inGame"></AboutGame> 
+	<AboutGame v-if="status == 'undefined'"></AboutGame>
+
+	<DialogWaiting></DialogWaiting>
+	<DialogInvite></DialogInvite>
+	<DialogCustomization></DialogCustomization>
+	<DialogEndGame></DialogEndGame>
+
 	<v-main>
 		<v-card
 			class="game flex-column backgroundGame"
 		>
-			<Leaderboard v-if="false == inGame"></Leaderboard>				
-
 			<v-card-item 
+				v-if="status == 'undefined'"
 				class="ma-7"
 			>
 				<v-btn
@@ -49,27 +88,30 @@ export default {
 					variant="elevated"
 					size="x-large"
 					class="mx-3"
-					@click="newGame"
-				>
-					Play now !
-					<DialogQueue
-						@close="closeGame"
-					></DialogQueue>
-				</v-btn>
+					@click="sendMatchMakingRequest"
+					text="Play now !"
+				></v-btn>
 			</v-card-item>
 
+
+
 			<v-card-item
-				v-if="true == inGame"
+				v-if="status == 'building' || status == 'playing' || status == 'end' "
 				class="text-center"
 				style="font-weight: bolder; font-size:x-large;" prepend-icon="mdi-cat" append-icon="mdi-cat"
 			>
 				<h2>CAT PONG</h2>
 			</v-card-item>
 
+				<!-- @close="closeGame" -->
 			<CanvasGame
-				v-if="true == inGame"
-				@close="closeGame"
+				v-if="status == 'building' || status == 'playing' || status == 'end'"
 			></CanvasGame>
+
+
+			<Leaderboard
+				v-if="status == 'undefined'"
+			></Leaderboard>				
 
 		</v-card>
 	</v-main>

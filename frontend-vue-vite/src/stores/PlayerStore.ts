@@ -6,13 +6,14 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/18 21:46:25 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 17:22:18 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { defineStore, type StoreDefinition } from 'pinia'
 import axios from 'axios'
 import {io, Socket} from 'socket.io-client'
+import router from '@/router'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
 
@@ -63,56 +64,6 @@ export interface FriendRequestError {
 	recipientID: number
 }
 
-
-export interface PlayerGameData {
-	paddle: {
-		w: number
-		h: number
-		sx: number
-		sy: number
-		y: number
-	}
-	score: number
-}
-
-export interface Frame {
-	seq: number,
-	ball: {
-		radius: number
-		sx: number, sy: number
-		x: number, y: number
-		dx: number, dy: number
-	}
-	host: PlayerGameData
-	guest: PlayerGameData
-}
-
-export interface CustomizationOptions {
-	pitch_color: string,
-	paddle_color: string,
-	ball_color: string
-}
-
-export interface GameInfo {
-	hostID: number,
-	hostName: string,
-	guestID: number,
-	guestName: string
-}
-
-export interface currentGame {
-	gameInfo: GameInfo,
-	customizations: CustomizationOptions,
-	frame: Frame
-}
-
-const emptyCurrentGame = {
-	gameInfo: {hostID: -1, hostName: 'N/A', guestID: -1, guestName: 'N/A'},
-	customizations: {pitch_color: 'N/A', paddle_color: 'N/A', ball_color: 'N/A'},
-	frame: {seq: -1, ball: {radius: -1, sx: -1, sy: -1, x: -1, y: -1, dx: -1, dy: -1} }
-} as currentGame;
-
-
 export interface Player {
 	id: number
 	username: string
@@ -127,7 +78,7 @@ export interface Player {
 	token:	string | null
 	twofaSecret: string//?RIMUOVERE
 	profile_completed: boolean
-}
+};
 
 const emptyUser = {
 	id: -1,
@@ -145,12 +96,11 @@ const emptyUser = {
 	profile_completed: false,
 };
 
-
 export interface Achievement {
 	name: string
 	description: string
 	picture: string
-}
+};
 
 export interface Game {
 	createdAt: string
@@ -159,48 +109,63 @@ export interface Game {
 	guest: string
 	host_score: number
 	guest_score: number
-}
+};
 
-export interface CreateGameDto {
-	hostID: number
-	guestID: number
-}
-
-export interface PlayerData {
+// GAME STRUCTURES
+export interface PlayerGameData {
 	paddle: {
-		w: number,
+		w: number
 		h: number
-		sx: number,
-		sy: number,
+		sx: number
+		sy: number
 		y: number
 	}
 	score: number
-}
+};
 
-export interface FrameData {
+const emptyPlayerGameData = {
+	paddle: {
+		w: 0,
+		h: 0,
+		sx: 0,
+		sy: 0,
+		y: 0,
+	},
+	score: 0,
+};
+
+export interface Frame {
+	seq: number,
 	ball: {
-		radius: number,
-		sx: number, sy: number,
-		x: number, y: number,
-		dx: number, dy: number,
+		radius: number
+		sx: number, sy: number
+		x: number, y: number
+		dx: number, dy: number
 	}
-	host: PlayerData
-	guest: PlayerData
-}
+	host: PlayerGameData
+	guest: PlayerGameData
+};
 
-export interface FrameDto {
-	hostId?: number
-	guestID?: number
-	seq: number
-	data: FrameData
-}
-
+const emptyFrame = {
+	seq: -1,
+	ball: {
+		radius: -1,
+		sx: -1,
+		sy: -1,
+		x: -1,
+		y: -1,
+		dx: -1,
+		dy: -1
+	},
+	host: emptyPlayerGameData,
+	guest : emptyPlayerGameData,
+};
 
 export interface CustomizationOptions {
-	pitch_color: string
-	paddle_color: string
+	pitch_color: string,
+	paddle_color: string,
 	ball_color: string
-}
+};
 
 const emptyCustomizationOptions = {
 	pitch_color : '#FFFFFFFF',
@@ -208,27 +173,63 @@ const emptyCustomizationOptions = {
 	ball_color : '#00000000',
 };
 
-export interface LiveGame {
-	host: Player;
-	guest: Player;
-	invite: boolean;
-	status: 'undefined' | 'loading' | 'waiting' | 'start' | 'playing' | 'end';
-	role: 'undefined' | 'player' | 'watcher';
-	customization: CustomizationOptions;
-	host_score: number;
-	guest_score: number;
-}
+export interface GameInfo {
+	hostID: number,
+	guestID: number,
 
-const emptyLiveGame = {
+	watcher: boolean,
+};
+
+const emptyGameInfo = {
+	hostID: -1,
+	guestID: -1,
+	watcher: false,
+};
+
+export interface currentGame {
+	host: Player
+	guest: Player
+
+	gameInfo: GameInfo
+	customizations: CustomizationOptions
+	frame: Frame
+
+	invite: boolean;
+	inviteSender: string;
+	inviteSenderID: number;
+
+	status: 'undefined' | 'building' | 'playing' | 'end',
+	waiting: 'undefined' | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',
+	role: 'undefined' | 'player' | 'watcher',
+	endReason : 'undefined' | 'hostWin' | 'guestWin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft'
+	finalScore : { host : number, guest : number}
+};
+
+const emptyCurrentGame = {
 	host: emptyUser,
 	guest: emptyUser,
+	
+	gameInfo: emptyGameInfo,
+	customizations: emptyCustomizationOptions,
+	frame: emptyFrame,
+
 	invite: false,
-	status: 'undefined' as  'undefined' | 'loading' | 'waiting' | 'start' | 'playing' | 'end',
+	inviteSender: '',
+	inviteSenderID: 0,
+
+	status: 'undefined' as  'undefined' | 'building' | 'playing' | 'end',
+	waiting: 'undefined' as  'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',
 	role: 'undefined' as 'undefined' | 'player' | 'watcher',
-	customization: emptyCustomizationOptions,
-	host_score: 0,
-	guest_score: 0,
-};
+	endReason : 'undefined' as 'undefined' | 'hostWin' | 'guestWin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft',
+	finalScore : { host : 0, guest : 0}
+} as currentGame;
+
+export interface endGameDto {
+	hostWin: boolean
+	guestWin: boolean
+	hostScore: number
+	guestScore: number
+}
 
 
 //?: make multiple players store
@@ -237,7 +238,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			user: Player,
 			currentGame: currentGame
 			loading: boolean, //TODO ? forse rimuovere
-			liveGame: LiveGame,
 			friends: Player[],
 			blockedUsers: Player[],
 			publicUsers: Player[],
@@ -253,8 +253,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		} => {
 			return {
 				user: emptyUser,
-				liveGame: emptyLiveGame,
-				currentGame: {} as currentGame,
+				currentGame: emptyCurrentGame,
 				friends: [],
 				blockedUsers: [],
 				publicUsers: [],
@@ -332,64 +331,121 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit('matchMaking', {
 					userID: this.user.id
 				});
-				this.liveGame.status = 'waiting'
+				this.currentGame.waiting = 'matchmaking'
+			},
+			cancelMatchMakingRequest() {
+				if (debug) console.log("/Store/ cancelMatchMakingRequest");
+				
+				// this.user.gameSocket?.emit('cancelMatchMaking', {
+				// 	userID: this.user.id
+				// });
+				// this.currentGame.waiting = 'undefined'
+
+				this.user.gameSocket?.timeout(5000).emit('cancelMatchMaking', {
+					userID: this.user.id
+				}, (response: boolean) => {
+					console.log('cancelMatchMakingRequest() acknowledgment:', response);
+					if (response = true) {
+						this.currentGame.waiting = 'undefined';
+					}
+					//  else {
+					// 	console.log('Cancel Matchmaking acknowledgment:', ack);
+					// }
+				});
+				
+
 			},
 
 			// invitation
 			sendInvitation(guestID : number) {
 				if (debug) console.log("/Store/ sendInvitation");
-				this.user.gameSocket?.emit('sendInvite', {
-					playerID: this.user.id,
-					guestID: guestID,
-				});
-				this.liveGame.status = 'waiting'
-			},
+				// this.user.gameSocket?.emit('sendInvite', {
+				// 	hostID: this.user.id,
+				// 	guestID: guestID,
+				// });
+				// this.currentGame.waiting = 'invite'
 
+				this.user.gameSocket?.timeout(5000).emit('sendInvite', {
+					hostID: this.user.id,
+					guestID: guestID,
+				}, (response: boolean) => {
+					console.log('sendInvitation() acknowledgment:', response);
+					if (response = true) {
+						this.currentGame.waiting = 'invite'
+					}
+				});
+
+
+			},
 			cancelInvitation(guestID : number) {
 				if (debug) console.log("/Store/ cancelInvitation");
 				this.user.gameSocket?.emit('cancelInvite', {
-					playerID: this.user.id,
+					hostID: this.user.id,
 					guestID: guestID,
 				});
-				this.liveGame.status = 'undefined'
+				this.currentGame.waiting = 'undefined'
 			},
 
-			acceptInvitation(guestID : number) {
+			acceptInvitation() {
 				if (debug) console.log("/Store/ acceptInvitation");
 				this.user.gameSocket?.emit('acceptInvite', {
-					playerID: this.user.id,
-					guestID: guestID,
+					hostID: this.currentGame.inviteSenderID,
+					guestID: this.user.id,
 				});
-				this.liveGame.invite = false
-				this.liveGame.status = 'loading'
+				this.currentGame.invite = false
+				this.currentGame.inviteSenderID = 0
+				this.currentGame.inviteSender = ''
 			},
 
-			rejectInvitation(guestID : number) {
+			rejectInvitation() {
 				if (debug) console.log("/Store/ rejectInvitation");
 				this.user.gameSocket?.emit('rejectInvite', {
-					playerID: this.user.id,
-					guestID: guestID,
+					hostID: this.currentGame.inviteSenderID,
+					guestID: this.user.id,
 				});
-				this.liveGame.invite = false
+				this.currentGame.invite = false
+				this.currentGame.inviteSenderID = 0
+				this.currentGame.inviteSender = ''
 			},
 
 			// streaming
-			sendStreamingRequest() {
+			sendStreamingRequest(playerID: number) {
 				if (debug) console.log("/Store/ sendStreamingRequest");
-				this.user.gameSocket?.emit('streaming', {
-					playerID: this.user.id,
+				// this.user.gameSocket?.emit('joinGame', {
+				// 	userID: this.user.id,
+				// 	playerID,
+				// });
+				// this.currentGame.waiting = 'streaming'
+
+				this.user.gameSocket?.timeout(5000).emit('joinGame', {
+					userID: this.user.id,
+					playerID,
+				}, (response: boolean) => {
+					console.log('sendStreamingRequest() acknowledgment:', response);
+					if (response = false) {
+						//! snackbar couldn't load live game
+						console.log(`user : ${this.user.id} could not load live game (player: ${playerID})`)
+					}
 				});
+
+			},
+
+			cancelStreamingRequest() {
+				if (debug) console.log("/Store/ cancelStreamingRequest");
+				this.currentGame.waiting = 'undefined'
 			},
 
 			// game
 			sendCustomizationOptions(customization: CustomizationOptions) {
 				if (debug) console.log("/Store/ sendCustomizationOptions");
 				
-				this.user.gameSocket?.emit('customization', {
+				this.user.gameSocket?.emit('sendCustomizationOptions', {
 					customization: customization,
-					game_info: this.currentGame.gameInfo,
+					gameInfo: this.currentGame.gameInfo,
 					userID: this.user.id
 				});
+				this.currentGame.waiting = 'customization'
+
 			},
 
 			sendFrame(frame: Frame) {
@@ -397,19 +453,29 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit('newFrame', frame);
 			},
 
-			sendDisconnect() {
-				if (debug) console.log("/Store/ sendDisconnect");
-				this.user.gameSocket?.disconnect()
-				this.liveGame.status = 'end'
+			exitGame() {
+				if (debug) console.log("/Store/ exitGame");
+				this.user.gameSocket?.emit("leaveGame", {
+					userID: this.user.id
+				})
+				this.currentGame.waiting = 'undefined'
+				if (this.currentGame.status == 'building' || this.currentGame.status == 'playing' ) {
+					this.currentGame.status = 'end'
+					this.currentGame.endReason = 'userLeft'
+				}
 			},
 
 			resetGame() {
 				if (debug) console.log("/Store/ resetGame");
-				this.liveGame = emptyLiveGame;
+				this.currentGame = emptyCurrentGame;
 			},
 
-
-
+			updateWaitingTesting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',){
+				this.currentGame.waiting = value;
+			},
+			updateInviteTesting(value : boolean){
+				this.currentGame.invite = value;
+			},
 
 
 			// profile actions
@@ -504,9 +570,10 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 					this.user.gameSocket?.on('newInvite', handleNewInvite.bind(this));
 					this.user.gameSocket?.on('deleteInvite', handleDeleteInvite.bind(this));
+					this.user.gameSocket?.on('rejectedInvite', handleRejectedInvite.bind(this));
 					this.user.gameSocket?.on('newGame', handleNewGame.bind(this));
-					this.user.gameSocket?.on('start', handleStart.bind(this));
-					this.user.gameSocket?.on('end', handleEnd.bind(this));
+					this.user.gameSocket?.on('startGame', handleStart.bind(this));
+					this.user.gameSocket?.on('endGame', handleEnd.bind(this));
 					this.user.gameSocket?.on('newFrame', handlenewFrame.bind(this));
 
 					this.friends = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data
@@ -964,62 +1031,111 @@ async function handleNotificationsError(this: any, data: FriendRequestError) {
 	);
 }
 
+
 // Game Sockets Events
-async function handleNewInvite(this: any) {
+async function handleNewInvite(this: any, invite : {hostID: number, guestID: number}) {
 	if (debug) console.log("/Store/ handleNewInvite()");
-	this.liveGame.invite = true
+	this.currentGame.invite = true
+	this.currentGame.inviteSenderID = invite.hostID
+	this.currentGame.inviteSender = (await fetchPlayer(invite.hostID))
 }
 
 async function handleDeleteInvite(this: any) {
-	if (debug) console.log("/Store/ handleNewInvite()");
-	this.liveGame.invite = false
+	if (debug) console.log("/Store/ handleDeleteInvite()");
+	this.currentGame.invite = false
+	this.currentGame.inviteSenderID = 0
+	this.currentGame.inviteSender = ''
+}
+
+async function handleRejectedInvite(this: any) {
+	if (debug) console.log("/Store/ handleRejectedInvite()");
+	this.currentGame.waiting = 'undefined'
+	//! here we should have some sort of snackbar on host session : guest rejected offer
 }
 
 async function handleNewGame(this: any, game: {hostID : number, guestID : number}) {
 	if (debug) console.log("/Store/ handleNewGame()");
 
+	this.currentGame.gameInfo.hostID = game.hostID;
+	this.currentGame.gameInfo.guestID = game.guestID;
+
 	if (this.user.id == game.hostID){
-		this.liveGame.host = this.user
-		this.liveGame.guest = (await fetchPlayer(game.guestID))
-		this.liveGame.role = 'player'
+		this.currentGame.host = this.user
+		this.currentGame.guest = (await fetchPlayer(game.guestID))
+		this.currentGame.gameInfo.watcher = false;
 	}
 	else if (this.user.id == game.guestID){
-		this.liveGame.guest = this.user
-		this.liveGame.host = (await fetchPlayer(game.hostID))
-		this.liveGame.role = 'player'
+		this.currentGame.guest = this.user
+		this.currentGame.host = (await fetchPlayer(game.hostID))
+		this.currentGame.gameInfo.watcher = false;
 	}
 	else {
-		this.liveGame.role = 'watcher'
-		this.liveGame.host = (await fetchPlayer(game.hostID))
-		this.liveGame.guest = (await fetchPlayer(game.guestID))
+		this.currentGame.gameInfo.watcher = true;
+		this.currentGame.host = (await fetchPlayer(game.hostID))
+		this.currentGame.guest = (await fetchPlayer(game.guestID))
 	}
-
-	this.liveGame.status = 'start'
-
-
-	// filling game info <--- game identifying data
-	this.currentGame.game_info.hostID = game.hostID;
-	this.currentGame.game_info.hostName = this.user.id == game.hostID ?
-		this.user.username :
-		(await fetchPlayer(game.hostID)).username;
-	this.currentGame.game_info.guestID = game.guestID;
-	this.currentGame.game_info.guestName = this.user.id == game.guestID ?
-		this.user.username :
-		(await fetchPlayer(game.guestID)).username;
+	router.push('/game')
+	this.user.status = 'playing'
+	this.currentGame.status = 'building'
+	this.currentGame.waiting = 'undefined'
 }
 
 async function handleStart(this: any, customization: CustomizationOptions) {
 	if (debug) console.log("/Store/ handleStart()");
-	this.liveGame.customization = customization
-	this.liveGame.status = 'playing'
+	this.currentGame.customization = customization
+	this.currentGame.status = 'playing'
 }
 
-async function handleEnd(this: any) {
-	if (debug) console.log("/Store/ handleEnd()");
-	this.liveGame.status = 'end'
+async function handleStartStream(
+	this: any, 
+	game: {hostID : number, guestID : number}, 
+	customization: CustomizationOptions
+) {
+	if (debug) console.log("/Store/ handleStartStream()");
+
+	// from newGame handler
+	this.currentGame.gameInfo.hostID = game.hostID;
+	this.currentGame.gameInfo.guestID = game.guestID;
+	this.currentGame.gameInfo.watcher = true;
+
+	this.currentGame.host = (await fetchPlayer(game.hostID))
+	this.currentGame.guest = (await fetchPlayer(game.guestID))
+
+	this.currentGame.customization = customization
+
+	router.push('/game')
+	this.user.status = 'playing'
+	this.currentGame.status = 'playing'
+	this.currentGame.waiting = 'undefined'
+
+}
+
+
+async function handleEnd(this: any, endGame : endGameDto) {
+	if (debug) console.log("/Store/ handleEnd() current status : " + this.currentGame.status);
+	this.user.gameSocket?.emit("leaveGame", {
+		userID: this.user.id
+	})	
+	if (this.currentGame.status == 'building' || this.currentGame.status == 'playing'){
+		this.currentGame.status = 'end'
+
+		if (endGame.hostWin)
+			this.currentGame.endReason = 'hostWin'
+		else if (endGame.guestWin)
+			this.currentGame.endReason = 'guestWin'
+		else if (this.currentGame.gameInfo.watcher)
+			this.currentGame.endReason = 'aPlayerLeft'
+		else
+			this.currentGame.endReason = 'opponentLeft'
+	} else {
+		console.log(); console.log(); console.log(); console.log('!!!!!!!!!!!!!!!ICI')}
+
+	this.currentGame.finalScore.host = endGame.hostScore
+	this.currentGame.finalScore.guest = endGame.guestScore
+
+	this.user.status = 'online'
 }
 
 async function handlenewFrame(this: any) {
 	if (debug) console.log("/Store/ handlenewFrame()");
 }
-

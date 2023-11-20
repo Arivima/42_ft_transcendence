@@ -314,8 +314,6 @@ INSERT INTO "Plays" (
 	"createdAt",
 	"score_host",
 	"score_Guest",
-	"mode",
-	"duration_sec",
 	"hostID",
 	"guestID"
 )
@@ -323,8 +321,6 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	6,
 	1,
-	'public',
-	3600,
 	99696,
 	1
 )
@@ -334,8 +330,6 @@ INSERT INTO "Plays" (
 	"createdAt",
 	"score_host",
 	"score_Guest",
-	"mode",
-	"duration_sec",
 	"hostID",
 	"guestID"
 )
@@ -343,8 +337,6 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	4,
 	0,
-	'public',
-	3600,
 	2,
 	99696
 )
@@ -354,8 +346,6 @@ INSERT INTO "Plays" (
 	"createdAt",
 	"score_host",
 	"score_Guest",
-	"mode",
-	"duration_sec",
 	"hostID",
 	"guestID"
 )
@@ -363,8 +353,6 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	4,
 	4,
-	'public',
-	3600,
 	3,
 	99696
 )
@@ -374,8 +362,6 @@ INSERT INTO "Plays" (
 	"createdAt",
 	"score_host",
 	"score_Guest",
-	"mode",
-	"duration_sec",
 	"hostID",
 	"guestID"
 )
@@ -383,8 +369,6 @@ VALUES (
 	CURRENT_TIMESTAMP,
 	4,
 	6,
-	'direct',
-	3600,
 	99696,
 	3
 )

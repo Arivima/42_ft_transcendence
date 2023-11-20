@@ -30,6 +30,12 @@ export default {
 		blockUser(){
 			playerStore.toggleBlockUser(this.userProfile.id, true)
 		},
+		inviteUser(){
+			playerStore.sendInvitation(this.userProfile.id)
+		},
+		streamUser(){
+			playerStore.sendStreamingRequest(this.userProfile.id)
+		},
 	},
     mounted (){
     },
@@ -42,26 +48,25 @@ export default {
 		density="compact"
 		variant="flat"
 	>
-		<!-- v-if="`${userProfile.status}` === 'online'" -->
 		<v-btn
+			v-if="`${userProfile.status}` === 'online'"
 			:text="'Play with ' + `${userProfile.firstName}`"
-			:to="{ name: 'profile', params: { id: userProfile.id } }"
+			@click="inviteUser"
 			prepend-icon="mdi-controller"
 			block
 		>
 		</v-btn>
-		<!-- v-if="`${userProfile.status}` === 'online'" -->
 		<v-btn
 			:text="'Chat with ' + `${userProfile.firstName}`"
-			:to="{ name: 'profile', params: { id: userProfile.id } }"
+			to="/chat"
 			prepend-icon="mdi-chat"
 			block
 		>
 		</v-btn>
-		<!-- v-if="`${userProfile.status}` === 'playing'" -->
 		<v-btn
+			v-if="`${userProfile.status}` === 'playing'"
 			:text="'Watch ' + `${userProfile.firstName}` + '\'s game'"
-			:to="{ name: 'profile', params: { id: userProfile.id } }"
+			@click="streamUser"
 			prepend-icon="mdi-play"
 			block
 		>

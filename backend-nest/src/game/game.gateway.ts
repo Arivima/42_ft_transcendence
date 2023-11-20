@@ -6,12 +6,12 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/18 21:18:29 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/19 17:24:02 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, OnGatewayConnection, OnGatewayDisconnect, ConnectedSocket } from '@nestjs/websockets';
-import { GameService } from './game.service';
+import { GameService, GameSocket } from './game.service';
 import { CreateGameDto } from './dto/create-game.dto';
 import { UpdateGameDto } from './dto/update-game.dto';
 import { PlayerDto } from './dto/player.dto';
@@ -19,12 +19,17 @@ import { Socket, Server } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { FrameDto } from './dto/frame.dto';
 import { CustomizationOptions } from './dto/customization.dto';
+import { endGameDto } from './dto/endGame.dto';
+import { InviteDto } from './dto/invite.dto';
 
-export class GameSocket {
-	user_socket: Socket
-	roomId: string
-	customization: CustomizationOptions
-};
+// TODO
+// TODO		1.1 move maps in service
+// TODO		1.2 move code in service
+// TODO		1.3 make endGame a function
+// TODO			and keep disconnection simple
+// TODO		1.4 
+
+const debug = true;
 
 @WebSocketGateway({
 	cors: {
@@ -36,32 +41,29 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@WebSocketServer()
 	private server: Server;
-	private queue: Map<number, Socket>;
-	private games: Map<number, GameSocket>;
-	private frames: Map<string, FrameDto>;
+	private clients: Map<number, Socket>;
 
 	constructor(
 		private readonly gameService: GameService,
 		private readonly jwtService: JwtService
 		)
 	{
-		this.queue = new Map<number, Socket>();
-		this.games = new Map<number, GameSocket>();
-		/**
-		 * key: roomID
-		 * value: next frame data
-		 */
-		this.frames = new Map<string, FrameDto>();
+		this.clients = new Map<number, Socket>();
 	}
 
 	async handleConnection(client: Socket, ...args: any[]) {
+		
+		// validating user
 		const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
 			secret: process.env.JWT_SECRET
 		});
 
+		// setting user socket
+		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
+		this.clients.set(Number(user.sub), client);
+		
 		console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
-		// this.queue.set(Number(user.sub), client);
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
 	}
 
 	async handleDisconnect(client: any) {
@@ -69,7 +71,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		
 		let key: number = -1;
 		
-		for (let [userID, csock] of this.queue) {
+		// deleting among the list of clients
+		for (let [userID, csock] of this.clients) {
 			if (client.id == csock.id) {
 				key = userID;
 				break ;
@@ -77,117 +80,95 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 
 		if (-1 != key) {
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
-			this.queue.delete(key);
-			return ;
+			this.clients.delete(key);
 		}
-
-		for (let [userID, {user_socket: csock, ...rest}] of this.games) {
-			if (client.id == csock.id) {
-				key = userID;
-				break ;
-			}
-		}
-
-		if (-1 != key) {
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
-			this.games.delete(key);
-			return ;
-		}
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+		
+		this.gameService.leaveGame(client, this.server);
 	}
 
-	@SubscribeMessage('createGame')
-	create(@MessageBody() createGameDto: CreateGameDto) {
-		console.log(`| GATEWAY GAME | createGame |`);
-		return this.gameService.create(createGameDto);
-	}
-
-	@SubscribeMessage('findAllGame')
-	findAll() {
-	console.log(`| GATEWAY GAME | findAllGame |`);
-		return this.gameService.findAll();
-	}
-
-	@SubscribeMessage('findOneGame')
-	findOne(@MessageBody() id: number) {
-		console.log(`| GATEWAY GAME | findOneGame |`);
-		return this.gameService.findOne(id);
-	}
-
-	@SubscribeMessage('updateGame')
-	update(@MessageBody() updateGameDto: UpdateGameDto) {
-		console.log(`| GATEWAY GAME | updateGame |`);
-		return this.gameService.update(updateGameDto.id, updateGameDto);
-	}
-
-	@SubscribeMessage('removeGame')
-	remove(@MessageBody() id: number) {
-		console.log(`| GATEWAY GAME | removeGame |`);
-		return this.gameService.remove(id);
-	}
-
-	/*
 	// joining game through invite
 	@SubscribeMessage('sendInvite')
-	sendInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.sendInvite(playerDto);
-	}
+	sendInvite(
+		@MessageBody('invite') invite: InviteDto
+	) : boolean
+	{
+		let recipientSocket = this.clients.get(invite.guestID);
 
+		if (recipientSocket)
+		{
+			this.server.to(`${invite.guestID}`).emit("newInvite", invite);
+			return true
+		}
+		return false
+	}
+	
 	@SubscribeMessage('cancelInvite')
-	cancelInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.cancelInvite(playerDto);
-	}
+	cancelInvite(@MessageBody('invite') invite: InviteDto )
+	{
+		let recipientSocket = this.clients.get(invite.guestID);
 
+		if (recipientSocket)
+		{
+			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
+		}
+	}
+	// TODO chekc here logic
 	@SubscribeMessage('rejectInvite')
-	rejectInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.rejectInvite(playerDto);
+	rejectInvite(@MessageBody('invite') invite: InviteDto )
+	{
+		let requestorSocket = this.clients.get(invite.hostID);
+
+		if (requestorSocket)
+		{
+			this.server.to(`${invite.hostID}`).emit("rejectedInvite", invite);
+		}
 	}
 
 	@SubscribeMessage('acceptInvite')
-	acceptInvite(@MessageBody() playerDto: PlayerDto) {
-		return this.gameService.acceptInvite(playerDto);
-	}*/
+	acceptInvite(@MessageBody() invite: InviteDto) {
+
+		const host_socket = this.clients.get(invite.hostID);
+		const guest_socket = this.clients.get(invite.guestID);
+		
+		// Create game instance
+		let roomId = this.gameService.matchPlayers(
+			invite.guestID, invite.hostID,
+			host_socket, guest_socket
+		);
+		
+		// start game
+		this.server.to(roomId).emit("newGame", {
+			hostID: invite.hostID,
+			guestID: invite.guestID,
+			watcher: false
+		} as CreateGameDto);
+		
+	}
+
 	// joining game through matchmaking
 	@SubscribeMessage('matchMaking')
 	async matchMaking(
 		@MessageBody('userID') userID: number,
-		@ConnectedSocket() playerSocket: Socket
+		@ConnectedSocket() userSocket: Socket
 	)
 	{
 		console.log(`| GATEWAY GAME | 'matchMaking' |`);
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.games.size} `);
+		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size} `);
 		let matched: boolean = false;
+		let roomId: string;
 		
-		for (let [hostID, hostSocket] of this.queue) {
+		for (let [hostID, hostSocket] of this.gameService.getQueue()) {
 			if (await this.gameService.playerMatch(hostID, userID))
 			{
-				// create the room
-				let roomId = `${userID}:${hostID}`;
-				hostSocket.join(roomId);
-				playerSocket.join(roomId);
-				console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket} & ${playerSocket} joined ${roomId} `);
-
-				// update data structures
-				let hostGameSocket: GameSocket = {
-					user_socket: hostSocket,
-					roomId,
-					customization: {} as CustomizationOptions
-				};
-				let guestGameSocket: GameSocket = {
-					user_socket: playerSocket,
-					roomId,
-					customization: {} as CustomizationOptions
-				};
-				this.queue.delete(hostID);
-				this.games.set(hostID, hostGameSocket);
-				this.games.set(userID, guestGameSocket);
+				// create match
+				roomId = this.gameService.matchPlayers(userID, hostID, hostSocket, userSocket);
 
 				// emit event in the room
 				this.server.to(roomId).emit('newGame', {
 					hostID,
-					guestID: userID
+					guestID: userID,
+					watcher: false
 				} as CreateGameDto);
 				console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
 
@@ -201,10 +182,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (false == matched)
 		{
 			console.log(`| GATEWAY GAME | 'matchMaking' | not matched `);
-			this.queue.set(userID, playerSocket);
+			this.gameService.getQueue().set(userID, userSocket);
 		}
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.games.size / 2} `);
+		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size / 2} `);
+	}
+
+	@SubscribeMessage("cancelMatchMaking")
+	cancelMatchMaking(
+		@MessageBody('userID') userID: number,
+		@ConnectedSocket() socket: Socket
+	) : boolean {
+		// if(this.gameService.removeFromQueue(userID))
+		// 	this.server.to(socket.id).emit("cancelMatchMaking");
+		return this.gameService.removeFromQueue(userID);
 	}
 
 	// customization
@@ -214,60 +205,201 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('gameInfo') game_info: CreateGameDto,
 		@MessageBody('userID') userID: number
 	) {
-		const other_customizations = this.games.get(
-			userID == game_info.hostID ?
-			game_info.guestID :
-			game_info.hostID
-		).customization;
-		
-		if (JSON.stringify({}) != JSON.stringify(other_customizations))
-		{
-			const roomId = this.games.get(userID).roomId;
-			const final_customization = {
-				pitch_color: Math.random() * 1024 % 2 == 0 ?
-					other_customizations.pitch_color :
-					customization.pitch_color,
-				paddle_color: Math.random() * 1024 % 2 == 0 ?
-					other_customizations.paddle_color :
-					customization.paddle_color,
-				ball_color:  Math.random() * 1024 % 2 == 0 ?
-					other_customizations.ball_color :
-					customization.ball_color,
-			} as CustomizationOptions;
+		const resp = this.gameService.sendCustomizationOptions(
+			userID,
+			game_info,
+			customization
+		);
 
-			this.server.to(roomId).emit('startGame', {
-				customization: final_customization
+		if (resp)
+		{
+			this.server.to(resp.roomId).emit('startGame', {
+				customization: resp.final_customization
 			})
 		}
-		Object.assign(this.games.get(userID).customization, customization);
 	}
 
-	// joining game for livestream
-	// @SubscribeMessage('joinGame')
-	// joinGame(@MessageBody() playerDto: PlayerDto) {
-	// 	return this.gameService.joinGame(playerDto);
-	// }
+	//joining game for livestream
+	@SubscribeMessage('joinGame')
+	joinGame(
+		@MessageBody('userID') userID: number,
+		@MessageBody('playerID') playerID: number,
+		@ConnectedSocket() client: Socket
+	) : boolean {
+		// fetching the room where playerID is playing
+		const game = this.gameService.joinGame(userID, playerID, client);
+
+		if (game)
+		{
+			// joining the room
+			client.join(game.roomId);
+
+			// emitting start
+			this.server.to(`${userID}`).emit('startStream', {
+				game : {
+					hostID: game.hostID,
+					guestID: game.guestID,
+				},
+				customization: game.customization
+			});
+			return true
+		}
+		return false
+	}
 
 	@SubscribeMessage('newFrame')
-	getNewFrame(
-		@MessageBody() frame: FrameDto
+	async getNewFrame(
+		@MessageBody() frame: FrameDto,
+		@MessageBody('userID') userID: number
 	)
 	{
-		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.queue} `);
-		const	userID: number = frame.hostId || frame.guestID;
-		const	roomId: string = this.games.get(userID).roomId;
-		const	currentFrame: FrameDto = this.frames.get(roomId);
-		let		nextFrame: FrameDto = {} as FrameDto;
+		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
+		const	roomId: string = this.gameService.getGames().get(userID).roomId;
+		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
+		const	hostWin: boolean = (10 == frame.data.host.score);
+		const	guestWin: boolean = (10 == frame.data.guest.score);
+		const	hostScore: number = (frame.data.host.score);
+		const	guestScore: number = (frame.data.guest.score);
 
 		if (frame.seq > currentFrame.seq)
 		{
-			// update seq number
-			Object.assign(nextFrame, currentFrame);
-			nextFrame.seq += 1
-			this.frames.set(roomId, nextFrame);
+			// check end of game
+			if (hostWin || guestWin)
+			{
+				this.server.to(roomId).emit("endGame", {
+					hostWin,
+					guestWin,
+					hostScore,
+					guestScore
+				} as endGameDto);
 
-			this.server.to(roomId).emit("newFrame", nextFrame);
+				await this.gameService.setGameasFinished(frame);
+			}
+			// send next frame
+			else
+			{
+				this.server.to(roomId).emit("newFrame", frame);
+			}
+			
+			this.gameService.getFrames().set(roomId, frame);
 		}
 	}
 
+	@SubscribeMessage("leaveGame")
+	leaveGame(
+		@MessageBody('userID') userID: number,
+		@ConnectedSocket() socket: Socket
+	) {
+		console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
+		this.gameService.leaveGame(socket, this.server);
+	}
+
 }
+
+// @SubscribeMessage('newFrame')
+// async getNewFrame(
+// 	@MessageBody() frame: FrameDto,
+// 	@MessageBody('userID') userID: number
+// )
+// {
+// 	console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
+// 	const	roomId: string = this.gameService.getGames().get(userID).roomId;
+// 	const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
+
+// 	if (frame.seq > currentFrame.seq)
+// 	{
+// 		// update score
+// 		if ((frame.data.ball.x + frame.data.ball.sx + frame.data.ball.radius) >=
+// 			frame.data.canvas.w)
+// 		{
+// 			frame.data.host.score += 1;
+
+// 			// check end of game
+// 			if (10 == frame.data.host.score) {
+// 				this.server.to(roomId).emit("endGame", {
+// 					hostWin: true,
+// 					guestWin: false
+// 				} as endGameDto);
+
+// 				// update db
+// 				await this.gameService.setGameasFinished(frame);
+// 			}
+// 		}
+// 		else
+// 		if ((frame.data.ball.x + frame.data.ball.sx - frame.data.ball.radius) <= 0)
+// 		{
+// 			frame.data.guest.score += 1;
+			
+// 			// check end of game
+// 			if (10 == frame.data.guest.score) {
+// 				this.server.to(roomId).emit("endGame", {
+// 					hostWin: false,
+// 					guestWin: true
+// 				} as endGameDto);
+
+// 				// update db
+// 				await this.gameService.setGameasFinished(frame);
+// 			}
+// 		}
+// 		// send next frame
+// 		else
+// 		{
+
+// 			// check guest collisions
+// 			if (
+// 				(
+// 					(
+// 						frame.data.ball.y + frame.data.ball.sy + frame.data.ball.radius >=
+// 						frame.data.guest.paddle.y + frame.data.guest.paddle.sy &&
+// 						frame.data.ball.y + frame.data.ball.sy - frame.data.ball.radius <=
+// 						frame.data.guest.paddle.y + frame.data.guest.paddle.sy + frame.data.guest.paddle.h
+// 					) &&
+// 					(
+// 						frame.data.ball.x + frame.data.ball.sx + frame.data.ball.radius >=
+// 						frame.data.canvas.w - frame.data.guest.paddle.w
+// 					)
+// 				)
+// 			) {
+// 				frame.data.ball.dx
+// 			}
+
+// 			this.gameService.getFrames().set(roomId, frame);
+// 			this.server.to(roomId).emit("newFrame", frame);
+// 		}
+
+// 	}
+// }
+
+// }
+
+// STANDARD CRUD ENDPOINTS
+
+// @SubscribeMessage('createGame')
+// create(@MessageBody() createGameDto: CreateGameDto) {
+// 	console.log(`| GATEWAY GAME | createGame |`);
+// 	return this.gameService.create(createGameDto);
+// }
+
+// @SubscribeMessage('findAllGame')
+// findAll() {
+// console.log(`| GATEWAY GAME | findAllGame |`);
+// 	return this.gameService.findAll();
+// }
+
+// @SubscribeMessage('findOneGame')
+// findOne(@MessageBody() id: number) {
+// 	console.log(`| GATEWAY GAME | findOneGame |`);
+// 	return this.gameService.findOne(id);
+// }
+
+// @SubscribeMessage('updateGame')
+// update(@MessageBody() updateGameDto: UpdateGameDto) {
+// 	console.log(`| GATEWAY GAME | updateGame |`);
+// 	return this.gameService.update(updateGameDto.id, updateGameDto);
+// }
+
+// @SubscribeMessage('removeGame')
+// remove(@MessageBody() id: number) {
+// 	console.log(`| GATEWAY GAME | removeGame |`);
+// 	return this.gameService.remove(id);
+// }

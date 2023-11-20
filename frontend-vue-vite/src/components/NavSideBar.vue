@@ -7,7 +7,7 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, currentGame } = storeToRefs(playerStore)
 const debug = false
 
 export default {
@@ -28,7 +28,19 @@ export default {
 		username() : string {
 			if (debug) console.log('| NavSideBar | computed | username(' + user.value.username + ')')
 			return user.value.username
+		},
+		waiting() : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing' {
+			return currentGame.value.waiting
+		},
+		invite() : boolean {
+			return currentGame.value.invite
+		},
+		streaming() : number {
+
+			// update!
+			return currentGame.value.streamUserID
 		}
+
 	},
 	methods : {
 		async logOut() {
@@ -41,32 +53,15 @@ export default {
 				//TODO TOAST ERROR
 				console.log(err)
 			}
+		},
+		updateWaiting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'){
+			playerStore.updateWaitingTesting(value)
+		},
+		updateInvite(value : boolean){
+			playerStore.updateInviteTesting(value)
 		}
 	},
-	beforeCreate() {
-		if (debug) console.log('| NavSideBar | beforeCreate()' )
-	},
-	created() {
-		if (debug) console.log('| NavSideBar | created(' + (user.value.id) + ')')
-	},
-	beforeMount() {
-		if (debug) console.log('| NavSideBar | beforeMount(' + (user.value.id) + ')')
-	},
-	mounted() {
-		if (debug) console.log('| NavSideBar | mounted(' + (user.value.id) + ')')
-	},
-	beforeUpdate() {
-		if (debug) console.log('| NavSideBar | beforeUpdate(' + (user.value.id) + ')')
-	},
-	updated() {
-		if (debug) console.log('| NavSideBar | updated(' + (user.value.id) + ')')
-	},
-	beforeUnmount() {
-		if (debug) console.log('| NavSideBar | beforeUnmount(' + (user.value.id) + ')')
-	},
-	unmounted() {
-		if (debug) console.log('| NavSideBar | unmounted(' + (user.value.id) + ')')
-	},
+
 }
 </script>
 
@@ -107,6 +102,25 @@ export default {
 						></v-list-item>
 					</v-list>
 				</v-list>
+			</v-card>
+
+			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
+				<p>waiting = {{ waiting }}</p>
+				<v-btn @click="updateWaiting('undefined')">undefined</v-btn>
+				<v-btn @click="updateWaiting('matchmaking')">matchmaking</v-btn>
+				<v-btn @click="updateWaiting('invite')">invite</v-btn>
+				<v-btn @click="updateWaiting('streaming')">streaming</v-btn>
+				<v-btn @click="updateWaiting('customization')">customization</v-btn>
+				<v-btn @click="updateWaiting('playing')">playing</v-btn>
+			</v-card>
+
+			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
+				<p>invite = {{ invite }}</p>
+				<v-btn @click="updateInvite(true)">new invite</v-btn>
+			</v-card>
+
+			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
+				<p>streaming = {{ streaming }}</p>
 			</v-card>
 
 			<v-card

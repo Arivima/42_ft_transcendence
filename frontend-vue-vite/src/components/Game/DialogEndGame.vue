@@ -3,55 +3,90 @@ import { defineComponent } from 'vue'
 import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
-// link to state of matchmaking
-
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, currentGame } = storeToRefs(playerStore)
 const debug = true
 
 export default defineComponent({
-	components: {
-	},
-	data() {
-		return {
-			dialogBox: false,
-			loading: false,
-		}
-	},
-	methods: {
-		backToGameHome(){
-			this.dialogBox = false
+	computed : {
+		dialogBox(){
+			console.log('| DialogEnd | computed | dialogBox : ' + currentGame.value.status == 'end')
+			return (currentGame.value.status == 'end')
+		},
+		title() : string {
+			console.log('| DialogEnd | computed | title')
+			switch(currentGame.value.endReason){
+					case 'hostWin'	: (this.userIsHost == true ? 'You have won !' : 'You have lost ...')
+					case 'guestWin'	: (this.userIsGuest == true ? 'You have won !' : 'You have lost ...')
+					case 'userLeft'	: return 'You have left the game'
+					case 'aPlayerLeft': return 'A player left the game'
+					case 'opponentLeft'		: return 'Your opponent left the game'
+					default: // if 'undefined'
+					return ''
+				}
+		},
+		someoneWon() : boolean {
+			console.log('| DialogEnd | computed | someoneWon : ' + (currentGame.value.endReason == 'hostWin' || currentGame.value.endReason == 'guestWin'))
+			return (currentGame.value.endReason == 'hostWin' || currentGame.value.endReason == 'guestWin')
+		},
+		userIsHost() : boolean {
+			console.log('| DialogEnd | computed | userIsHost : ' + (currentGame.value.host.id == user.value.id))
+			return (currentGame.value.host.id == user.value.id)
+		},
+		userIsGuest() : boolean {
+			console.log('| DialogEnd | computed | userIsGuest : ' + (currentGame.value.guest.id == user.value.id))
+			return (currentGame.value.guest.id == user.value.id)
+		},
+		score() : { host : number, guest : number} {
+			console.log('| DialogEnd | computed | score : ' + currentGame.value.finalScore.host + ' | ' +  currentGame.value.finalScore.guest)
+			return currentGame.value.finalScore.host, currentGame.value.finalScore.guest
+		},
+		hostName() : string {
+			console.log('| DialogEnd | computed | hostName : ' + currentGame.value.host.username)
+			return currentGame.value.host.username
+		},
+		guestName() : string {
+			console.log('| DialogEnd | computed | guestName : ' + currentGame.value.guest.username)
+			return currentGame.value.guest.username
 		},
 	},
-	watch: {
-		dialogBox(isActive: boolean) {
-			if (isActive == true) {
-			} 
-		}
+	methods: {
+		exit(){
+			console.log('| DialogEnd | methods | exit')
+			playerStore.resetGame()
+		},
 	},
-	mounted() {}
 })
 </script>
 
 <template>
 	<v-overlay
-		v-model="dialogBox"
-		activator="parent"
+		:model-value="dialogBox"
+		persistent
 		class="align-center justify-center"
-		min-width="500"
 	>
-		<v-card rounded class="dialog bg-white ma-auto pa-4 w-75">
-			<v-card-title class="text-button text-center">End of match !</v-card-title>
-			<v-card-item class="justify-center ma-5">
-				<p>You won ! || You lost !</p>
-				<p>Scores Host : xx | Score guest : xx</p>
-			</v-card-item>
+		<v-card
+			rounded
+			class="dialog bg-white ma-auto pa-4"
+		>
+			<v-card-title class="text-button text-center">{{ title }}</v-card-title>
+			<v-card
+				v-if="someoneWon"
+				class="justify-center ma-5">
+				<v-card-item title="Host">
+					<p>{{ hostName}}</p>
+					<p>{{ score.host }}</p>
+				</v-card-item>
+				<v-card-item title="Guest">
+					<p>{{ guestName}}</p>
+					<p>{{ score.guest }}</p>
+				</v-card-item>
+			</v-card>
 			<v-card-item class="text-center ma-2">
 				<v-btn
 					text="Exit"
-					@click="backToGameHome"
-					border
-					class="me-4"
+					@click="exit"
+					size="large"
 					color="primary"
 					variant="tonal"
 				></v-btn>
@@ -59,7 +94,3 @@ export default defineComponent({
 		</v-card>
 	</v-overlay>
 </template>
-
-<style scoped>
-
-</style>
