@@ -18,14 +18,10 @@
 							<v-list-item-title>{{ member.name }}</v-list-item-title>
 							<v-list-item-subtitle v-if="member.isAdmin">Administrator</v-list-item-subtitle>
 							<v-list-item-action class="float-right">
-								
-								<!--  <v-btn @click="viewProfile(member.id)" color="primary" class="mr-2" outlined -->
-								<!-- <v-btn @click="toggleSelect = !toggleSelect" color="primary" class="mr-2" outlined>Edit user</v-btn>  TODO: Add this -->
 								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId"/>
 								<v-btn @click="viewProfile(member.id)" color="secondary" class="mr-2" outlined>
 									View Profile
 								</v-btn>
-								<!-- <v-btn @click="viewProfile(member.id)" color="primary" outlined>View Profile</v-btn> -->
 							</v-list-item-action>
 						</v-list-item>
 					</div>
@@ -40,7 +36,6 @@
 	</v-dialog>
 </template>
 
-  
 <script>
 import PopUpUserEdit from './PopUpUserEdit.vue';
 import GroupAddUserDialog from './GroupAddUserDialog.vue';
@@ -58,7 +53,6 @@ export default {
 	},
 	created() {
 		this.socket = this.$props.socketProp;
-		// this.user = this.$props.userProp;
 		this.userId = this.$props.userIdProp
 		console.log("GroupInfoDialog socket", this.userId);
 		this.socket.on("removeuserfromgroup", (data) => {
