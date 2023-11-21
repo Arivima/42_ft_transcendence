@@ -18,10 +18,6 @@ export default {
         }
     },
 	watch : {
-		// TODO reload ?
-		// userProfile(newValue : Player){
-		// 	this.fetchAchievements(newValue.id)
-		// },
 	},
     methods: {
 		removeFromFriends(){
@@ -30,7 +26,7 @@ export default {
 		blockUser(){
 			playerStore.toggleBlockUser(this.userProfile.id, true)
 		},
-		inviteUser(){
+		sendInviteToPlay(){
 			playerStore.sendInvitation(this.userProfile.id)
 		},
 		streamUser(){
@@ -51,7 +47,7 @@ export default {
 		<v-btn
 			v-if="`${userProfile.status}` === 'online'"
 			:text="'Play with ' + `${userProfile.firstName}`"
-			@click="inviteUser"
+			@click="sendInviteToPlay"
 			prepend-icon="mdi-controller"
 			block
 		>

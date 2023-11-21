@@ -1,8 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 
-// overlay with dialog box how to play + pause game
-
 export default defineComponent({
 	components: {
 	},
@@ -33,16 +31,17 @@ export default defineComponent({
 	>
 		<template v-slot:append>
 			<v-card	class="d-flex pa-3 justify-end align-start" color="transparent" flat>
+					<!-- @click="overlay = true" -->
 				<v-btn
 					icon="mdi-help"
 					class="ma-0 pa-0 justify-center align-center NavSideBar"
 					style="background-color: white;"
-					@click="overlay = true"
 				>
 
 				</v-btn>				
 				<v-overlay
 					v-model="overlay"
+					activator="parent"
 					class="align-center justify-center"
 				>
 					<v-card
@@ -50,7 +49,9 @@ export default defineComponent({
 						>
 						<v-card-title>How to play the game</v-card-title>
 						<v-card-item>
-							<v-card-text>blabla</v-card-text>
+							<v-card-text>Move your paddle to make the ball bounce and score in your opponent territory to win the game !</v-card-text>
+							<v-card-text>Controls : use 'arrow up' and 'arrow down'</v-card-text>
+							<v-card-text>you can exit the game at any time by clicking the exit button</v-card-text>
 						</v-card-item>
 					</v-card>
 				</v-overlay>					

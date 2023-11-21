@@ -7,29 +7,12 @@ const playerStore = usePlayerStore()
 const { user, currentGame } = storeToRefs(playerStore)
 const debug = true
 
-// TODO check if not elsewhere
-			// gameSocket: {} as any,
-		// cancelGameRequest(){
-		// 	this.gameSocket.close();
-		// 	this.gameSocket = {};
-		// 	if (JSON.stringify({}) == JSON.stringify(this.gameSocket))
-		// 		console.log(`request canceled successfully`)
-		// 	this.dialogBox = false;
-
-		// },
-		// sendOk(){
-		// 	if (debug) console.log('sendOk')
-		// 	this.dialogBox = false
-		// 	this.cancelGameRequest();
-		// },
-
-
 export default defineComponent({
 	data() {
 		return {
-			colorPaddle:	currentGame.value.customizations.colorPaddle,
-			colorBall:		currentGame.value.customizations.colorBall,
-			colorPitch:		currentGame.value.customizations.colorPitch,
+			colorPaddle: currentGame.value.customizations.paddle_color,
+			colorBall: currentGame.value.customizations.ball_color,
+			colorPitch: currentGame.value.customizations.pitch_color,
 		}
 	},
 	computed : {
@@ -50,11 +33,9 @@ export default defineComponent({
 		sendCustomization() {
 			console.log('| DialogCustomization | methods | sendCustomization : ')
 			playerStore.sendCustomizationOptions({
-				customization: {
-					pitch_color: this.colorPitch,
-					paddle_color: this.colorPaddle,
-					ball_color: this.colorBall
-				},
+				pitch_color: this.colorPitch,
+				paddle_color: this.colorPaddle,
+				ball_color: this.colorBall,
 			});
 		},
 	},
@@ -81,14 +62,14 @@ export default defineComponent({
 		<v-card rounded class="dialog bg-white ma-auto pa-4">
 			
 			<v-card-title class="text-button text-center">
-				Found player !
+				You are playing against {{ opponentName }}
 			</v-card-title>
-			<v-card-item
+			<!-- <v-card-item
 				class="justify-center ma-5 text-center"
 			>
 				<h5 class="text-h5">You are playing against</h5>
 				<h5 class="text-h5">{{  opponentName }}</h5>
-			</v-card-item>
+			</v-card-item> -->
 
 
 			<v-card
@@ -128,7 +109,3 @@ export default defineComponent({
 		</v-card>
 	</v-overlay>
 </template>
-
-<style scoped>
-
-</style>

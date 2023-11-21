@@ -27,7 +27,7 @@ export default defineComponent({
 			switch(currentGame.value.waiting){
 					case 'matchmaking'	: return 'cancel game request'
 					case 'invite'		: return 'cancel invite'
-					case 'streaming'	: return 'cancel streaming request'
+					// case 'streaming'	: return 'cancel streaming request'
 					case 'customization': return 'leave game'  
 					case 'playing'		: return 'exit game' 
 					default: // if 'undefined'
@@ -40,7 +40,7 @@ export default defineComponent({
 				switch(currentGame.value.waiting ){
 					case 'matchmaking'	: return 'Searching for an opponent ...' 
 					case 'invite'		: return 'Waiting for opponent ...'
-					case 'streaming'	: return 'Joining game ...' 
+					// case 'streaming'	: return 'Joining game ...' 
 					case 'customization': return 'Waiting for opponent ...'  
 					case 'playing'		: return 'Loading game ...'
 					default: // if 'undefined'
@@ -51,7 +51,7 @@ export default defineComponent({
 				switch(currentGame.value.waiting ){
 					case 'matchmaking'	: return 'cancelling game request ...'
 					case 'invite'		: return 'cancelling invite ...'
-					case 'streaming'	: return 'cancelling streaming request ...'
+					// case 'streaming'	: return 'cancelling streaming request ...'
 					case 'customization': return 'leaving game ...'  
 					case 'playing'		: return 'exiting game ...' 
 					default: // if 'undefined'
@@ -67,7 +67,7 @@ export default defineComponent({
 				switch(currentGame.value.waiting){
 					case 'matchmaking'	: playerStore.cancelMatchMakingRequest();	break;
 					case 'invite'		: playerStore.cancelInvitation();			break;
-					case 'streaming'	: playerStore.cancelStreamingRequest();		break;
+					// case 'streaming'	: playerStore.cancelStreamingRequest();		break;
 					case 'customization': playerStore.exitGame();					break;
 					case 'playing'		: playerStore.exitGame();					break;
 					default: // if 'undefined'
@@ -99,7 +99,7 @@ export default defineComponent({
 		<v-card rounded class="dialog bg-white ma-auto pa-4 ">
 			
 			<v-card-title class="text-button text-center ">
-				{{ title}}
+				{{ title }}
 			</v-card-title>
 			
 			<v-card-item

@@ -95,25 +95,26 @@ export class GameService {
 		if (-1 != key) {
 			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
 			this.queue.delete(key);
+			console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 			return ;
 		}
 
 		// check in active games
 		for (let [userID, {user_socket: csock, ...rest}] of this.games) {
-			if (client.id == csock.id) {
+			if (client?.id == csock?.id) {
 				key = userID;
 				break ;
 			}
 		}
 
 		if (-1 != key) {
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
 			
 			let game = this.games.get(key);
 			const roomId = game.roomId;
 		
 			// leave the room
 			game.user_socket.leave(roomId);
+			console.log(`| GATEWAY GAME | ser ${key} socket left ${roomId} `);
 
 			if (key == game.hostID || key == game.guestID)
 			{
@@ -124,10 +125,12 @@ export class GameService {
 					hostScore: -1,
 					guestScore: -1,
 				} as endGameDto)
+				console.log(`| GATEWAY GAME | leaveGame | emit : endGame`);
 			}
 			
 			// deleting user game
 			this.games.delete(key);
+			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
 			
 			// deleting room if all players left
 			for (let [userID, game] of this.games) {
@@ -135,10 +138,8 @@ export class GameService {
 					return ;
 			}
 			this.frames.delete(roomId);
-
+			console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 		}
-
-		console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 	}
 
 	matchPlayers(
@@ -149,9 +150,9 @@ export class GameService {
 	): string {
 		// create the room
 		const roomId = `${userID}:${hostID}`;
-		hostSocket.join(roomId);
-		userSocket.join(roomId);
-		console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket} & ${userSocket} joined ${roomId} `);
+		hostSocket?.join(roomId);
+		userSocket?.join(roomId);
+		console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket.id} & ${userSocket.id} joined ${roomId} `);
 
 		// update data structures
 		let hostGameSocket: GameSocket = {
@@ -230,11 +231,12 @@ export class GameService {
 		customization: CustomizationOptions
 	): {roomId: string, final_customization: CustomizationOptions} | undefined
 	{
+
 		const other_customizations = this.games.get(
 			userID == gameInfo.hostID ?
 			gameInfo.guestID :
 			gameInfo.hostID
-		).customization;
+		)?.customization || {} as CustomizationOptions;
 		
 		if (JSON.stringify({}) != JSON.stringify(other_customizations))
 		{
