@@ -31,7 +31,7 @@
 			<v-list-item>
 			  <v-switch
 				v-model="userInfo.isAdmin"
-				color="purple"
+				color="green"
 				label="Administrator"
 				hide-details
 			  ></v-switch>
@@ -42,6 +42,15 @@
 				v-model="userInfo.isMuted"
 				color="purple"
 				label="Muted"
+				hide-details
+			  ></v-switch>
+			</v-list-item>
+
+			<v-list-item>
+			  <v-switch
+				v-model="userInfo.isBanned"
+				color="red"
+				label="Banned"
 				hide-details
 			  ></v-switch>
 			</v-list-item>
@@ -95,6 +104,7 @@
 				imageUrl: '',
 				isAdmin: false,
 				isMuted: false,
+				isBanned: false
 			},
 		}),
 		created() {
@@ -114,6 +124,7 @@
 					"groupId": this.$props.groupId,
 					"isAdmin": this.userInfo.isAdmin,
 					"isMuted": this.userInfo.isMuted,
+					"isBanned": this.userInfo.isBanned,
 				 }, (response) => {
 					console.log("response", response);
 					this.toggle();

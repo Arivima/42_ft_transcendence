@@ -325,31 +325,38 @@ export default {
 			else if (newMessage.groupID)
 				newMessage.receiversID = this.parents[this.activeChat - 1].id;
 			newMessage.createdAt = new Date();
-			this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
+			// this.socket.send(JSON.stringify({ event: 'message', data: JSON.stringify(newMessage) }));
 			console.log("newMessage", newMessage);
-			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
-				friends.value.forEach((friend) => {
-					response.sortedData.forEach((parentResponse) => {
-						if (friend.id == parentResponse.id) {
-							parentResponse.avatar = friend.avatar;
-						}
+			this.socket.emit("message", newMessage, (r) => {
+				// console.log("response", response.success);
+				if (r.success == false) {
+					this.messages = []
+					alert("You can't send message to this Chat, because you are banned or Muted contact administrator of this group")
+					// this.activateChat = 0
+				}
+				this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+					friends.value.forEach((friend) => {
+						response.sortedData.forEach((parentResponse) => {
+							if (friend.id == parentResponse.id) {
+								parentResponse.avatar = friend.avatar;
+							}
+						});
+						response.friends.forEach((friendResponse) => {
+							if (friend.id == friendResponse.id) {
+								friendResponse.avatar = friend.avatar;
+							}
+						});
 					});
-					response.friends.forEach((friendResponse) => {
-						if (friend.id == friendResponse.id) {
-							friendResponse.avatar = friend.avatar;
-						}
-					});
+					this.parents = response.sortedData;
+					this.friendsChat = response.friends;
+					this.groups = response.rooms;
+					// console.log("this.activeChat", response.success);
+					this.activeChat = 1 ? r.success == true : 0;
 				});
-				console.log("response", response);
-				this.parents = response.sortedData;
-				this.activeChat = 1;
-				this.friendsChat = response.friends;
-				this.groups = response.rooms;
+				newMessage.createdAt = showTime(newMessage.createdAt);
+				this.messages.push(newMessage);
+				this.messageForm.content = "";
 			});
-			newMessage.createdAt = showTime(newMessage.createdAt);
-			
-			this.messages.push(newMessage);
-			this.messageForm.content = "";
 		},
 		reloadData() {
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
@@ -365,6 +372,7 @@ export default {
 						}
 					});
 				});
+				this.activeChat = 0;
 				this.parents = response.sortedData;
 				this.friendsChat = response.friends;
 				this.groups = response.rooms;
@@ -454,15 +462,15 @@ export default {
 		},
 		openGroupInfoPopup() {
 			this.$refs.groupInfoDialog.groupInfoDialog = true;
+			this.$refs.groupInfoDialog.user.isAdmin = false;
+			this.$refs.groupInfoDialog.user.isMuted = false;
+			this.$refs.groupInfoDialog.user.isBanned = false;
 			this.socket.emit("getgroupinfo", { groupId: this.parents[this.activeChat - 1].id }, (response) => {
 				if (response.error) {
 					alert(response.error);
 					return;
 				}
 				this.$refs.groupInfoDialog.groupInfo = response;
-				this.$refs.groupInfoDialog.user.isAdmin = false;
-				this.$refs.groupInfoDialog.user.isMuted = false;
-				this.$refs.groupInfoDialog.user.isBanned = false;
 				for (let i = 0; i < response.members.length; i++) {
 					if (response.members[i].id == user.value.id) {
 						this.$refs.groupInfoDialog.user.isAdmin = response.members[i].isAdmin;
