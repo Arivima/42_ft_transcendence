@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/19 17:41:43 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/21 19:21:48 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,7 +93,7 @@ export class GameService {
 		}
 
 		if (-1 != key) {
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
+			console.log(`| GATEWAY GAME | user ${key} socket removed from Queue`);
 			this.queue.delete(key);
 			console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 			return ;
@@ -114,7 +114,7 @@ export class GameService {
 		
 			// leave the room
 			game.user_socket.leave(roomId);
-			console.log(`| GATEWAY GAME | ser ${key} socket left ${roomId} `);
+			console.log(`| GATEWAY GAME | user ${key} socket left ${roomId} `);
 
 			if (key == game.hostID || key == game.guestID)
 			{
@@ -130,7 +130,7 @@ export class GameService {
 			
 			// deleting user game
 			this.games.delete(key);
-			console.log(`| GATEWAY GAME | ser ${key} socket removed`);
+			console.log(`| GATEWAY GAME | user ${key} socket removed from games`);
 			
 			// deleting room if all players left
 			for (let [userID, game] of this.games) {
@@ -138,7 +138,14 @@ export class GameService {
 					return ;
 			}
 			this.frames.delete(roomId);
-			console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+			console.log(`| GATEWAY GAME | room ${roomId} removed from frames`);
+
+			console.log(`currently ${this.queue.size} users in queue`);
+			console.log(`currently ${this.games.size / 2} active games`);
+			for (let [userID, gameSock] of this.games) {
+				console.log(`Found Active Game`);
+				console.log(`userID: ${userID}; roomId: ${roomId}`);
+			}
 		}
 	}
 
@@ -149,7 +156,7 @@ export class GameService {
 		userSocket: Socket,
 	): string {
 		// create the room
-		const roomId = `${userID}:${hostID}`;
+		const roomId: string = `${userID}:${hostID}`;
 		hostSocket?.join(roomId);
 		userSocket?.join(roomId);
 		console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket.id} & ${userSocket.id} joined ${roomId} `);

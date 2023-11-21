@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/19 17:24:02 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/21 20:37:37 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,8 +76,9 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				break ;
 			}
 		}
-
+		
 		if (-1 != key) {
+			console.log(`GAME GATEWAY | disconnecting user ${key}`);
 			this.clients.delete(key);
 		}
 		
@@ -337,6 +338,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		if (debug) console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
 		this.gameService.leaveGame(socket, this.server);
+		for (let [userID, uSock] of this.clients) {
+			console.log(`found client`);
+			console.log(`userID: ${userID}; socket.id: ${uSock.id}`);
+		}
 	}
 
 }
