@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
+import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
@@ -15,12 +15,12 @@ export default defineComponent({
 	},
 	computed : {
 		dialogBox() : boolean{
-			console.log('| DialogInvite | computed | dialogBox : ' + currentGame.value.invite)
-			return currentGame.value.invite
+			console.log('| DialogInvite | computed | dialogBox : ' + currentGame.value.invite.received)
+			return currentGame.value.invite.received
 		},
-		HostName() : string {
-			console.log('| DialogInvite | computed | HostName : ' + currentGame.value.inviteSender)
-			return currentGame.value.inviteSender
+		senderUsername() : string {
+			console.log('| DialogInvite | computed | HostName : ' + currentGame.value.invite.senderUsername)
+			return currentGame.value.invite.senderUsername
 		},
 	},
 	methods: {
@@ -40,8 +40,9 @@ export default defineComponent({
 			console.log('| DialogInvite | watcher | isCancelActive : ' + newVal)
 		},
 		dialogBox(newVal : boolean){
-			this.isCancelActive = false
 			console.log('| DialogInvite | watcher | dialogBox : ' + newVal)
+			if (newVal == true)
+				this.isCancelActive = false
 		}
 	},
 
@@ -56,7 +57,7 @@ export default defineComponent({
 	>
 		<v-card rounded class="dialog bg-white ma-auto pa-4">
 			
-			<v-card-title class="text-button text-"> {{ HostName }} has invited you to a game !</v-card-title>
+			<v-card-title class="text-button text-"> {{ senderUsername }} has invited you to a game !</v-card-title>
 			
 			<v-card
 				class="text-center ma-2"

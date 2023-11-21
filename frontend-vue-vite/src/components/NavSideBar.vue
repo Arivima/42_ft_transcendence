@@ -24,23 +24,10 @@ export default {
 			if (debug) console.log('| NavSideBar | computed | avatar()')
 			return user.value.avatar
 		},
-		// NEW
 		username() : string {
 			if (debug) console.log('| NavSideBar | computed | username(' + user.value.username + ')')
 			return user.value.username
 		},
-		waiting() : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing' {
-			return currentGame.value.waiting
-		},
-		invite() : boolean {
-			return currentGame.value.invite
-		},
-		streaming() : number {
-
-			// update!
-			return currentGame.value.streamUserID
-		}
-
 	},
 	methods : {
 		async logOut() {
@@ -54,12 +41,6 @@ export default {
 				console.log(err)
 			}
 		},
-		updateWaiting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'){
-			playerStore.updateWaitingTesting(value)
-		},
-		updateInvite(value : boolean){
-			playerStore.updateInviteTesting(value)
-		}
 	},
 
 }
@@ -102,25 +83,6 @@ export default {
 						></v-list-item>
 					</v-list>
 				</v-list>
-			</v-card>
-
-			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
-				<p>waiting = {{ waiting }}</p>
-				<v-btn @click="updateWaiting('undefined')">undefined</v-btn>
-				<v-btn @click="updateWaiting('matchmaking')">matchmaking</v-btn>
-				<v-btn @click="updateWaiting('invite')">invite</v-btn>
-				<v-btn @click="updateWaiting('streaming')">streaming</v-btn>
-				<v-btn @click="updateWaiting('customization')">customization</v-btn>
-				<v-btn @click="updateWaiting('playing')">playing</v-btn>
-			</v-card>
-
-			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
-				<p>invite = {{ invite }}</p>
-				<v-btn @click="updateInvite(true)">new invite</v-btn>
-			</v-card>
-
-			<v-card style="display: flex; flex-direction: column; background-color: aquamarine;" class="ma-2 pa-2">
-				<p>streaming = {{ streaming }}</p>
 			</v-card>
 
 			<v-card

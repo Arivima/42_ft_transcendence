@@ -10,7 +10,7 @@ const debug = true
 export default defineComponent({
 	computed : {
 		dialogBox(){
-			console.log('| DialogEnd | computed | dialogBox : ' + currentGame.value.status == 'end')
+			console.log('| DialogEnd | computed | dialogBox : ' + (currentGame.value.status == 'end'))
 			return (currentGame.value.status == 'end')
 		},
 		title() : string {
@@ -70,6 +70,7 @@ export default defineComponent({
 			class="dialog bg-white ma-auto pa-4"
 		>
 			<v-card-title class="text-button text-center">{{ title }}</v-card-title>
+
 			<v-card
 				v-if="someoneWon"
 				class="justify-center ma-5">
@@ -82,6 +83,7 @@ export default defineComponent({
 					<p>{{ score.guest }}</p>
 				</v-card-item>
 			</v-card>
+
 			<v-card-item class="text-center ma-2">
 				<v-btn
 					text="Exit"

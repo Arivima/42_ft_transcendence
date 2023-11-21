@@ -52,22 +52,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	async handleConnection(client: Socket, ...args: any[]) {
-		
 		// validating user
 		const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
 			secret: process.env.JWT_SECRET
 		});
 
 		// setting user socket
-		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
 		this.clients.set(Number(user.sub), client);
 		
-		console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
-		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
+		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
 	}
 
 	async handleDisconnect(client: any) {
-		console.log(`| GATEWAY GAME | ${client.id} disconnected`);
+		if (debug) console.log(`| GATEWAY GAME | ${client.id} disconnected`);
 		
 		let key: number = -1;
 		
@@ -87,62 +85,77 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	// joining game through invite
+	// from sender to receiver
 	@SubscribeMessage('sendInvite')
 	sendInvite(
 		@MessageBody('invite') invite: InviteDto
-	) : boolean
-	{
-		let recipientSocket = this.clients.get(invite.guestID);
+	){
+		if (!invite?.hostID || !invite?.guestID)
+			return
+		if (debug) console.log(`| GATEWAY GAME | 'sendInvite'`);
+
+		let recipientSocket = this.clients.get(invite?.guestID);
 
 		if (recipientSocket)
 		{
 			this.server.to(`${invite.guestID}`).emit("newInvite", invite);
-			return true
+			if (debug) console.log(`| GATEWAY GAME | 'sendInvite' | emit : 'newInvite'`);
+			// here handle if emit failed
 		}
-		return false
 	}
-	
 	@SubscribeMessage('cancelInvite')
 	cancelInvite(@MessageBody('invite') invite: InviteDto )
 	{
-		let recipientSocket = this.clients.get(invite.guestID);
+		if (!invite?.hostID || !invite?.guestID)
+			return
+		if (debug) console.log(`| GATEWAY GAME | 'cancelInvite'`);
+
+			let recipientSocket = this.clients.get(invite?.guestID);
 
 		if (recipientSocket)
 		{
 			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
+			if (debug) console.log(`| GATEWAY GAME | 'cancelInvite' | emit : 'deleteInvite'`);
 		}
 	}
-	// TODO chekc here logic
+	// from receiver to sender
 	@SubscribeMessage('rejectInvite')
 	rejectInvite(@MessageBody('invite') invite: InviteDto )
 	{
-		let requestorSocket = this.clients.get(invite.hostID);
+		if (!invite?.hostID || !invite?.guestID)
+			return
+		if (debug) console.log(`| GATEWAY GAME | 'rejectInvite'`);
+
+		let requestorSocket = this.clients.get(invite?.hostID);
 
 		if (requestorSocket)
 		{
 			this.server.to(`${invite.hostID}`).emit("rejectedInvite", invite);
+			if (debug) console.log(`| GATEWAY GAME | 'rejectInvite' | emit : 'rejectedInvite'`);
 		}
 	}
-
 	@SubscribeMessage('acceptInvite')
 	acceptInvite(@MessageBody() invite: InviteDto) {
+		if (!invite?.hostID || !invite?.guestID)
+			return
+		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite'`);
 
-		const host_socket = this.clients.get(invite.hostID);
-		const guest_socket = this.clients.get(invite.guestID);
+		const host_socket = this.clients.get(invite?.hostID);
+		const guest_socket = this.clients.get(invite?.guestID);
 		
 		// Create game instance
 		let roomId = this.gameService.matchPlayers(
-			invite.guestID, invite.hostID,
+			invite?.guestID, invite?.hostID,
 			host_socket, guest_socket
 		);
 		
 		// start game
 		this.server.to(roomId).emit("newGame", {
-			hostID: invite.hostID,
-			guestID: invite.guestID,
+			hostID: invite?.hostID,
+			guestID: invite?.guestID,
 			watcher: false
 		} as CreateGameDto);
-		
+		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite' | emit : 'newGame'`);
 	}
 
 	// joining game through matchmaking
@@ -152,9 +165,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@ConnectedSocket() userSocket: Socket
 	)
 	{
-		console.log(`| GATEWAY GAME | 'matchMaking' |`);
-		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size} `);
+		if (debug) console.log(`| GATEWAY GAME | 'matchMaking' |`);
+		if (!userID || !userSocket)
+			return
+
+		if (debug) console.log(`| GATEWAY GAME | 'matchMaking' |`);
+		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size} `);
 		let matched: boolean = false;
 		let roomId: string;
 		
@@ -170,7 +187,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					guestID: userID,
 					watcher: false
 				} as CreateGameDto);
-				console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
+				if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
 
 				// exit loop
 				matched = true;
@@ -181,41 +198,54 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		// add to queue if could not find match
 		if (false == matched)
 		{
-			console.log(`| GATEWAY GAME | 'matchMaking' | not matched `);
+			if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | not matched `);
 			this.gameService.getQueue().set(userID, userSocket);
 		}
-		console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
-		console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size / 2} `);
+		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
+		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size / 2} `);
 	}
 
 	@SubscribeMessage("cancelMatchMaking")
 	cancelMatchMaking(
 		@MessageBody('userID') userID: number,
 		@ConnectedSocket() socket: Socket
-	) : boolean {
+	) {
+		if (!userID)
+			return 
+		if (debug) console.log(`| GATEWAY GAME | 'cancelMatchMaking'`);
+
 		// if(this.gameService.removeFromQueue(userID))
 		// 	this.server.to(socket.id).emit("cancelMatchMaking");
-		return this.gameService.removeFromQueue(userID);
+
+		this.gameService.removeFromQueue(userID);
 	}
 
 	// customization
 	@SubscribeMessage('sendCustomizationOptions')
 	sendCustOptions(
 		@MessageBody('customization') customization: CustomizationOptions,
-		@MessageBody('gameInfo') game_info: CreateGameDto,
+		@MessageBody('gameInfo') gameInfo: CreateGameDto,
 		@MessageBody('userID') userID: number
 	) {
+		if (!userID || !gameInfo || !customization)
+			return
+			if (debug) console.log(`| GATEWAY GAME | 'sendCustomizationOptions'`);
+			if (debug) console.log(`${customization.ball_color}`);
+			if (debug) console.log(`${customization.paddle_color}`);
+			if (debug) console.log(`${customization.pitch_color}`);
+
 		const resp = this.gameService.sendCustomizationOptions(
 			userID,
-			game_info,
+			gameInfo,
 			customization
 		);
 
 		if (resp)
 		{
-			this.server.to(resp.roomId).emit('startGame', {
-				customization: resp.final_customization
-			})
+			this.server.to(resp.roomId).emit('startGame',
+				resp.final_customization
+			)
+			if (debug) console.log(`| GATEWAY GAME | 'sendCustOptions' | emit : 'startGame'`);
 		}
 	}
 
@@ -225,7 +255,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('userID') userID: number,
 		@MessageBody('playerID') playerID: number,
 		@ConnectedSocket() client: Socket
-	) : boolean {
+	) {
+		if (!userID || !playerID || !client)
+			return
+		if (debug) console.log(`| GATEWAY GAME | 'joinGame'`);
+
 		// fetching the room where playerID is playing
 		const game = this.gameService.joinGame(userID, playerID, client);
 
@@ -234,17 +268,20 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// joining the room
 			client.join(game.roomId);
 
-			// emitting start
-			this.server.to(`${userID}`).emit('startStream', {
-				game : {
-					hostID: game.hostID,
-					guestID: game.guestID,
-				},
+			// setting up game
+			this.server.to(`${userID}`).emit("newGame", {
+				hostID: game.hostID,
+				guestID: game.guestID,
+				watcher: true
+			} as CreateGameDto);
+			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newGame'`);
+
+			// share customization
+			this.server.to(`${userID}`).emit('startGame', {
 				customization: game.customization
-			});
-			return true
+			})
+			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'startGame'`);
 		}
-		return false
 	}
 
 	@SubscribeMessage('newFrame')
@@ -253,13 +290,16 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('userID') userID: number
 	)
 	{
-		console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
+		if (!userID || !frame)
+			return
+		if (debug) console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
+		
 		const	roomId: string = this.gameService.getGames().get(userID).roomId;
 		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
-		const	hostWin: boolean = (10 == frame.data.host.score);
-		const	guestWin: boolean = (10 == frame.data.guest.score);
-		const	hostScore: number = (frame.data.host.score);
-		const	guestScore: number = (frame.data.guest.score);
+		const	hostWin: boolean = (10 == frame?.data?.host?.score);
+		const	guestWin: boolean = (10 == frame?.data?.guest?.score);
+		const	hostScore: number = (frame?.data?.host?.score);
+		const	guestScore: number = (frame?.data?.guest?.score);
 
 		if (frame.seq > currentFrame.seq)
 		{
@@ -272,6 +312,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					hostScore,
 					guestScore
 				} as endGameDto);
+				if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'endGame'`);
 
 				await this.gameService.setGameasFinished(frame);
 			}
@@ -279,6 +320,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			else
 			{
 				this.server.to(roomId).emit("newFrame", frame);
+				if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'newFrame'`);
 			}
 			
 			this.gameService.getFrames().set(roomId, frame);
@@ -290,7 +332,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('userID') userID: number,
 		@ConnectedSocket() socket: Socket
 	) {
-		console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
+		if (!userID || !socket)
+			return
+
+		if (debug) console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
 		this.gameService.leaveGame(socket, this.server);
 	}
 

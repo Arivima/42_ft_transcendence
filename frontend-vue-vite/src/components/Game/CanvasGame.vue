@@ -44,13 +44,12 @@
 
 // const cancelAnimationFrame =
 //   window.cancelAnimationFrame || window.mozCancelAnimationFrame;
-
-
+// import { defineComponent } from 'vue'
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { user, currentGame } = storeToRefs(playerStore)
 
 const debug = true
 
@@ -144,8 +143,6 @@ const initialTimeState : TimeState = {
 export default {
 	components:	{
 	},
-	props: {
-	},
 	emits : [
 		'close'
 	],
@@ -183,8 +180,11 @@ export default {
 			ballDirY: 1,
 	}),
 	watch : {
+		gameStatus(newVal : 'undefined' | 'building' | 'playing' | 'end'){
+			if (debug) console.log('| CanvasGame | watchers | Game status : ' + newVal)
+		},
 		gameState(newVal: 'Start' | 'Play' | 'Pause' | 'End') {
-			if (debug) console.log("Game state : " + newVal)
+			// if (debug) console.log("Game state : " + newVal)
 		},
 		// COLLISIONS
 		ballDirX(newVal : number){
@@ -209,6 +209,9 @@ export default {
 		// },
 	},
 	computed : {
+		gameStatus() : 'undefined' | 'building' | 'playing' | 'end' {
+			return currentGame.value.status
+		},
 		userIsHost() : boolean {
 			return (this.gameConf.host.id == user.value.id)
 		},
@@ -457,9 +460,8 @@ export default {
 		},
 		unPauseGame(){
 		},
-		cancelGame(){
-			// send server cancelation notification
-			this.$emit("close");
+		exitGame(){
+			playerStore.exitGame()
 		},
 
 		closeGame(){
@@ -469,32 +471,33 @@ export default {
 	mounted() {
 		if (debug) console.log('| CanvasGame | mounted()')
 
-		window.addEventListener('keydown', this.onKeyDown);
-		window.addEventListener('keyup', this.onKeyUp);
-		window.addEventListener('resize', this.onResize);
+		// window.addEventListener('keydown', this.onKeyDown);
+		// window.addEventListener('keyup', this.onKeyUp);
+		// window.addEventListener('resize', this.onResize);
 
-		// fetch opponent // handle error here if opponent is not recognized
-		// TODO
-		this.opponent.username = 'Opponent name'
-		this.opponent.id = 0
-		this.opponent.avatar = user.value.avatar
+		// // fetch opponent // handle error here if opponent is not recognized
+		// // TODO
+		// this.opponent.username = 'Opponent name'
+		// this.opponent.id = 0
+		// this.opponent.avatar = user.value.avatar
 
-		// assign host and guest values
-		// TODO
-		this.gameConf.host.id = user.value.id			// TODO
-		this.gameConf.guest.id = this.opponent.id		// TODO
+		// // assign host and guest values
+		// // TODO
+		// this.gameConf.host.id = user.value.id			// TODO
+		// this.gameConf.guest.id = this.opponent.id		// TODO
 		
-		this.canvasSetup();
-		this.gameLoop();
+		// this.canvasSetup();
+		// this.gameLoop();
 
 	},
 	beforeUnmount() {
 		if (debug) console.log('| CanvasGame | beforeUnmount()')
 
-		window.removeEventListener('keydown', this.onKeyDown);
-		window.removeEventListener('keyup', this.onKeyUp);
-		window.removeEventListener('resize', this.onResize);
-		playerStore.resetGame()
+		// window.removeEventListener('keydown', this.onKeyDown);
+		// window.removeEventListener('keyup', this.onKeyUp);
+		// window.removeEventListener('resize', this.onResize);
+		// playerStore.resetGame()
+		playerStore.exitGame()
 	},
 	}
 </script>
@@ -505,168 +508,127 @@ export default {
 
 	
 	<v-card
+		v-if="gameStatus == 'building' || gameStatus == 'playing'"
 		class="component justify-center align-center"
 		style="display: flex; flex-direction: column;" 
 	>
-	<v-card-item
-		class="mt-5 justify-end w-100" style="font-weight: bold; font-size: large;"
-	>
-		<v-btn
-			v-show="(gameState == 'Play' || gameState == 'Pause')"
-			@click="paused = !paused" 
-			class="rounded-pill"
+		<v-card-item
+			class="mt-5 justify-end w-100" style="font-weight: bold; font-size: large;"
+		>
+			<v-btn
+				v-show="(gameState == 'Play' || gameState == 'Pause')"
+				@click="paused = !paused" 
+				class="rounded-pill"
+				flat
+				variant="text"
+				:prepend-icon="paused ? 'mdi-pause' : 'mdi-play'"
+				:text="paused ? 'paused' : 'currently live'"
+			>
+			</v-btn>
+
+			<v-chip
+				size="large">
+				{{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}
+			</v-chip>
+		</v-card-item>
+
+
+
+
+		<v-card class="w-100" flat style="display: flex; flex-direction: row;">
+			<v-card flat class="w-50 justify-center text-overline ma-0">
+				<v-card-item class=" py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">Host</v-card-item>
+				<v-card class=" w-100" flat style="display: flex; flex-direction: row;">
+					<v-card-item class=" justify-center w-50" :prepend-avatar="user.avatar">{{ user.username }}</v-card-item>
+					<v-card-item class=" justify-center w-50">
+						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.host > score.guest ? 'success' : score.host === score.guest ? 'primary' : 'error'">
+						{{ score.host }}</v-chip>
+					</v-card-item>				
+				</v-card>				
+			</v-card>
+			<v-card flat class="w-50 justify-center text-overline ma-0">
+				<v-card-item class="py-0 justify-center" style="font-weight: bolder; font-size: larger;background-color: lightgoldenrodyellow;">Guest</v-card-item>
+				<v-card class="w-100" flat style="display: flex; flex-direction: row;">
+					<v-card-item class=" justify-center w-50 ">
+						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.guest > score.host ? 'success' : score.guest === score.host ? 'primary' : 'error'">
+						{{ score.guest }}</v-chip>
+					</v-card-item>				
+					<v-card-item class=" justify-center w-50" :append-avatar="opponent.avatar">{{ opponent.username }}</v-card-item>
+				</v-card>				
+			</v-card>
+		</v-card>
+
+		<!-- <canvas id="CanvasGame" ref="canvas" width="800" height="500" style="border:1px solid black;"></canvas> -->
+
+		<v-card height="500" width="800" class="border">CANVAS</v-card>
+
+		<v-card
+			style="display: flex; flex-direction: row;"
+			class="w-100 -5 justify-center"
 			flat
-			variant="text"
-			:prepend-icon="paused ? 'mdi-pause' : 'mdi-play'"
-			:text="paused ? 'paused' : 'currently live'"
 		>
-		</v-btn>
+			<v-btn
+				v-show="(gameState == 'Play' || gameState == 'Pause')"
+				color="primary"
+				variant="elevated"
+				size="x-large"
+				class="ma-2"
+				@click="paused = !paused" 
+			>
+				{{ paused? 'Unpause game ' : 'Pause game '  }}
+			</v-btn>
 
-		<v-chip
-			size="large">
-			{{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}
-		</v-chip>
-	</v-card-item>
+			<v-btn
+				v-show="gameState == 'Start'"
+				color="primary"
+				variant="elevated"
+				size="x-large"
+				class="ma-2"
+				@click="startGame" 
+			> Start Game !
+			</v-btn>
 
-
-
-
-	<v-card class="w-100" flat style="display: flex; flex-direction: row;">
-		<v-card flat class="w-50 justify-center text-overline ma-0">
-			<v-card-item class=" py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">Host</v-card-item>
-			<v-card class=" w-100" flat style="display: flex; flex-direction: row;">
-				<v-card-item class=" justify-center w-50" :prepend-avatar="user.avatar">{{ user.username }}</v-card-item>
-				<v-card-item class=" justify-center w-50">
-					<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.host > score.guest ? 'success' : score.host === score.guest ? 'primary' : 'error'">
-					{{ score.host }}</v-chip>
-				</v-card-item>				
-			</v-card>				
+			<v-btn
+				color="primary"
+				variant="tonal"
+				size="x-large"
+				class="ma-2"
+				@click="exitGame" 
+			> Exit Game
+			</v-btn>
 		</v-card>
-		<v-card flat class="w-50 justify-center text-overline ma-0">
-			<v-card-item class="py-0 justify-center" style="font-weight: bolder; font-size: larger;background-color: lightgoldenrodyellow;">Guest</v-card-item>
-			<v-card class="w-100" flat style="display: flex; flex-direction: row;">
-				<v-card-item class=" justify-center w-50 ">
-					<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.guest > score.host ? 'success' : score.guest === score.host ? 'primary' : 'error'">
-					{{ score.guest }}</v-chip>
-				</v-card-item>				
-				<v-card-item class=" justify-center w-50" :append-avatar="opponent.avatar">{{ opponent.username }}</v-card-item>
-			</v-card>				
+
+		<v-card :width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
+			<v-card class="pa-1 ma-1 w-50">
+				<h2>| BALL |</h2>
+				<p>| ball  abs | x : {{ Math.round(AbsBall.x) }}, y : {{ Math.round(AbsBall.y) }}</p>
+				<p>| ball  start | x : {{ Math.round(gameConf.ball.start.x) }}, y : {{ Math.round(gameConf.ball.start.y) }}</p>
+				<p>| ball  radius | {{ Math.round(gameConf.ball.radius) }}</p>
+				<p>| ball  ballDis | x : {{Math.round(ballDisX)}}, y : {{ Math.round(ballDisY) }}</p>
+				<p>| ball  ballDir | x : {{ballDirX}}, y : {{ ballDirY }} </p>
+				<h2>| PADDLE |</h2>
+				<p>| host  | dim (w : {{ Math.round(gameConf.host.paddleWidth) }}, h : {{ Math.round(gameConf.host.paddleHeight) }})</p>
+				<p>| host  | abs (x : {{ Math.round(AbsPaddleHost.x) }}, y : {{ Math.round(AbsPaddleHost.y) }}) | start (x : {{ Math.round(gameConf.host.paddlePos.x) }}, y : {{ Math.round(gameConf.host.paddlePos.y) }}) | dis (y : {{ Math.round(hostPaddleDis) }})</p>
+				<p>| guest  | dim (w : {{ Math.round(gameConf.guest.paddleWidth) }}, h : {{ Math.round(gameConf.guest.paddleHeight) }})</p>
+				<p>| guest  | abs (x : {{ Math.round(AbsPaddleGuest.x) }}, y : {{ Math.round(AbsPaddleGuest.y) }}) | start (x : {{ Math.round(gameConf.guest.paddlePos.x) }}, y : {{ Math.round(gameConf.guest.paddlePos.y) }}) | dis (y : {{ Math.round(guestPaddleDis) }})</p>
+
+
+			</v-card>		
+			<v-card class="pa-1 ma-1 w-50">
+				<h2>| CONF |</h2>
+				<p>| canvas |  width : {{ canvas?.width }} | height : {{ canvas?.height }}</p>
+				<p>| host | {{ gameConf.host.id }}</p>
+				<p>| guest | {{ gameConf.guest.id }}</p>
+				<h2>| GAME STATE : {{ gameState }}</h2>
+				<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
+				<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
+				
+				<p>Game: {{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}</p>
+				<p>Paused: {{ String(gameTime.getMinutes(gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.pause)).padStart(2, '0') }}</p>
+				<p>Total: {{ String(gameTime.getMinutes(gameTime.clock + gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock + gameTime.pause)).padStart(2, '0') }}</p>
+
+			</v-card>
 		</v-card>
-	</v-card>
-
-	<canvas id="CanvasGame" ref="canvas" width="800" height="500" style="border:1px solid black;"></canvas>
-
-
-	<v-card
-		style="display: flex; flex-direction: row;"
-		class="w-100 -5 justify-center"
-		flat
-	>
-		<v-btn
-			v-show="(gameState == 'Play' || gameState == 'Pause')"
-			color="primary"
-			variant="elevated"
-			size="x-large"
-			class="ma-2"
-			@click="paused = !paused" 
-		>
-			{{ paused? 'Unpause game ' : 'Pause game '  }}
-		</v-btn>
-
-		<v-btn
-			v-show="gameState == 'Start'"
-			color="primary"
-			variant="elevated"
-			size="x-large"
-			class="ma-2"
-			@click="startGame" 
-		> Start Game !
-		</v-btn>
-
-		<v-btn
-			color="primary"
-			variant="tonal"
-			size="x-large"
-			class="ma-2"
-			@click="cancelGame" 
-		> Cancel Game
-		</v-btn>
-	</v-card>
-
-<!-- TODO overlay pour lag -->
-	<!-- <v-overlay
-		:model-value="paused"
-		class="align-center justify-left"
-		persistent
-		>
-		<v-card class="pa-3 ma-3">
-			<v-card-title class="text-center">Game paused</v-card-title>
-			<v-card-item>
-				<v-btn
-					color="primary"
-					variant="elevated"
-					size="x-large"
-					class="mt-10"
-					@click="paused = !paused" 
-				> Click to continue
-				</v-btn>
-			</v-card-item>
-
-		</v-card>
-	</v-overlay> -->
-	<v-overlay
-		:model-value="end"
-		class="align-center justify-left"
-		persistent
-		>
-		<v-card class="pa-3 ma-3">
-			<v-card-title class="text-center ma-5">{{ userWon ? 'You have won !' : 'You have lost ...' }}</v-card-title>
-			<v-card-item>
-				<v-btn
-					color="primary"
-					variant="elevated"
-					size="x-large"
-					class="ma-5"
-					@click="closeGame" 
-				> Back to home
-				</v-btn>
-			</v-card-item>
-
-		</v-card>
-	</v-overlay>
-
-
-	<v-card :width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
-		<v-card class="pa-1 ma-1 w-50">
-			<h2>| BALL |</h2>
-			<p>| ball  abs | x : {{ Math.round(AbsBall.x) }}, y : {{ Math.round(AbsBall.y) }}</p>
-			<p>| ball  start | x : {{ Math.round(gameConf.ball.start.x) }}, y : {{ Math.round(gameConf.ball.start.y) }}</p>
-			<p>| ball  radius | {{ Math.round(gameConf.ball.radius) }}</p>
-			<p>| ball  ballDis | x : {{Math.round(ballDisX)}}, y : {{ Math.round(ballDisY) }}</p>
-			<p>| ball  ballDir | x : {{ballDirX}}, y : {{ ballDirY }} </p>
-			<h2>| PADDLE |</h2>
-			<p>| host  | dim (w : {{ Math.round(gameConf.host.paddleWidth) }}, h : {{ Math.round(gameConf.host.paddleHeight) }})</p>
-			<p>| host  | abs (x : {{ Math.round(AbsPaddleHost.x) }}, y : {{ Math.round(AbsPaddleHost.y) }}) | start (x : {{ Math.round(gameConf.host.paddlePos.x) }}, y : {{ Math.round(gameConf.host.paddlePos.y) }}) | dis (y : {{ Math.round(hostPaddleDis) }})</p>
-			<p>| guest  | dim (w : {{ Math.round(gameConf.guest.paddleWidth) }}, h : {{ Math.round(gameConf.guest.paddleHeight) }})</p>
-			<p>| guest  | abs (x : {{ Math.round(AbsPaddleGuest.x) }}, y : {{ Math.round(AbsPaddleGuest.y) }}) | start (x : {{ Math.round(gameConf.guest.paddlePos.x) }}, y : {{ Math.round(gameConf.guest.paddlePos.y) }}) | dis (y : {{ Math.round(guestPaddleDis) }})</p>
-
-
-		</v-card>		
-		<v-card class="pa-1 ma-1 w-50">
-			<h2>| CONF |</h2>
-			<p>| canvas |  width : {{ canvas?.width }} | height : {{ canvas?.height }}</p>
-			<p>| host | {{ gameConf.host.id }}</p>
-			<p>| guest | {{ gameConf.guest.id }}</p>
-			<h2>| GAME STATE : {{ gameState }}</h2>
-			<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
-			<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
-			
-			<p>Game: {{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}</p>
-			<p>Paused: {{ String(gameTime.getMinutes(gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.pause)).padStart(2, '0') }}</p>
-			<p>Total: {{ String(gameTime.getMinutes(gameTime.clock + gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock + gameTime.pause)).padStart(2, '0') }}</p>
-
-		</v-card>
-	</v-card>
 
 </v-card>
 

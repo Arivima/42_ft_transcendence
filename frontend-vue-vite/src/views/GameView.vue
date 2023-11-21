@@ -8,49 +8,36 @@ import CanvasGame from '@/components/Game/CanvasGame.vue';
 import DialogWaiting from '@/components/Game/DialogWaiting.vue';
 import DialogInvite from '@/components/Game/DialogInvite.vue';
 import DialogCustomization from '@/components/Game/DialogCustomization.vue';
+import Debug from '@/components/Debug.vue';
 
 import { storeToRefs } from 'pinia'
-import { usePlayerStore, type Player, type GameInfo, type CustomizationOptions, type Frame } from '@/stores/PlayerStore';
+import { usePlayerStore, type Player, type GameInfo, type CustomizationOptions, type FrameDto } from '@/stores/PlayerStore';
 
 const playerStore = usePlayerStore()
-const { user, currentGame } = storeToRefs(playerStore)
+const { currentGame } = storeToRefs(playerStore)
 
-export interface currentGame {
-	host: Player
-	guest: Player
-
-	gameInfo: GameInfo
-	customizations: CustomizationOptions
-	frame: Frame
-
-	invite: boolean;
-	status: 'undefined' | 'building' | 'playing' | 'end'
-	waiting: 'undefined' | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing'
-	role: 'undefined' | 'player' | 'watcher'
-};
+const debug = true
 
 export default {
 	components : {
-    NavSideBar, Notifications, 
+    NavSideBar,
+    Notifications,
     AboutGame,
-	Leaderboard,
+    Leaderboard,
     CanvasGame,
     DialogWaiting,
     DialogInvite,
-	DialogCustomization,
+    DialogCustomization,
     DialogEndGame,
+    Debug
 },
 	data: () => ({
 	}),
 	computed: {
 		status() : 'undefined' | 'building' | 'playing' | 'end' {
-			console.log('| GameView | computed | status : ' + currentGame.value.status)
+			if (debug) console.log('| GameView | computed | status : ' + currentGame.value.status)
 			return currentGame.value.status
 		},
-		// role() : 'undefined' | 'player' | 'watcher' {
-		// 	console.log('| GameView | computed | role : ' + currentGame.value.role)
-		// 	return currentGame.value.role
-		// },
 	},
 	methods: {
 		sendMatchMakingRequest(){
@@ -63,13 +50,11 @@ export default {
 }
 </script>
 
-<!-- TODO About game should be linked to paused -->
-
 <template>
 	<NavSideBar />
 	<Notifications></Notifications>
+	<Debug></Debug>
 	<AboutGame v-if="status == 'undefined'"></AboutGame>
-
 	<DialogWaiting></DialogWaiting>
 	<DialogInvite></DialogInvite>
 	<DialogCustomization></DialogCustomization>
@@ -93,6 +78,9 @@ export default {
 				></v-btn>
 			</v-card-item>
 
+			<Leaderboard
+				v-if="status == 'undefined'"
+			></Leaderboard>	
 
 
 			<v-card-item
@@ -103,15 +91,7 @@ export default {
 				<h2>CAT PONG</h2>
 			</v-card-item>
 
-				<!-- @close="closeGame" -->
-			<CanvasGame
-				v-if="status == 'building' || status == 'playing' || status == 'end'"
-			></CanvasGame>
-
-
-			<Leaderboard
-				v-if="status == 'undefined'"
-			></Leaderboard>				
+			<CanvasGame></CanvasGame>
 
 		</v-card>
 	</v-main>
