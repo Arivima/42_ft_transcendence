@@ -1,11 +1,13 @@
 <script lang="ts">
+import { defineComponent } from 'vue'
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
+const { currentGame } = storeToRefs(playerStore)
 const debug = false
 
-export default {
+export default defineComponent({
 	props: {
 		userProfile: {
 			type: Object as () => Player,
@@ -17,25 +19,35 @@ export default {
 			loading: false,
         }
     },
+	computed : {
+		inviteSent() : boolean {
+			if (debug) console.log('| ActionsFRiendProfile | conputed | inviteSent()')
+			return (currentGame.value.waiting == 'invite')
+		}
+	},	
 	watch : {
 	},
     methods: {
 		removeFromFriends(){
+			if (debug) console.log('| ActionsFRiendProfile | methods | removeFromFriends()')
 			playerStore.sendFriendshipRejection(this.userProfile.id);
 		},
 		blockUser(){
+			if (debug) console.log('| ActionsFRiendProfile | methods | blockUser()')
 			playerStore.toggleBlockUser(this.userProfile.id, true)
 		},
 		sendInviteToPlay(){
+			if (debug) console.log('| ActionsFRiendProfile | methods | sendInviteToPlay()')
 			playerStore.sendInvitation(this.userProfile.id)
 		},
 		streamUser(){
+			if (debug) console.log('| ActionsFRiendProfile | methods | streamUser()')
 			playerStore.sendStreamingRequest(this.userProfile.id)
 		},
 	},
     mounted (){
     },
-}
+})
 </script>
 
 <template>
@@ -49,9 +61,9 @@ export default {
 			:text="'Play with ' + `${userProfile.firstName}`"
 			@click="sendInviteToPlay"
 			prepend-icon="mdi-controller"
+			:disabled="inviteSent"
 			block
-		>
-		</v-btn>
+		></v-btn>
 		<v-btn
 			:text="'Chat with ' + `${userProfile.firstName}`"
 			to="/chat"

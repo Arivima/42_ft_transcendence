@@ -212,12 +212,20 @@ export interface InviteInfo {
 	received: boolean,
 	senderID: number,
 	senderUsername: string,
+
+	sent: boolean,
+	recipientID: number,
+	recipientUsername: string,
 };
 
 const emptyInviteInfo = {
 	received: false,
 	senderID: 0,
 	senderUsername: '',
+
+	sent: false,
+	recipientID: 0,
+	recipientUsername: '',
 };
 
 // create-game.dto.ts
@@ -395,12 +403,17 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 			// invitation : Sender
 			sendInvitation(guestID : number) {
-				if (debug) console.log("/Store/ sendInvitation");
-				this.user.gameSocket?.emit('sendInvite', {
-					hostID: this.user.id,
-					guestID: guestID,
+				if (debug) console.log(`/Store/ sendInvitation from user ${this.user.id} to ${guestID} `);
+				this.user.gameSocket?.emit('sendInvite', { 
+					invite : {
+						hostID: this.user.id,
+						guestID: guestID,					
+					}
 				});
+				if (debug) console.log(`/Store/ emit: sendInvite`);
 				this.currentGame.waiting = 'invite'
+				this.currentGame.invite.sent = true
+				this.currentGame.invite.recipientID = guestID
 
 				// this.user.gameSocket?.timeout(5000).emit('sendInvite', {
 				// 	hostID: this.user.id,
@@ -414,32 +427,44 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 
 			},
-			cancelInvitation(guestID : number) {
-				if (debug) console.log("/Store/ cancelInvitation");
+			cancelInvitation() {
+				if (debug) console.log(`/Store/ cancelInvitation from user ${this.user.id} to ${this.currentGame.invite.recipientID} `);
 				this.user.gameSocket?.emit('cancelInvite', {
-					hostID: this.user.id,
-					guestID: guestID,
+					invite : {
+						hostID: this.user.id,
+						guestID: this.currentGame.invite.recipientID,					
+					}
 				});
+				if (debug) console.log(`/Store/ emit: cancelInvite`);
 				this.currentGame.waiting = 'undefined'
+				this.currentGame.invite.sent = false
+				this.currentGame.invite.recipientID = 0
+				this.currentGame.invite.recipientUsername = ''
 			},
 
 			// invitation : Receiver
 			acceptInvitation() {
-				if (debug) console.log("/Store/ acceptInvitation");
+				if (debug) console.log(`/Store/ acceptInvitation from user ${this.user.id} to ${this.currentGame.invite.senderID}`);
 				this.user.gameSocket?.emit('acceptInvite', {
-					hostID: this.currentGame.invite.senderID,
-					guestID: this.user.id,
+					invite : {
+						hostID: this.currentGame.invite.senderID,
+						guestID: this.user.id,					
+					}
 				});
+				if (debug) console.log(`/Store/ emit: acceptInvite`);
 				this.currentGame.invite.received = false
 				this.currentGame.invite.senderID = 0
 				this.currentGame.invite.senderUsername = ''
 			},
 			rejectInvitation() {
-				if (debug) console.log("/Store/ rejectInvitation");
+				if (debug) console.log(`/Store/ rejectInvitation from user ${this.user.id} to ${this.currentGame.invite.senderID}`);
 				this.user.gameSocket?.emit('rejectInvite', {
-					hostID: this.currentGame.invite.senderID,
-					guestID: this.user.id,
+					invite : {
+						hostID: this.currentGame.invite.senderID,
+						guestID: this.user.id,					
+					}
 				});
+				if (debug) console.log(`/Store/ emit: rejectInvite`);
 				this.currentGame.invite.received = false
 				this.currentGame.invite.senderID = 0
 				this.currentGame.invite.senderUsername = ''
@@ -538,7 +563,10 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.currentGame.invite.received = false
 				this.currentGame.invite.senderID = 0
 				this.currentGame.invite.senderUsername = ''
-			
+				this.currentGame.invite.sent = false
+				this.currentGame.invite.recipientID = 0
+				this.currentGame.invite.recipientUsername = ''
+
 				this.currentGame.status =  'undefined'
 				this.currentGame.waiting =  'undefined'
 				this.currentGame.endReason  =  'undefined'
@@ -1142,11 +1170,24 @@ async function handleRejectedInvite(this: any) {
 	if (debug) console.log("/Store/ handleRejectedInvite()");
 	//! here we should have some sort of snackbar on host session : guest rejected offer
 	this.currentGame.waiting = 'undefined'
+	this.currentGame.invite.sent = false
+	this.currentGame.invite.recipientID = 0
+	this.currentGame.invite.recipientUsername = ''
 }
 
 	// Game
 async function handleNewGame(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
 	if (debug) console.log("/Store/ handleNewGame()");
+
+	if(this.currentGame.invite.sent){
+		this.currentGame.invite.sent = false
+		this.currentGame.invite.recipientID = 0
+	}
+	if(this.currentGame.invite.received){
+		this.currentGame.invite.received = false
+		this.currentGame.invite.senderID = 0
+		this.currentGame.invite.senderUsername = ''		
+	}
 
 	this.currentGame.gameInfo.hostID = game.hostID;
 	this.currentGame.gameInfo.guestID = game.guestID;
