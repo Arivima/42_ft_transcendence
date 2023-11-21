@@ -21,8 +21,14 @@ export default {
 		gameInfo() : {hostID: number, guestID: number, watcher: boolean} {
 			return currentGame.value.gameInfo
 		},
-		customizations() : { pitch_color: string, paddle_color: string, ball_color: string} {
-			return currentGame.value.customizations
+		pitch_color() : string {
+			return currentGame.value.customizations.pitch_color
+		},
+		paddle_color() : string {
+			return currentGame.value.customizations.paddle_color
+		},
+		ball_color() : string {
+			return currentGame.value.customizations.ball_color
 		},
 		status(): 'undefined' | 'building' | 'playing' | 'end'{
 			return currentGame.value.status
@@ -30,7 +36,9 @@ export default {
 		waiting() : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing' {
 			return currentGame.value.waiting
 		},
-		invite() : { received: boolean, senderID: number, senderUsername: string} {
+		invite() : { received: boolean, senderID: number, senderUsername: string,
+					sent: boolean, recipientID: number, 
+			} {
 			return currentGame.value.invite
 		},
 		streaming() : boolean {
@@ -86,10 +94,13 @@ export default {
 			</v-card>
 
 			<v-card style="display: flex; flex-direction: column; height: fit-content;" class="ma-2 pa-2">
+				<p style="color: purple;">Received</p>
 				<p style="color: purple;">invite = {{ invite.received }}</p>
 				<p style="color: purple;">invite = {{ invite.senderID }}</p>
 				<p style="color: purple;">invite = {{ invite.senderUsername }}</p>
-				<v-btn border @click="updateInvite(true)">new invite</v-btn>
+				<p style="color: purple;">Sent</p>
+				<p style="color: purple;">invite = {{ invite.sent }}</p>
+				<p style="color: purple;">invite = {{ invite.recipientID }}</p>
 			</v-card>	
 
 
@@ -114,9 +125,9 @@ export default {
 
 			<v-card style="display: flex; flex-direction: column; height: fit-content;" class="ma-2 pa-2">
 				<p style="color: purple;">customizations</p>
-				<p style="color: purple;">ball_color = {{ customizations.ball_color }}</p>
-				<p style="color: purple;">pitch_color = {{ customizations.pitch_color }}</p>
-				<p style="color: purple;">paddle_color = {{ customizations.paddle_color }}</p>
+				<p style="color: purple;">ball_color = {{ ball_color }}</p>
+				<p style="color: purple;">pitch_color = {{ pitch_color }}</p>
+				<p style="color: purple;">paddle_color = {{ paddle_color }}</p>
 			</v-card>	
 
 		</v-card>

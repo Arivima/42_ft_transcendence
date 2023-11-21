@@ -29,10 +29,14 @@ export class ChatService {
     createChatDto.receiverID = null;
     createChatDto.receiversID = Number(createChatDto.receiversID);
     // let senderName = null;
+        // console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiversID: ${createChatDto.receiversID}`);
+
     try {
+      console.log(`DEBUG | chat.service | createChatRoomMessage | createChatDto.senderID: ${createChatDto.senderID}, createChatDto.receiversID: ${createChatDto.receiversID}`);
       const res1 = await this.prisma.subscribed.findMany({
         where: {
           playerID: createChatDto.senderID,
+          chatroomID: createChatDto.receiversID,
           OR: [
             {
               isBanned: true,
@@ -45,6 +49,7 @@ export class ChatService {
       });
       if (res1.length > 0)
         return null;
+      console.log(`DEBUG | chat.service | createChatRoomMessage | in muted: ${res1}`);
       const res = await this.prisma.message.create({
         data: {
           content: createChatDto.content,
@@ -177,11 +182,20 @@ export class ChatService {
         where: {
           playerID: isMutedId,
           chatroomID: createChatDto.receiversID,
-          isMuted: true,
+          OR: [
+            {
+              isBanned: true,
+            },
+            {
+              isMuted: true,
+            },
+          ],
         },
       });
       if (isMuted.length > 0)
-        return null;
+        return "isMuted";
+        console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiversID: ${createChatDto.receiversID}`);
+
       return await this.createChatRoomMessage(createChatDto);
     } else if (createChatDto.receiverID)
       return [await this.createChatMessage(createChatDto)];
@@ -323,26 +337,9 @@ export class ChatService {
 // 	@@id([playerID, chatroomID])
 // }
 
-  async editUserSubscription(userId: number, groupId: number, isAdmin: boolean, isMuted: boolean, adminId: number) {
+  async editUserSubscription(userId: number, groupId: number, isAdmin: boolean, isMuted: boolean, isBanned: boolean, adminId: number) {
     console.log(`DEBUG | chat.service | editUserSubscription | userId: ${userId} | groupId: ${groupId} | isAdmin: ${isAdmin} | isMuted: ${isMuted}`);
-    // if (isAdmin === false) {
-    //   let res = await this.prisma.subscribed.findMany({
-    //     where: {
-    //       chatroomID: groupId,
-    //       isAdmin: true,
-    //       playerID: {
-    //         not: userId,
-    //       },
-    //     },
-    //     select: {
-    //       playerID: true,
-    //     },
-    //   });
-    //   if (res.length === 0) {
-    //     console.log(`DEBUG | chat.service | editUserSubscription | res.length: ${res.length}`);
-    //     return null;
-    //   }
-    // }
+
     let isAdminId = await this.prisma.subscribed.findMany({
       where: {
         chatroomID: groupId,
@@ -365,8 +362,9 @@ export class ChatService {
       },
       data: {
         isAdmin: isAdmin,
-        isMuted: isMuted
-      },
+        isMuted: isMuted,
+        isBanned: isBanned,
+      }
     });
     return await this.prisma.subscribed.findMany({
       where: {
@@ -738,7 +736,7 @@ export class ChatService {
           },
         },
         chatroomSubscriptions: {
-          include: {
+          select: {
             chatroom: {
               select: {
                 groupID: true,
@@ -766,6 +764,40 @@ export class ChatService {
               // },
 
             },
+            where: {
+              isBanned: false,
+            },
+          
+          
+          
+          // include: {
+          //   chatroom: {
+          //     select: {
+          //       groupID: true,
+          //       name: true,
+          //       founder: {
+          //         select: {
+          //           username: true,
+          //         },
+                
+          //       },
+          //       messages: {
+          //         take: 1,
+          //         orderBy: { timestamp: 'desc' },
+          //       },
+          //       createdAt: true,
+
+          //       },
+          //     }
+              
+          //     // include: {
+          //     //   messages: {
+          //     //     take: 1,
+          //     //     orderBy: { timestamp: 'desc' },
+          //     //   },
+          //     // },
+
+          //   },
           },
 
           },

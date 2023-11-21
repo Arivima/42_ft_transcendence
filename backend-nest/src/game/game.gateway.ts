@@ -91,15 +91,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	sendInvite(
 		@MessageBody('invite') invite: InviteDto
 	){
+		if (debug) console.log(`| GATEWAY GAME | 'sendInvite'`);
+		console.log(invite)
+
 		if (!invite?.hostID || !invite?.guestID)
 			return
-		if (debug) console.log(`| GATEWAY GAME | 'sendInvite'`);
 
 		let recipientSocket = this.clients.get(invite?.guestID);
 
+		console.log(`recipient socket : ${recipientSocket.id}`)
+
 		if (recipientSocket)
 		{
-			this.server.to(`${invite.guestID}`).emit("newInvite", invite);
+			this.server.to(`${recipientSocket.id}`).emit("newInvite", invite);
 			if (debug) console.log(`| GATEWAY GAME | 'sendInvite' | emit : 'newInvite'`);
 			// here handle if emit failed
 		}
@@ -107,15 +111,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('cancelInvite')
 	cancelInvite(@MessageBody('invite') invite: InviteDto )
 	{
+		if (debug) console.log(`| GATEWAY GAME | 'cancelInvite'`);
+		console.log(invite)
+
 		if (!invite?.hostID || !invite?.guestID)
 			return
-		if (debug) console.log(`| GATEWAY GAME | 'cancelInvite'`);
 
 			let recipientSocket = this.clients.get(invite?.guestID);
 
+		console.log(`recipient socket : ${recipientSocket?.id}`)
+
 		if (recipientSocket)
 		{
-			this.server.to(`${invite.guestID}`).emit("deleteInvite", invite);
+			this.server.to(`${recipientSocket.id}`).emit("deleteInvite", invite);
 			if (debug) console.log(`| GATEWAY GAME | 'cancelInvite' | emit : 'deleteInvite'`);
 		}
 	}
@@ -123,33 +131,39 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('rejectInvite')
 	rejectInvite(@MessageBody('invite') invite: InviteDto )
 	{
+		if (debug) console.log(`| GATEWAY GAME | 'rejectInvite'`);
+		console.log(invite)
+
 		if (!invite?.hostID || !invite?.guestID)
 			return
-		if (debug) console.log(`| GATEWAY GAME | 'rejectInvite'`);
 
 		let requestorSocket = this.clients.get(invite?.hostID);
+		console.log(`recipient requestorSocket : ${requestorSocket.id}`)
 
 		if (requestorSocket)
 		{
-			this.server.to(`${invite.hostID}`).emit("rejectedInvite", invite);
+			this.server.to(`${requestorSocket.id}`).emit("rejectedInvite", invite);
 			if (debug) console.log(`| GATEWAY GAME | 'rejectInvite' | emit : 'rejectedInvite'`);
 		}
 	}
 	@SubscribeMessage('acceptInvite')
-	acceptInvite(@MessageBody() invite: InviteDto) {
+	acceptInvite(@MessageBody('invite') invite: InviteDto ) {
+		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite'`);
+		console.log(invite)
+
 		if (!invite?.hostID || !invite?.guestID)
 			return
-		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite'`);
 
 		const host_socket = this.clients.get(invite?.hostID);
 		const guest_socket = this.clients.get(invite?.guestID);
+		console.log(`host_socket : ${host_socket?.id}`)
+		console.log(`guest_socket : ${guest_socket?.id}`)
 		
 		// Create game instance
 		let roomId = this.gameService.matchPlayers(
 			invite?.guestID, invite?.hostID,
 			host_socket, guest_socket
 		);
-		
 		// start game
 		this.server.to(roomId).emit("newGame", {
 			hostID: invite?.hostID,
@@ -251,6 +265,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 	//joining game for livestream
+	// SISTEMARE LE CHIAMATE CON UNA SOLA NUOVA PER IL STREAMING
 	@SubscribeMessage('joinGame')
 	joinGame(
 		@MessageBody('userID') userID: number,
@@ -270,7 +285,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			client.join(game.roomId);
 
 			// setting up game
-			this.server.to(`${userID}`).emit("newGame", {
+			this.server.to(`${client.id}`).emit("newGame", {
 				hostID: game.hostID,
 				guestID: game.guestID,
 				watcher: true
@@ -278,7 +293,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newGame'`);
 
 			// share customization
-			this.server.to(`${userID}`).emit('startGame', {
+			this.server.to(`${client.id}`).emit('startGame', {
 				customization: game.customization
 			})
 			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'startGame'`);

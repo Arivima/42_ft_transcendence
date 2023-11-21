@@ -63,7 +63,7 @@ export class PlayersController {
 	@Get('avatar/:id')
 	async getAvatar(@Param('id') id: string, @Res() res: Response) {
 		const filePath = path.join(
-			process.cwd(), (await this.playersService.findOne(Number(id))).avatar
+			process.cwd(), (await this.playersService.findOne(Number(id)))?.avatar
 		);
 
 		fs.open(filePath, 'r', (err, fd) => {

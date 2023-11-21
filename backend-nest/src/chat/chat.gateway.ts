@@ -79,12 +79,11 @@ export class ChatGateway {
   }
 
   @SubscribeMessage("editusersubscription")
-  editUserSubscription(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string, @MessageBody("isAdmin") isAdmin: boolean, @MessageBody("isMuted") isMuted: boolean, @ConnectedSocket() client: Socket) {
+  editUserSubscription(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string, @MessageBody("isAdmin") isAdmin: boolean, @MessageBody("isMuted") isMuted: boolean, @MessageBody("isBanned") isBanned: boolean, @ConnectedSocket() client: Socket) {
     if (debug) console.log(`DEBUG | chat.controller | editUserSubscription | userId: ${userId}`);
-    // check if user is admin
     let adminId = this.jwtService.decode(client.handshake.auth.token)['sub'];
     if (debug) console.log(`DEBUG | chat.controller | editUserSubscription | adminId: ${adminId}`);
-    this.chatService.editUserSubscription(Number(userId), Number(groupId), isAdmin, isMuted, Number(adminId)).then(response => {
+    this.chatService.editUserSubscription(Number(userId), Number(groupId), isAdmin, isMuted, isBanned, Number(adminId)).then(response => {
       if (!response)
         return { success: false };
       response.forEach((memberId) => {
@@ -199,22 +198,26 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('message')
-  async handleMessage(@MessageBody() data: string, @ConnectedSocket() client: Socket) {
-    if (debug) console.log(`DEBUG | chat.gateway | handleMessage | data: ${data}`);
-    let CreateChatDto: CreateChatDto = JSON.parse(JSON.parse(data).data);
+  async handleMessage(@MessageBody() createChatDto: CreateChatDto, @ConnectedSocket() client: Socket) {
+    if (debug) console.log(`DEBUG | chat.gateway | handleMessage | data: ${createChatDto.content}, ${createChatDto.receiverID}, ${createChatDto.senderID}, ${createChatDto.receiversID}`);
+    // createChatDto = JSON.parse(JSON.parse(createChatDto).data);
     let recClientId: Socket;
 
     let senderID = this.jwtService.decode(client.handshake.auth.token)['sub']
 
-    let resIds = await this.chatService.create(CreateChatDto, Number(senderID));
+    let resIds = await this.chatService.create(createChatDto, Number(senderID));
+    if (resIds == "isMuted")
+      return { success: false };
     if (!resIds)
       return
+    console.log(`DEBUG | chat.gateway | handleMessage | resIds: ${resIds}`);
     for (let resId of resIds) {
       recClientId = this.clients.get(Number(resId.playerID));
-      data = JSON.stringify({ data: JSON.stringify({ ...CreateChatDto, "senderName": resId.senderName}) });
+      let data = JSON.stringify({ data: JSON.stringify({ ...createChatDto, "senderName": resId.senderName}) });
       if (recClientId)
         this.server.to(`${recClientId.id}`).emit('message', data);
     }
+    return { success: true };
   }
 
   @SubscribeMessage("searchgroups")

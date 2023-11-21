@@ -159,7 +159,7 @@ export class GameService {
 		const roomId: string = `${userID}:${hostID}`;
 		hostSocket?.join(roomId);
 		userSocket?.join(roomId);
-		console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket.id} & ${userSocket.id} joined ${roomId} `);
+		console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket?.id} & ${userSocket?.id} joined ${roomId} `);
 
 		// update data structures
 		let hostGameSocket: GameSocket = {
@@ -244,21 +244,30 @@ export class GameService {
 			gameInfo.guestID :
 			gameInfo.hostID
 		)?.customization || {} as CustomizationOptions;
+
+		console.log(`User ${userID} customization`)
+		console.log(customization)
+		console.log(`Opponent ${userID == gameInfo.hostID ? gameInfo.guestID : gameInfo.hostID} customization`)
+		console.log(other_customizations)
 		
 		if (JSON.stringify({}) != JSON.stringify(other_customizations))
 		{
 			const roomId = this.games.get(userID).roomId;
+			const randN = Math.random() * 1024;
 			const final_customization = {
-				pitch_color: Math.random() * 1024 % 2 == 0 ?
+				pitch_color: randN % 2 == 0 ?
 					other_customizations.pitch_color :
 					customization.pitch_color,
-				paddle_color: Math.random() * 1024 % 2 == 0 ?
+				paddle_color: randN % 2 == 0 ?
 					other_customizations.paddle_color :
 					customization.paddle_color,
-				ball_color:  Math.random() * 1024 % 2 == 0 ?
+				ball_color:  randN % 2 == 0 ?
 					other_customizations.ball_color :
 					customization.ball_color,
 			} as CustomizationOptions;
+
+			console.log(`Final customization`)
+			console.log(final_customization)
 
 			Object.assign(this.games.get(userID).customization, customization);
 			return {

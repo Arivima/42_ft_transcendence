@@ -499,6 +499,9 @@ export default {
 		// playerStore.resetGame()
 		playerStore.exitGame()
 	},
+	unmounted() {
+		playerStore.exitGame()
+	},
 	}
 </script>
   
