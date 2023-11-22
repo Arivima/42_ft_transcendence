@@ -143,9 +143,6 @@ const initialTimeState : TimeState = {
 export default {
 	components:	{
 	},
-	emits : [
-		'close'
-	],
 	data: () => ({
 			// conf
 			user : user.value,
@@ -182,6 +179,8 @@ export default {
 	watch : {
 		gameStatus(newVal : 'undefined' | 'building' | 'playing' | 'end'){
 			if (debug) console.log('| CanvasGame | watchers | Game status : ' + newVal)
+			if (newVal == 'undefined')
+			this.onLeaving()
 		},
 		gameState(newVal: 'Start' | 'Play' | 'Pause' | 'End') {
 			// if (debug) console.log("Game state : " + newVal)
@@ -209,9 +208,25 @@ export default {
 		// },
 	},
 	computed : {
+		host() : Player {
+			return currentGame.value.host
+		},
+		guest() : Player {
+			return currentGame.value.guest
+		},
+		gameInfo() : {hostID: number, guestID: number, watcher: boolean} {
+			return currentGame.value.gameInfo
+		},
 		gameStatus() : 'undefined' | 'building' | 'playing' | 'end' {
 			return currentGame.value.status
 		},
+		endReason() : 'undefined' | 'hostWin' | 'guestWin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft' {
+			return currentGame.value.endReason
+		},
+		streaming() : boolean {
+			return (currentGame.value.status == 'playing' && currentGame.value.gameInfo.watcher == true)
+		},
+
 		userIsHost() : boolean {
 			return (this.gameConf.host.id == user.value.id)
 		},
@@ -230,14 +245,10 @@ export default {
 		userLost() : boolean {
 			return (!this.userWon)
 		},
-		// TODO
-		end(){
-			return (this.hostWon || this.guestWon);
-		},
 		gameState(): 'Start' | 'Play' | 'Pause' | 'End' {
 			return (
 				this.paused ? 'Pause' : 
-				this.end ? 'End' :
+				this.gameStatus == 'end' ? 'End' :
 				this.start ? 'Play' :  
 				'Start');
 		},
@@ -261,8 +272,23 @@ export default {
 		},
 	},
 	methods: {
+		exitGame(){
+			if (debug) console.log('| CanvasGame | methods | exitGame()')
+			// if (debug) console.log('%c| CanvasGame | methods | exitGame()', 'background: black; color: red')
+			playerStore.exitGame()
+		},
+		onLeaving(){
+			if (debug) console.log('| CanvasGame | methods | onLeaving()')
+			// if (debug) console.log('%c| CanvasGame | methods | onLeaving()', 'background: black; color: red')
+			// if (debug) console.log(`%c| CanvasGame | methods | onLeaving() endReason : ${this.endReason}`, 'background: grey; color: black')
+			// if (debug) console.log(`%c| CanvasGame | methods | onLeaving() status : ${this.status}`, 'background: grey; color: black')
+			if (currentGame.value.endReason == 'undefined' && currentGame.value.gameInfo.hostID)
+				this.exitGame()
+			playerStore.resetGame()
+		},
 
 		canvasSetup() {
+			if (debug) console.log('| CanvasGame | methods | canvasSetup()')
 			this.canvas_old_width = this.canvas?.width || 0;
 			this.canvas_old_height = this.canvas?.height || 0;
 			this.canvas = this.$refs.canvas as HTMLCanvasElement;
@@ -460,16 +486,11 @@ export default {
 		},
 		unPauseGame(){
 		},
-		exitGame(){
-			playerStore.exitGame()
-		},
 
-		closeGame(){
-			this.$emit("close");
-		},
 	},
 	mounted() {
 		if (debug) console.log('| CanvasGame | mounted()')
+		window.addEventListener('beforeunload', this.onLeaving);
 
 		// window.addEventListener('keydown', this.onKeyDown);
 		// window.addEventListener('keyup', this.onKeyUp);
@@ -492,32 +513,33 @@ export default {
 	},
 	beforeUnmount() {
 		if (debug) console.log('| CanvasGame | beforeUnmount()')
-
 		// window.removeEventListener('keydown', this.onKeyDown);
 		// window.removeEventListener('keyup', this.onKeyUp);
 		// window.removeEventListener('resize', this.onResize);
-		// playerStore.resetGame()
-		playerStore.exitGame()
+		this.onLeaving()
+		window.removeEventListener('beforeunload', this.onLeaving);
 	},
+
+	beforeRouteLeave() {
+		if (debug) console.log('| CanvasGame | beforeRouteLeave()')
+		this.onLeaving()
+	},
+
 	unmounted() {
-		playerStore.exitGame()
+		if (debug) console.log('| CanvasGame | unmounted()')
 	},
-	}
+}
 </script>
   
 
 
 <template>
-
-	
 	<v-card
 		v-if="gameStatus == 'building' || gameStatus == 'playing'"
 		class="component justify-center align-center"
 		style="display: flex; flex-direction: column;" 
 	>
-		<v-card-item
-			class="mt-5 justify-end w-100" style="font-weight: bold; font-size: large;"
-		>
+		<v-card-item class="mt-5 justify-end w-100" style="font-weight: bold; font-size: large;">
 			<v-btn
 				v-show="(gameState == 'Play' || gameState == 'Pause')"
 				@click="paused = !paused" 
@@ -526,23 +548,21 @@ export default {
 				variant="text"
 				:prepend-icon="paused ? 'mdi-pause' : 'mdi-play'"
 				:text="paused ? 'paused' : 'currently live'"
-			>
-			</v-btn>
-
-			<v-chip
-				size="large">
+			></v-btn>
+			<v-chip size="large">
 				{{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}
 			</v-chip>
 		</v-card-item>
 
-
-
-
 		<v-card class="w-100" flat style="display: flex; flex-direction: row;">
 			<v-card flat class="w-50 justify-center text-overline ma-0">
-				<v-card-item class=" py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">Host</v-card-item>
+				<v-card-item class=" py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">
+					Host
+				</v-card-item>
 				<v-card class=" w-100" flat style="display: flex; flex-direction: row;">
-					<v-card-item class=" justify-center w-50" :prepend-avatar="user.avatar">{{ user.username }}</v-card-item>
+					<v-card-item class=" justify-center w-50" :prepend-avatar="host.avatar">
+						{{ host.username }}
+					</v-card-item>
 					<v-card-item class=" justify-center w-50">
 						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.host > score.guest ? 'success' : score.host === score.guest ? 'primary' : 'error'">
 						{{ score.host }}</v-chip>
@@ -550,13 +570,17 @@ export default {
 				</v-card>				
 			</v-card>
 			<v-card flat class="w-50 justify-center text-overline ma-0">
-				<v-card-item class="py-0 justify-center" style="font-weight: bolder; font-size: larger;background-color: lightgoldenrodyellow;">Guest</v-card-item>
+				<v-card-item class="py-0 justify-center" style="font-weight: bolder; font-size: larger;background-color: lightgoldenrodyellow;">
+					Guest
+				</v-card-item>
 				<v-card class="w-100" flat style="display: flex; flex-direction: row;">
 					<v-card-item class=" justify-center w-50 ">
 						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.guest > score.host ? 'success' : score.guest === score.host ? 'primary' : 'error'">
 						{{ score.guest }}</v-chip>
 					</v-card-item>				
-					<v-card-item class=" justify-center w-50" :append-avatar="opponent.avatar">{{ opponent.username }}</v-card-item>
+					<v-card-item class=" justify-center w-50" :append-avatar="guest.avatar">
+						{{ guest.username }}
+					</v-card-item>
 				</v-card>				
 			</v-card>
 		</v-card>

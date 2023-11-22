@@ -53,7 +53,7 @@ export default defineComponent({
 	methods: {
 		exit(){
 			console.log('| DialogEnd | methods | exit')
-			playerStore.resetGame()
+			playerStore.forceCanvasUnmount()
 		},
 	},
 })
