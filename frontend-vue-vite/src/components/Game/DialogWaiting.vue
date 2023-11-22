@@ -6,7 +6,7 @@ import { IntersectingCirclesSpinner } from 'epic-spinners'
 
 const playerStore = usePlayerStore()
 const { currentGame } = storeToRefs(playerStore)
-const debug = true
+const debug = false
 
 export default defineComponent({
 	components: {
@@ -19,11 +19,11 @@ export default defineComponent({
 	},
 	computed : {
 		dialogBox() : boolean{
-			console.log('| DialogWaiting | computed | dialogBox : ' + (currentGame.value.waiting))
+			if (debug) console.log('| DialogWaiting | computed | dialogBox : ' + (currentGame.value.waiting))
 			return (currentGame.value.waiting != 'undefined')
 		},
 		buttonText() : string {
-			console.log('| DialogWaiting | computed | buttonText')
+			if (debug) console.log('| DialogWaiting | computed | buttonText')
 			switch(currentGame.value.waiting){
 					case 'matchmaking'	: return 'cancel game request'
 					case 'invite'		: return 'cancel invite'
@@ -35,7 +35,7 @@ export default defineComponent({
 				}
 		},
 		title() : string {
-			console.log('| DialogWaiting | computed | title')
+			if (debug) console.log('| DialogWaiting | computed | title')
 			if (false == this.isCancelActive){
 				switch(currentGame.value.waiting ){
 					case 'matchmaking'	: return 'Searching for an opponent ...' 
@@ -62,7 +62,7 @@ export default defineComponent({
 	},
 	methods: {
 		buttonAction() {
-			console.log('| DialogWaiting | methods | buttonAction : ' + currentGame.value.waiting)
+			if (debug) console.log('| DialogWaiting | methods | buttonAction : ' + currentGame.value.waiting)
 			if (this.dialogBox){
 				switch(currentGame.value.waiting){
 					case 'matchmaking'	: playerStore.cancelMatchMakingRequest();	break;
@@ -79,11 +79,11 @@ export default defineComponent({
 	},
 	watch: {
 		isCancelActive(newVal : boolean){
-			console.log('| DialogWaiting | watcher | isCancelActive : ' + newVal)
+			if (debug) console.log('| DialogWaiting | watcher | isCancelActive : ' + newVal)
 		},
 		dialogBox(newVal : boolean){
 			this.isCancelActive = false
-			console.log('| DialogWaiting | watcher | dialogBox : ' + newVal)
+			if (debug) console.log('| DialogWaiting | watcher | dialogBox : ' + newVal)
 		}
 	},
 

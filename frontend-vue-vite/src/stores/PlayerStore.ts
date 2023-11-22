@@ -213,60 +213,6 @@ export class Game {
 
 // GAME STRUCTURES
 
-// frame.dto.ts
-export class PlayerGameData {
-	public paddle: {
-		w: number,
-		h: number
-		sx: number,
-		sy: number,
-		y: number
-	};
-	public score: number;
-
-	constructor() {
-		this.paddle = {
-			w: -1,
-			h: -1,
-			sx: -1,
-			sy: -1,
-			y: -1
-		};
-		this.score = -1;
-	}
-};
-
-// frame.dto.ts
-export class FrameData {
-	public canvas: {
-		w: number,
-		h: number
-	};
-	public ball: {
-		radius: number;
-		sx: number, sy: number;
-		x: number, y: number;
-		dx: number, dy: number;
-	};
-	public host: PlayerGameData;
-	public guest: PlayerGameData;
-
-	constructor() {
-		this.canvas = {
-			w: -1,
-			h: -1,
-		};
-		this.ball = {
-			radius: 0,
-			sx: 0, sy: 0,
-			x: 0, y: 0,
-			dx: 0, dy: 0,
-		};
-		this.host = new PlayerGameData();
-		this.guest = new PlayerGameData();
-	}
-}
-
 export class InviteDto {
 	hostID: number;
 	guestID: number;
@@ -295,6 +241,65 @@ export class CustomizationOptions {
 	}
 };
 
+export class PlayerGameData {
+	public paddle: {
+		w: number,
+		h: number
+		sx: number,
+		sy: number,
+		y: number
+	};
+	public score: number;
+
+	constructor() {
+		this.paddle = {
+			w: -1,
+			h: -1,
+			sx: -1,
+			sy: -1,
+			y: -1
+		};
+		this.score = -1;
+	}
+};
+
+export class BallDto {
+	public radius: number;
+	public sx: number;
+	public sy: number;
+	public x: number;
+	public y: number;
+	public dx: number;
+	public dy: number;
+	constructor() {
+		this.radius = 0;
+		this.sx = 0;
+		this.sy = 0;
+		this.x = 0;
+		this.y = 0;
+		this.dx = 0;
+		this.dy = 0;
+	}
+}
+export class FrameData {
+	public canvas: {
+		w: number,
+		h: number
+	};
+	public ball: BallDto;
+	public host: PlayerGameData;
+	public guest: PlayerGameData;
+
+	constructor() {
+		this.canvas = {
+			w: -1,
+			h: -1,
+		};
+		this.ball = new BallDto();
+		this.host = new PlayerGameData();
+		this.guest = new PlayerGameData();
+	}
+}
 export class FrameDto {
 	public hostId? : number;
 	public guestID? : number;
@@ -864,7 +869,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				localStorage.removeItem(import.meta.env.JWT_KEY);
 				// this.user.reset()
 				Object.assign(this.user, emptyUser);
-				this.user = emptyUser;
+				// this.user = emptyUser;
 			}
 		}
 	});

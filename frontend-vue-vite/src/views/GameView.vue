@@ -53,7 +53,7 @@ export default {
 <template>
 	<NavSideBar />
 	<Notifications></Notifications>
-	<Debug></Debug>
+	<!-- <Debug></Debug> -->
 	<AboutGame v-if="status == 'undefined'"></AboutGame>
 	<DialogWaiting></DialogWaiting>
 	<DialogInvite></DialogInvite>
@@ -91,7 +91,9 @@ export default {
 				<h2>CAT PONG</h2>
 			</v-card-item>
 
-			<CanvasGame></CanvasGame>
+			<CanvasGame
+				v-if="status == 'building' || status == 'playing'"
+			></CanvasGame>
 
 		</v-card>
 	</v-main>

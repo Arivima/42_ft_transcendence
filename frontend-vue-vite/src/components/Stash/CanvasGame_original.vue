@@ -45,7 +45,7 @@
 // const cancelAnimationFrame =
 //   window.cancelAnimationFrame || window.mozCancelAnimationFrame;
 // import { defineComponent } from 'vue'
-import { usePlayerStore, type Player, PlayerGameData, FrameData, FrameDto, BallDto } from '@/stores/PlayerStore'
+import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
@@ -104,32 +104,40 @@ const initialGameConf : GameConf = {
 	pitchCircleRadius: 0,
 }
 
-export class TimeState {
-	public start: number;	// start of game abs nb performance.now(), gets fired with startGame()
-	public pause: number; // cumulates all off time incl pause, lag, wait
-	public clock: number; // cumulates actual running time of game
-	public lastTimeStamp: number; // last update
-	public deltaTime: number; // last time gap between screen updates
-	constructor(){
-		this.start = 0;
-		this.pause = 0;
-		this.clock = 0;
-		this.deltaTime = 0;
-		this.lastTimeStamp = 0;
-	}
-	getSeconds(milliseconds: number) : number {   // function to calculate seconds from milliseconds
-		return Math.floor((milliseconds / 1000) % 60)
-	}
-	getMinutes(milliseconds: number) : number{   // function to calculate minutes from milliseconds
-		return Math.floor((milliseconds / 1000) / 60)
-	}
+export interface GameState {
+	// host: PlayerConf,
+	// guest: PlayerConf,
+	// ball : BallConf,
+	// pitchLineWidth: number,
+	// pitchCirclePos: {x: number, y: number},
+	// pitchCircleRadius: Number,
+	// // paddleColor: string,
+	// // pitchColor: string,
 }
 
+export interface TimeState {
+	start: number;	// start of game abs nb performance.now(), gets fired with startGame()
+	pause: number; // cumulates all off time incl pause, lag, wait
+	clock: number; // cumulates actual running time of game
+	lastTimeStamp: number; // last update
+	deltaTime: number; // last time gap between screen updates
+	getSeconds: (milliseconds: number) => number;   // function to calculate seconds from milliseconds
+	getMinutes: (milliseconds: number) => number;   // function to calculate minutes from milliseconds
+}
 
-// TODO
-// when we update data : this.frame
-// when we draw canvas : from this.newFrame
-
+const initialTimeState : TimeState = {
+	start: 0,
+	pause: 0,
+	clock: 0,
+	deltaTime: 0,
+	lastTimeStamp : 0,
+	getSeconds(milliseconds) {
+		return Math.floor((milliseconds / 1000) % 60)
+	},
+	getMinutes(milliseconds) {
+		return Math.floor((milliseconds / 1000) / 60)
+	},
+}
 
 
 export default {
@@ -137,6 +145,8 @@ export default {
 	},
 	data: () => ({
 			// conf
+			user : user.value,
+			opponent : {} as Player,
 			canvas_old_width: 0,
 			canvas_old_height: 0,
 			canvas : null as HTMLCanvasElement | null,
@@ -151,8 +161,10 @@ export default {
 				['ArrowUp', false], ['ArrowDown', false], [' ', false]
 			]),
 
+
+
 			// to put in a structure to pass to server
-			gameTime : new TimeState(),
+			gameTime : initialTimeState,
 			score : {host : 0, guest : 0},
 
 			hostPaddleDis: 0,
@@ -163,20 +175,15 @@ export default {
 
 			ballDirX: 1,
 			ballDirY: 1,
-
-			frame : new FrameDto()
-
-			
 	}),
 	watch : {
 		gameStatus(newVal : 'undefined' | 'building' | 'playing' | 'end'){
-			if (debug) console.log('| CanvasGame | watchers | gameStatus : ' + newVal)
+			if (debug) console.log('| CanvasGame | watchers | Game status : ' + newVal)
 			if (newVal == 'undefined')
-				this.onLeaving()
-			if (newVal == 'playing'){
-				// getDeltaTime()
-				// this.gameLoop();
-			}
+			this.onLeaving()
+		},
+		gameState(newVal: 'Start' | 'Play' | 'Pause' | 'End') {
+			// if (debug) console.log("Game state : " + newVal)
 		},
 		// COLLISIONS
 		ballDirX(newVal : number){
@@ -202,28 +209,15 @@ export default {
 	},
 	computed : {
 		host() : Player {
-			if (debug) console.log('| CanvasGame | computed | host()')
 			return currentGame.value.host
 		},
 		guest() : Player {
-			if (debug) console.log('| CanvasGame | computed | guest()')
 			return currentGame.value.guest
 		},
-		newFrame() : FrameDto {
-			return currentGame.value.frame
-		},
-
-
-
-
-
-
 		gameInfo() : {hostID: number, guestID: number, watcher: boolean} {
-			if (debug) console.log('| CanvasGame | computed | gameInfo()')
 			return currentGame.value.gameInfo
 		},
 		gameStatus() : 'undefined' | 'building' | 'playing' | 'end' {
-			if (debug) console.log('| CanvasGame | computed | gameStatus()')
 			return currentGame.value.status
 		},
 		endReason() : 'undefined' | 'hostWin' | 'guestWin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft' {
@@ -232,11 +226,6 @@ export default {
 		streaming() : boolean {
 			return (currentGame.value.status == 'playing' && currentGame.value.gameInfo.watcher == true)
 		},
-		officialScores() : {host: number, guest: number} {
-			if (debug) console.log('| CanvasGame | computed | officialScores()')
-			return currentGame.value.frame.data.host.score, currentGame.value.frame.data.guest.score
-		},
-
 
 		userIsHost() : boolean {
 			return (this.gameConf.host.id == user.value.id)
@@ -255,6 +244,13 @@ export default {
 		},
 		userLost() : boolean {
 			return (!this.userWon)
+		},
+		gameState(): 'Start' | 'Play' | 'Pause' | 'End' {
+			return (
+				this.paused ? 'Pause' : 
+				this.gameStatus == 'end' ? 'End' :
+				this.start ? 'Play' :  
+				'Start');
 		},
 		AbsPaddleHost() : {x: number, y: number} {
 			return ({
@@ -278,57 +274,36 @@ export default {
 	methods: {
 		exitGame(){
 			if (debug) console.log('| CanvasGame | methods | exitGame()')
+			// if (debug) console.log('%c| CanvasGame | methods | exitGame()', 'background: black; color: red')
 			playerStore.exitGame()
 		},
 		onLeaving(){
 			if (debug) console.log('| CanvasGame | methods | onLeaving()')
+			// if (debug) console.log('%c| CanvasGame | methods | onLeaving()', 'background: black; color: red')
+			// if (debug) console.log(`%c| CanvasGame | methods | onLeaving() endReason : ${this.endReason}`, 'background: grey; color: black')
+			// if (debug) console.log(`%c| CanvasGame | methods | onLeaving() status : ${this.status}`, 'background: grey; color: black')
 			if (currentGame.value.endReason == 'undefined' && currentGame.value.gameInfo.hostID)
 				this.exitGame()
 			playerStore.resetGame()
 		},
-		onResize() {
-			if (debug) console.log('| CanvasGame | methods | onResize()')
-			this.canvasSetup();
-			this.drawOnCanvas();
-		},
-		onKeyDown(event: KeyboardEvent) {
-			event.preventDefault();
-			this.keyState.set(event.key, true);
-			if (event.key == ' ')
-				this.paused = !this.paused
-		},
-		onKeyUp(event: KeyboardEvent) {
-			event.preventDefault();
-			this.keyState.set(event.key, false);
-		},
-		getDeltaTime() {
-			const now : number = performance.now();
-			this.gameTime.deltaTime = (now - this.gameTime.lastTimeStamp);
 
-			this.gameTime.lastTimeStamp = now;
-		},
 		canvasSetup() {
 			if (debug) console.log('| CanvasGame | methods | canvasSetup()')
-			// this.canvas_old_width = this.canvas?.width || 0;
-			// this.canvas_old_height = this.canvas?.height || 0;
+			this.canvas_old_width = this.canvas?.width || 0;
+			this.canvas_old_height = this.canvas?.height || 0;
 			this.canvas = this.$refs.canvas as HTMLCanvasElement;
 			this.canvas.width	=  window.innerWidth - window.innerWidth * 50 / 100;
 			this.canvas.height	= window.innerHeight - window.innerHeight * 50 / 100;
 			this.ccontext = this.canvas?.getContext("2d") as CanvasRenderingContext2D;
 
 
-			// if (this.canvas_old_width)
-				// this.ballDisX = this.ballDisX * (this.canvas?.width || 0) / this.canvas_old_width;
-			// if (this.canvas_old_height)
-				// this.ballDisY = this.ballDisY * (this.canvas?.height || 0) / this.canvas_old_height;
-
-			// update frame
-			this.frame.data.canvas.w = this.canvas.width
-			this.frame.data.canvas.h = this.canvas.height
+			if (this.canvas_old_width)
+				this.ballDisX = this.ballDisX * (this.canvas?.width || 0) / this.canvas_old_width;
+			if (this.canvas_old_height)
+				this.ballDisY = this.ballDisY * (this.canvas?.height || 0) / this.canvas_old_height;
+			
 			// setting sizes
-			this.frame.data.host.paddle.w = this.frame.data.guest.paddle.w = this.frame.data.canvas.w * 2 / 100;
-			//!!!!!!!!!!!!!!!! ICI
-
+			this.gameConf.host.paddleWidth	= this.gameConf.guest.paddleWidth	= this.canvas.width * 2 / 100;
 			this.gameConf.host.paddleHeight	= this.gameConf.guest.paddleHeight	= this.canvas.height * 20 / 100;
 			this.gameConf.ball.radius		= this.canvas.height / 64;
 			//pitch
@@ -342,15 +317,15 @@ export default {
 			// this.gameConf.ball.start		= {x: this.canvas.width , y: this.canvas.height };
 			this.gameConf.ball.start		= {x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height };
 		},
+
 		drawOnCanvas() {
-			if (debug) console.log('| CanvasGame | methods | drawOnCanvas()')
 			// clearing canvas
 			if (null != this.ccontext && null != this.canvas) {
 				this.ccontext.fillStyle = "white";
-				this.ccontext.fillRect(0, 0, this.newFrame.data.canvas.w , this.newFrame.data.canvas.h);
+				this.ccontext.fillRect(0, 0, this.canvas.width, this.canvas.height);
 				this.ccontext.fillStyle = "black";
 				// drawing paddles
-				this.ccontext.fillRect(this.AbsPaddleHost.x, this.AbsPaddleHost.y, this.newFrame.data.host.paddle.w, this.newFrame.data.host.paddle.h);
+				this.ccontext.fillRect(this.AbsPaddleHost.x, this.AbsPaddleHost.y, this.gameConf.host.paddleWidth, this.gameConf.host.paddleHeight);
 				this.ccontext.fillRect(this.AbsPaddleGuest.x, this.AbsPaddleGuest.y, this.gameConf.guest.paddleWidth, this.gameConf.guest.paddleHeight);
 				// drawing pitch
 				this.ccontext.beginPath();
@@ -372,9 +347,38 @@ export default {
 				this.ccontext.stroke();
 			}
 		},
+
+		onResize() {
+			this.canvasSetup();
+			this.drawOnCanvas();
+		},
+
+		// keyboard event listeners
+		onKeyDown(event: KeyboardEvent) {
+			event.preventDefault();
+			this.keyState.set(event.key, true);
+			if (event.key == ' ')
+				this.paused = !this.paused
+		},
+		onKeyUp(event: KeyboardEvent) {
+			event.preventDefault();
+			this.keyState.set(event.key, false);
+		},
+
+		getDeltaTime() {
+			const now : number = performance.now();
+			this.gameTime.deltaTime = (now - this.gameTime.lastTimeStamp);
+
+			if (this.gameState == 'Play')
+				this.gameTime.clock += this.gameTime.deltaTime;
+			if (this.gameState == 'Pause')
+				this.gameTime.pause += this.gameTime.deltaTime;
+
+			this.gameTime.lastTimeStamp = now;
+		},
+
 		// testing ok, speedFactor could be a bonus, step to be reviewed if we need to change it with this.deltaTime ???
 		movePaddle() {
-			if (debug) console.log('| CanvasGame | methods | movePaddle()')
 			const step : number = this.gameTime.deltaTime * this.gameConf.ball.speedFactor
 
 			if (this.keyState.get('ArrowUp') === true) {
@@ -403,9 +407,10 @@ export default {
 				console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
 			}
 		},
+
 		// TODO : resize amd angles
 		moveBall() {
-			if (debug) console.log('| CanvasGame | methods | moveBall()')
+			// before step 100/15
 			// const step = 100/15
 			const step : number = this.gameTime.deltaTime * this.gameConf.ball.speedFactor
 
@@ -437,67 +442,89 @@ export default {
 			}
 		},
 
-		updateFrame(){
-			playerStore.sendFrame(this.frame)
-		},
-		sendFrame(){
-			playerStore.sendFrame(this.frame)
-		},
 		gameLoop() {
-			if (debug) console.log('| CanvasGame | methods | gameLoop()')
-			this.getDeltaTime();
+			if (this.gameState == 'Play' ||  this.gameState == 'Pause')
+				this.getDeltaTime();
 
-			// if (flag) {
+			if (this.gameState == 'Play'){
 				this.movePaddle();
 				this.moveBall();
-				this.sendFrame();
-				this.drawOnCanvas();
-				// flag = 0;
-			// }
-			
+				this.drawOnCanvas();				
+			}
 			requestAnimationFrame(this.gameLoop);
 		},
 
+		// TODO
+		countDown() {
+			if (this.gameState == 'Start' && this.ccontext){
+				for (let i = 3; i > 0; i--){
+					this.ccontext.fillStyle = "white";
+					this.ccontext.fillRect(0, 0, (this.canvas?.width || 0), (this.canvas?.height || 0));
+					this.ccontext.fillStyle = "black";
+					this.ccontext.beginPath();
+					this.ccontext.fillText(i.toString(), (this.canvas?.width || 0) / 2, (this.canvas?.height || 0) / 2);
+					this.ccontext?.stroke();
+					console.log(i)
+					setTimeout(() => {
+					}, 100000);					
+				}
+				this.startGame()
+			}
+		},
+
+		startGame(){ // launching the clock changes the gameState and starts the game
+			this.gameTime.start = performance.now()
+			setTimeout(() => {
+				this.gameTime.clock = performance.now() - this.gameTime.start 
+				this.gameTime.lastTimeStamp = performance.now()
+				this.start = true
+			}, 1)
+		},
+
+		pauseGame(){
+
+		},
+		unPauseGame(){
+		},
+
 	},
-	// LIFECYCLE HOOKS
-	beforeCreate() {
-		if (debug) console.log('| CanvasGame | beforeCreate()')
-	},
-	created() {
-		if (debug) console.log('| CanvasGame | created')
-	},
-	beforeMount() {
-		if (debug) console.log('| CanvasGame | beforeMount')
-	},	
 	mounted() {
 		if (debug) console.log('| CanvasGame | mounted()')
-
-		this.canvasSetup();
-		this.gameLoop()
-
 		window.addEventListener('beforeunload', this.onLeaving);
-		window.addEventListener('keydown', this.onKeyDown);
-		window.addEventListener('keyup', this.onKeyUp);
-		window.addEventListener('resize', this.onResize);
-	},
-	beforeUpdate() {
-		if (debug) console.log('| CanvasGame | beforeUpdate')
-	},
-	updated() {
-		if (debug) console.log('| CanvasGame | updated')
+
+		// window.addEventListener('keydown', this.onKeyDown);
+		// window.addEventListener('keyup', this.onKeyUp);
+		// window.addEventListener('resize', this.onResize);
+
+		// // fetch opponent // handle error here if opponent is not recognized
+		// // TODO
+		// this.opponent.username = 'Opponent name'
+		// this.opponent.id = 0
+		// this.opponent.avatar = user.value.avatar
+
+		// // assign host and guest values
+		// // TODO
+		// this.gameConf.host.id = user.value.id			// TODO
+		// this.gameConf.guest.id = this.opponent.id		// TODO
+		
+		// this.canvasSetup();
+		// this.gameLoop();
+
 	},
 	beforeUnmount() {
 		if (debug) console.log('| CanvasGame | beforeUnmount()')
+		// window.removeEventListener('keydown', this.onKeyDown);
+		// window.removeEventListener('keyup', this.onKeyUp);
+		// window.removeEventListener('resize', this.onResize);
 		this.onLeaving()
 		window.removeEventListener('beforeunload', this.onLeaving);
-		window.removeEventListener('keydown', this.onKeyDown);
-		window.removeEventListener('keyup', this.onKeyUp);
-		window.removeEventListener('resize', this.onResize);
 	},
+
 	beforeRouteLeave() {
 		if (debug) console.log('| CanvasGame | beforeRouteLeave()')
 		this.onLeaving()
 	},
+
 	unmounted() {
 		if (debug) console.log('| CanvasGame | unmounted()')
 	},
@@ -508,9 +535,25 @@ export default {
 
 <template>
 	<v-card
+		v-if="gameStatus == 'building' || gameStatus == 'playing'"
 		class="component justify-center align-center"
 		style="display: flex; flex-direction: column;" 
 	>
+		<v-card-item class="mt-5 justify-end w-100" style="font-weight: bold; font-size: large;">
+			<v-btn
+				v-show="(gameState == 'Play' || gameState == 'Pause')"
+				@click="paused = !paused" 
+				class="rounded-pill"
+				flat
+				variant="text"
+				:prepend-icon="paused ? 'mdi-pause' : 'mdi-play'"
+				:text="paused ? 'paused' : 'currently live'"
+			></v-btn>
+			<v-chip size="large">
+				{{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}
+			</v-chip>
+		</v-card-item>
+
 		<v-card class="w-100" flat style="display: flex; flex-direction: row;">
 			<v-card flat class="w-50 justify-center text-overline ma-0">
 				<v-card-item class=" py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">
@@ -521,8 +564,8 @@ export default {
 						{{ host.username }}
 					</v-card-item>
 					<v-card-item class=" justify-center w-50">
-						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="officialScores.host > officialScores.guest ? 'success' : officialScores.host === officialScores.guest ? 'primary' : 'error'">
-						{{ officialScores.host }}</v-chip>
+						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.host > score.guest ? 'success' : score.host === score.guest ? 'primary' : 'error'">
+						{{ score.host }}</v-chip>
 					</v-card-item>				
 				</v-card>				
 			</v-card>
@@ -532,8 +575,8 @@ export default {
 				</v-card-item>
 				<v-card class="w-100" flat style="display: flex; flex-direction: row;">
 					<v-card-item class=" justify-center w-50 ">
-						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="officialScores.guest > officialScores.host ? 'success' : officialScores.guest === officialScores.host ? 'primary' : 'error'">
-						{{ officialScores.guest }}</v-chip>
+						<v-chip class="my-2 text-h6 font-weight-bold" variant="tonal" :color="score.guest > score.host ? 'success' : score.guest === score.host ? 'primary' : 'error'">
+						{{ score.guest }}</v-chip>
 					</v-card-item>				
 					<v-card-item class=" justify-center w-50" :append-avatar="guest.avatar">
 						{{ guest.username }}
@@ -542,13 +585,35 @@ export default {
 			</v-card>
 		</v-card>
 
-		<canvas id="CanvasGame" ref="canvas" width="800" height="500" style="border:1px solid black;"></canvas>
+		<!-- <canvas id="CanvasGame" ref="canvas" width="800" height="500" style="border:1px solid black;"></canvas> -->
+
+		<v-card height="500" width="800" class="border">CANVAS</v-card>
 
 		<v-card
 			style="display: flex; flex-direction: row;"
 			class="w-100 -5 justify-center"
 			flat
 		>
+			<v-btn
+				v-show="(gameState == 'Play' || gameState == 'Pause')"
+				color="primary"
+				variant="elevated"
+				size="x-large"
+				class="ma-2"
+				@click="paused = !paused" 
+			>
+				{{ paused? 'Unpause game ' : 'Pause game '  }}
+			</v-btn>
+
+			<v-btn
+				v-show="gameState == 'Start'"
+				color="primary"
+				variant="elevated"
+				size="x-large"
+				class="ma-2"
+				@click="startGame" 
+			> Start Game !
+			</v-btn>
 
 			<v-btn
 				color="primary"
@@ -581,12 +646,21 @@ export default {
 				<p>| canvas |  width : {{ canvas?.width }} | height : {{ canvas?.height }}</p>
 				<p>| host | {{ gameConf.host.id }}</p>
 				<p>| guest | {{ gameConf.guest.id }}</p>
+				<h2>| GAME STATE : {{ gameState }}</h2>
 				<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
 				<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
 				
+				<p>Game: {{ String(gameTime.getMinutes(gameTime.clock)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock)).padStart(2, '0') }}</p>
+				<p>Paused: {{ String(gameTime.getMinutes(gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.pause)).padStart(2, '0') }}</p>
+				<p>Total: {{ String(gameTime.getMinutes(gameTime.clock + gameTime.pause)).padStart(2, '0') }}:{{ String(gameTime.getSeconds(gameTime.clock + gameTime.pause)).padStart(2, '0') }}</p>
+
 			</v-card>
 		</v-card>
+
 </v-card>
+
+
+
 </template>
 
 <style scoped>

@@ -5,16 +5,16 @@ import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
 const { user, currentGame } = storeToRefs(playerStore)
-const debug = true
+const debug = false
 
 export default defineComponent({
 	computed : {
 		dialogBox(){
-			console.log('| DialogEnd | computed | dialogBox : ' + (currentGame.value.status == 'end'))
+			if (debug) console.log('| DialogEnd | computed | dialogBox : ' + (currentGame.value.status == 'end'))
 			return (currentGame.value.status == 'end')
 		},
 		title() : string {
-			console.log('| DialogEnd | computed | title')
+			if (debug) console.log('| DialogEnd | computed | title')
 			switch(currentGame.value.endReason){
 					case 'hostWin'	: (this.userIsHost == true ? 'You have won !' : 'You have lost ...')
 					case 'guestWin'	: (this.userIsGuest == true ? 'You have won !' : 'You have lost ...')
@@ -26,33 +26,33 @@ export default defineComponent({
 				}
 		},
 		someoneWon() : boolean {
-			console.log('| DialogEnd | computed | someoneWon : ' + (currentGame.value.endReason == 'hostWin' || currentGame.value.endReason == 'guestWin'))
+			if (debug) console.log('| DialogEnd | computed | someoneWon : ' + (currentGame.value.endReason == 'hostWin' || currentGame.value.endReason == 'guestWin'))
 			return (currentGame.value.endReason == 'hostWin' || currentGame.value.endReason == 'guestWin')
 		},
 		userIsHost() : boolean {
-			console.log('| DialogEnd | computed | userIsHost : ' + (currentGame.value.host.id == user.value.id))
+			if (debug) console.log('| DialogEnd | computed | userIsHost : ' + (currentGame.value.host.id == user.value.id))
 			return (currentGame.value.host.id == user.value.id)
 		},
 		userIsGuest() : boolean {
-			console.log('| DialogEnd | computed | userIsGuest : ' + (currentGame.value.guest.id == user.value.id))
+			if (debug) console.log('| DialogEnd | computed | userIsGuest : ' + (currentGame.value.guest.id == user.value.id))
 			return (currentGame.value.guest.id == user.value.id)
 		},
 		score() : { host : number, guest : number} {
-			console.log('| DialogEnd | computed | score : ' + currentGame.value.finalScore.host + ' | ' +  currentGame.value.finalScore.guest)
+			if (debug) console.log('| DialogEnd | computed | score : ' + currentGame.value.finalScore.host + ' | ' +  currentGame.value.finalScore.guest)
 			return currentGame.value.finalScore.host, currentGame.value.finalScore.guest
 		},
 		hostName() : string {
-			console.log('| DialogEnd | computed | hostName : ' + currentGame.value.host.username)
+			if (debug) console.log('| DialogEnd | computed | hostName : ' + currentGame.value.host.username)
 			return currentGame.value.host.username
 		},
 		guestName() : string {
-			console.log('| DialogEnd | computed | guestName : ' + currentGame.value.guest.username)
+			if (debug) console.log('| DialogEnd | computed | guestName : ' + currentGame.value.guest.username)
 			return currentGame.value.guest.username
 		},
 	},
 	methods: {
 		exit(){
-			console.log('| DialogEnd | methods | exit')
+			if (debug) console.log('| DialogEnd | methods | exit')
 			playerStore.forceCanvasUnmount()
 		},
 	},

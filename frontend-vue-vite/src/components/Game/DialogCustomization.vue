@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
 const { user, currentGame } = storeToRefs(playerStore)
-const debug = true
+const debug = false
 
 export default defineComponent({
 	data() {
@@ -17,11 +17,11 @@ export default defineComponent({
 	},
 	computed : {
 		dialogBox(){
-			console.log('| DialogCustomization | computed | dialogBox : ' + (currentGame.value.status == 'building' && currentGame.value.waiting == ''))
+			if (debug) console.log('| DialogCustomization | computed | dialogBox : ' + (currentGame.value.status == 'building' && currentGame.value.waiting == ''))
 			return (currentGame.value.status == 'building' && currentGame.value.waiting == 'undefined')
 		},
 		opponentName() {
-			console.log('| DialogCustomization | computed | opponentName : ' + (user.value.id == currentGame.value.gameInfo.hostID ? currentGame.value.guest.username : user.value.id == currentGame.value.gameInfo.guestID ? currentGame.value.host.username :'N/A'))
+			if (debug) console.log('| DialogCustomization | computed | opponentName : ' + (user.value.id == currentGame.value.gameInfo.hostID ? currentGame.value.guest.username : user.value.id == currentGame.value.gameInfo.guestID ? currentGame.value.host.username :'N/A'))
 			return user.value.id == currentGame.value.gameInfo.hostID ?
 				currentGame.value.guest.username :
 			user.value.id == currentGame.value.gameInfo.guestID ?
@@ -31,7 +31,7 @@ export default defineComponent({
 	},
 	methods: {
 		sendCustomization() {
-			console.log('| DialogCustomization | methods | sendCustomization : ')
+			if (debug) console.log('| DialogCustomization | methods | sendCustomization : ')
 			playerStore.sendCustomizationOptions({
 				pitch_color: this.colorPitch,
 				paddle_color: this.colorPaddle,
@@ -41,7 +41,7 @@ export default defineComponent({
 	},
 	watch: {
 		dialogBox(isActive: boolean) {
-			console.log('| DialogCustomization | watcher | dialogBox : ' + isActive)
+			if (debug) console.log('| DialogCustomization | watcher | dialogBox : ' + isActive)
 			if (isActive == false){
 				this.colorPaddle = currentGame.value.customizations.colorPaddle;
 				this.colorBall = currentGame.value.customizations.colorBall;

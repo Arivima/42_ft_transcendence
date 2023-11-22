@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
 const { currentGame } = storeToRefs(playerStore)
-const debug = true
+const debug = false
 
 export default defineComponent({
 	data() {
@@ -15,32 +15,32 @@ export default defineComponent({
 	},
 	computed : {
 		dialogBox() : boolean{
-			console.log('| DialogInvite | computed | dialogBox : ' + currentGame.value.invite.received)
+			if (debug) console.log('| DialogInvite | computed | dialogBox : ' + currentGame.value.invite.received)
 			return currentGame.value.invite.received
 		},
 		senderUsername() : string {
-			console.log('| DialogInvite | computed | HostName : ' + currentGame.value.invite.senderUsername)
+			if (debug) console.log('| DialogInvite | computed | HostName : ' + currentGame.value.invite.senderUsername)
 			return currentGame.value.invite.senderUsername
 		},
 	},
 	methods: {
 		accept(){
-			console.log('| DialogInvite | methods | accept')
+			if (debug) console.log('| DialogInvite | methods | accept')
 			playerStore.acceptInvitation();
 			this.isCancelActive = true;
 		},
 		reject(){
-			console.log('| DialogInvite | methods | reject')
+			if (debug) console.log('| DialogInvite | methods | reject')
 			playerStore.rejectInvitation();
 			this.isCancelActive = true;
 		},
 	},
 	watch: {
 		isCancelActive(newVal : boolean){
-			console.log('| DialogInvite | watcher | isCancelActive : ' + newVal)
+			if (debug) console.log('| DialogInvite | watcher | isCancelActive : ' + newVal)
 		},
 		dialogBox(newVal : boolean){
-			console.log('| DialogInvite | watcher | dialogBox : ' + newVal)
+			if (debug) console.log('| DialogInvite | watcher | dialogBox : ' + newVal)
 			if (newVal == true)
 				this.isCancelActive = false
 		}
