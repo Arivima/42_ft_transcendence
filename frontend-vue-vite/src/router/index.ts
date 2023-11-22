@@ -71,6 +71,8 @@ router.beforeEach((to, from, next) => {
 	}
 	checkLogIn()
 		.then((_) => {
+			// console.log(localStorage.getItem(import.meta.env.JWT_KEY));
+
 			if ('login' == to.name || 'login-2fa' == to.name || 'home' == to.name)
 				next({ name: `profile`})
 			else next()
