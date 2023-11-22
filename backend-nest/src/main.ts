@@ -12,7 +12,9 @@ async function bootstrap() {
 		methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
 		credentials: true,
 	};
-	const app = await NestFactory.create(AppModule);
+	const app = await NestFactory.create(AppModule, {
+		bodyParser: false,
+	});
 
 	app.enableCors(corsOptions);
 	app.useGlobalPipes(new ValidationPipe({ transform: true }));

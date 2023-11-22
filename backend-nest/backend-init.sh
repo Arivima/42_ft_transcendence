@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    backend-init.sh                                    :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: earendil <earendil@student.42.fr>          +#+  +:+       +#+         #
+#    By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/30 18:31:21 by avilla-m          #+#    #+#              #
-#    Updated: 2023/10/07 18:13:42 by earendil         ###   ########.fr        #
+#    Updated: 2023/11/22 20:27:52 by mmarinel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,6 +24,10 @@ npm i --save prisma
 npm i --save @prisma/client
 npm i --save class-validator class-transformer
 npm i --save @nestjs/websockets @nestjs/platform-socket.io
+npm i --save @nestjs/swagger
+npm i --save body-parser
+# npm i --save @nestjs/swagger/dist/plugin
+npm i --save bcrypt
 
 npm i -D @types/multer
 
@@ -34,6 +38,8 @@ npm install iconv-lite
 
 npx prisma generate
 
-nest update
+# nest update
+
+npm install
 
 exec npm run start:dev

@@ -5,7 +5,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm i vite-plugin-node-polyfills && \
+RUN npm i vite && \
+	npm i vite-plugin-node-polyfills && \
 	npm install socket.io-client
 
 RUN npm install

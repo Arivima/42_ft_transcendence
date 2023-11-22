@@ -24,8 +24,6 @@ services:
     env_file: ./backend-nest/.env # Load environment variables from a file
     depends_on:
       - database # Ensure the backend service starts after the database
-    volumes:
-      - backend-code:/app
     networks:
       - app_network
 
@@ -39,27 +37,11 @@ services:
     env_file: ./frontend-vue-vite/.env
     depends_on:
       - backend
-    volumes:
-      - frontend-code:/app
     networks:
       - app_network
 
 volumes:
   database_data: {}
-  backend-code:
-    driver: local
-    name: backend-code
-    driver_opts:
-      type: none
-      o: bind
-      device: /${PWD}/backend-nest
-  frontend-code:
-    driver: local
-    name: frontend-code
-    driver_opts:
-      type: none
-      o: bind
-      device: /${PWD}/frontend-vue-vite
 
 networks:
   app_network: {}
