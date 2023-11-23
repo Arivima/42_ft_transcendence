@@ -139,6 +139,10 @@ export class ChatGateway {
       return { success: false };
     this.chatService.removeUserFromGroup(Number(me), Number(groupId), Number(me)).then((otherMembers) => {
       if (debug) console.log(`DEBUG | chat.controller | removeMeFromGroup | otherMembers: ${otherMembers}`);
+      if (otherMembers[0] === "bad request")
+        return { success: false };
+      if (otherMembers[0] === "delete group")
+        return { success: true };
       if (!otherMembers)
         return { success: false };
       otherMembers.forEach((memberId) => {
@@ -162,7 +166,7 @@ export class ChatGateway {
     let adminId = this.jwtService.decode(client.handshake.auth.token)['sub'];
     this.chatService.removeUserFromGroup(Number(userId), Number(groupId), Number(adminId)).then((otherMembers) => {
       if (debug) console.log(`DEBUG | chat.controller | removeUserFromGroup | otherMembers: ${otherMembers}`);
-      if (otherMembers[0] === "not admin")
+      if (otherMembers[0] === "bad request")
         return { success: false };
       if (otherMembers[0] === "delete group")
         return { success: true };

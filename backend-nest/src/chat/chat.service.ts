@@ -28,11 +28,7 @@ export class ChatService {
   async createChatRoomMessage(createChatDto: CreateChatDto) {
     createChatDto.receiverID = null;
     createChatDto.receiversID = Number(createChatDto.receiversID);
-    // let senderName = null;
-        // console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiversID: ${createChatDto.receiversID}`);
-
     try {
-      console.log(`DEBUG | chat.service | createChatRoomMessage | createChatDto.senderID: ${createChatDto.senderID}, createChatDto.receiversID: ${createChatDto.receiversID}`);
       const res1 = await this.prisma.subscribed.findMany({
         where: {
           playerID: createChatDto.senderID,
@@ -49,7 +45,6 @@ export class ChatService {
       });
       if (res1.length > 0)
         return null;
-      console.log(`DEBUG | chat.service | createChatRoomMessage | in muted: ${res1}`);
       const res = await this.prisma.message.create({
         data: {
           content: createChatDto.content,
@@ -66,10 +61,6 @@ export class ChatService {
           },
         },
       });
-
-      console.log(`DEBUG | chat.service | createChatRoomMessage | res: ${res.messageID}`);
-
-      // update group last message
       await this.prisma.chatRoom.update({
         where: {
           groupID: createChatDto.receiversID,
@@ -82,16 +73,6 @@ export class ChatService {
           },
         },
       });
-
-      // senderName = await this.prisma.player.findUnique({
-      //   where: {
-      //     id: createChatDto.senderID,
-      //   },
-      //   select: {
-      //     username: true,
-      //   },
-      // });
-
       const result = await this.prisma.chatRoom.findUnique({
         where: {
           groupID: createChatDto.receiversID,
@@ -118,13 +99,10 @@ export class ChatService {
           username: true,
         },
       });
-      console.log(`DEBUG | chat.service | createChatRoomMessage | senderName: ${senderName.username}`);
       return result.subscriptions.map((subscription) => ({
         ...subscription,
         senderName: senderName.username,
       }));
-
-      // return result.subscriptions;
     } catch (error) {
       console.error(error);
       return null;
@@ -152,8 +130,6 @@ export class ChatService {
           },
         },
       });
-
-      console.log(`DEBUG | chat.service | createChatMessage | res: ${res}, ${createChatDto.receiverID}`);
       senderName = await this.prisma.player.findUnique({
         where: {
           id: createChatDto.senderID,
@@ -173,9 +149,7 @@ export class ChatService {
   }
 
   async create(createChatDto: CreateChatDto, isMutedId: number): Promise<any> {
-    console.log(`DEBUG | chat.service | create | senderID: ${Number(createChatDto.senderID)}, receiverID: ${Number(createChatDto.receiverID)}`);
     createChatDto.senderID = Number(createChatDto.senderID);
-    console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiversID: ${createChatDto.receiversID}`);
 
     if (createChatDto.receiversID) {
       let isMuted = await this.prisma.subscribed.findMany({
@@ -194,8 +168,6 @@ export class ChatService {
       });
       if (isMuted.length > 0)
         return "isMuted";
-        console.log(`DEBUG | chat.service | create | senderID: ${createChatDto.receiverID}, receiversID: ${createChatDto.receiversID}`);
-
       return await this.createChatRoomMessage(createChatDto);
     } else if (createChatDto.receiverID)
       return [await this.createChatMessage(createChatDto)];
@@ -206,7 +178,6 @@ export class ChatService {
   async createGroupChat(group: CreateGroupDto) {
     const { name, members, founderId, visibility, password } = group;
     let visibility2 = null;
-    console.log(`DEBUG | chat.service | createGroupChat | name: ${name}, members: ${members}, founderId: ${founderId}, visibility: ${visibility}, password: ${password}`);
     // switch (visibility) {
     //   case "public":
     //     visibility2 = "public";
@@ -225,12 +196,9 @@ export class ChatService {
       visibility2 = "protected";
     else
       visibility2 = "private";
-    // const iv = 
     let hash = "";
     if (visibility2 === "protected")
       hash = await bcrypt.hash(password, saltRounds);
-    
-
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
         name,
@@ -242,11 +210,8 @@ export class ChatService {
             isAdmin: memberId === founderId,
             isMuted: false,
             isBanned: false,
-
             player: { connect: { id: Number(memberId) } },
-
-          }),
-          ),
+          })),
         },
       }
     });
@@ -268,7 +233,6 @@ export class ChatService {
     if (isAdminId.length === 0) {
       return null;
     }
-    console.log(`DEBUG | chat.service | addUsersToGroup | groupId: ${groupId} | userIds: ${userIds}`);
     try {
       const res = await this.prisma.chatRoom.update({
         where: {
@@ -304,42 +268,13 @@ export class ChatService {
           },
         },
       });
-      // return await this.prisma.subscribed.findMany({
-      //   where: {
-      //     chatroomID: groupId,
-      //   },
-      //   select: {
-      //     player: true,
-          
-      //     isAdmin: true,
-      //     isMuted: true,
-      //     isBanned: true,
-      //   },
-
-      // });
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
 
-  // 
-// model Subscribed {
-// 	isAdmin					Boolean
-// 	isMuted					Boolean
-// 	isBanned				Boolean
-
-// 	player					Player @relation("Subscribed", fields: [playerID], references: [id])
-// 	playerID				Int
-// 	chatroom				ChatRoom @relation("hasParticipant", fields: [chatroomID], references: [groupID])
-// 	chatroomID				Int
-
-// 	@@id([playerID, chatroomID])
-// }
-
   async editUserSubscription(userId: number, groupId: number, isAdmin: boolean, isMuted: boolean, isBanned: boolean, adminId: number) {
-    console.log(`DEBUG | chat.service | editUserSubscription | userId: ${userId} | groupId: ${groupId} | isAdmin: ${isAdmin} | isMuted: ${isMuted}`);
-
     let isAdminId = await this.prisma.subscribed.findMany({
       where: {
         chatroomID: groupId,
@@ -377,7 +312,6 @@ export class ChatService {
   }
 
   async removeUserFromGroup(userId: number, groupId: number, adminId: number) {
-    console.log(`DEBUG | chat.service | removeUserFromGroup | userId: ${userId} | groupId: ${groupId}`);
     try {
       if (userId != adminId) {
         let isAdminId = await this.prisma.subscribed.findMany({
@@ -391,10 +325,21 @@ export class ChatService {
           },
         });
         if (isAdminId.length === 0) {
-          return ["not admin"];
+          return ["bad request"];
+        }
+        let isOwner = await this.prisma.chatRoom.findMany({
+          where: {
+            groupID: groupId,
+            founderID: userId,
+          },
+          select: {
+            founderID: true,
+          },
+        });
+        if (isOwner.length > 0) {
+          return ["bad request"];
         }
       }
-      // check if user is admin of group if is the unique admin randomize a new admin
       let res = await this.prisma.subscribed.findMany({
         where: {
           chatroomID: groupId,
@@ -407,8 +352,6 @@ export class ChatService {
           playerID: true,
         },
       });
-
-      console.log(`DEBUG | chat.service | removeUserFromGroup | res.length: ${res.length}`);
       if (res.length === 0) {
         let res2 = await this.prisma.subscribed.findMany({
           where: {
@@ -423,7 +366,6 @@ export class ChatService {
             isBanned: true,
           },
         });
-        console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length: ${res2.length}`);
         if (res2.length === 0) {
           await this.prisma.chatRoom.update({
             where: {
@@ -450,24 +392,7 @@ export class ChatService {
         let users = res2.filter((user) => {
           return user.isBanned === false;
         });
-        console.log(`DEBUG | chat.service | removeUserFromGroup | res2.length after filter: ${res2.length}`);
         if (users.length === 0) {
-          // await this.prisma.chatRoom.update({
-          //   where: {
-          //     groupID: groupId,
-          //   },
-          //   data: {
-          //     subscriptions: {
-          //       delete: {
-          //         playerID_chatroomID: {
-          //           playerID: userId,
-          //           chatroomID: groupId,
-          //         },
-          //       },
-          //     },
-          //   },
-          // });
-          // delete all entries in subscribed 
           await this.prisma.subscribed.deleteMany({
             where: {
               chatroomID: groupId,

@@ -54,8 +54,12 @@ export default {
 	created() {
 		this.socket = this.$props.socketProp;
 		this.userId = this.$props.userIdProp
-		console.log("GroupInfoDialog socket", this.userId);
 		this.socket.on("removeuserfromgroup", (data) => {
+			if (data.success == false) {
+				alert("You are not allowed to remove this user");
+				this.$emit("reload");
+		}
+
 			console.log("removeuserfromgroup", data);
 			if (data.groupId === this.groupInfo.id) {
 				this.groupInfo.members = this.groupInfo.members.filter((member) => member.id !== data.userId);
@@ -142,7 +146,10 @@ export default {
 		},
 		leaveGroup() {
 			this.socket.emit("removemefromgroup", { groupId: this.groupInfo.id }, (response) => {
-				console.log("response removemefromgroup", response);
+				// console.log("response removemefromgroup", response);
+				if (response.success == false)
+					alert("You not allowed to leave this group");
+				
 				this.$emit("reload");
 				this.groupInfoDialog = false;
 			});
