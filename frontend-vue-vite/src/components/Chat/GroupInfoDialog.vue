@@ -130,7 +130,7 @@ export default {
 	},
 	methods: {
 		viewProfile(member) {
-			window.open(`http://localhost:8080/profile/${member}`, '_blank');
+			window.open(`http://${location.hostname}:8080/profile/${member}`, '_blank');
 		},
 		editProfile() {
 			this.$refs.select.onClick((e) => {

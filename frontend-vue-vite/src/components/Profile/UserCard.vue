@@ -32,6 +32,7 @@ export default {
 	},
 	data() {
 		return {
+			profileBackgroundUrl: `http://${location.hostname}:8080/cats.jpg`,
 			userVisitor: user.value as Player,
 			userVisitorFriends: friends.value as Player[],
 		}
@@ -91,7 +92,7 @@ export default {
 
 	<v-card
 		class="containerContent component"
-		image="http://localhost:8080/cats.jpg"
+		:image="profileBackgroundUrl"
 		rounded="1"
 		variant="tonal"
 	>

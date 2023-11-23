@@ -391,7 +391,7 @@ export default {
 		},
 
 		viewUserProfile(userId) {
-			window.open(`http://localhost:8080/profile/${userId}`, '_blank');
+			window.open(`http://${location.hostname}:8080/profile/${userId}`, '_blank');
 		},
 
 		async fetchAvatarAsync(avatar) {

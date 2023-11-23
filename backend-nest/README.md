@@ -1,3 +1,15 @@
+
+# How to run remotely
+Change the following env variables with \<your_ip\> in place of "localhost"
+
+## frontend-vue-vite
+- VUE_APP_API_URL
+
+## backend-nest
+- CALLBACK_URL
+- FRONTEND_URL
+
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="200" alt="Nest Logo" /></a>
 </p>

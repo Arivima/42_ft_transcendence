@@ -5,7 +5,20 @@
 - try to center the button
 -->
 
-<script setup lang="ts">
+<script lang="ts">
+
+export default {
+  setup() {
+    const loginUrl = `http://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/auth/42`
+
+    // expose to template and other options API hooks
+    return {
+      loginUrl
+    }
+  },
+
+  mounted() {}
+}
 </script>
 
 <template>
@@ -15,7 +28,7 @@
 	>
 		<v-btn
 			prepend-icon="mdi-login"
-			href="http://localhost:3000/auth/42"
+			:href="loginUrl"
 			text="Login now !"
 		>
 		</v-btn>
