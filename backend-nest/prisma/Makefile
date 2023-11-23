@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: earendil <earendil@student.42.fr>          +#+  +:+       +#+         #
+#    By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/10/21 16:13:06 by earendil          #+#    #+#              #
-#    Updated: 2023/10/22 16:22:19 by earendil         ###   ########.fr        #
+#    Updated: 2023/11/23 19:46:09 by mmarinel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,8 @@ migrate-dev:
 	@npx prisma migrate dev --name init --create-only
 	@cat $$(echo constraints/*.sql) >> $$(echo migrations/*_init)/migration.sql
 	@cat $$(echo populateDB/*.sql) >> $$(echo migrations/*_init)/migration.sql
-	@npx prisma migrate dev
+	@npx prisma migrate dev #testare se serve migrate deploy in PROD
+	echo "Prisma Makefile Executed Successfully"
 
 clean:
 	rm -rf migrations/*
