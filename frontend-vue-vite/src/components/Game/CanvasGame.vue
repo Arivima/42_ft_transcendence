@@ -220,6 +220,8 @@ export default defineComponent({
 	methods: {
 		onStartGame() {
 			/* initialize colors */
+			this.frame.hostID = this.host.id
+			this.frame.guestID = this.guest.id
 			this.frame.data.host.paddle.color = this.customizations.paddle_color
 			this.frame.data.guest.paddle.color = this.customizations.paddle_color
 			this.frame.data.ball.color = this.customizations.ball_color

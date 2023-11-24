@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/21 22:19:05 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/24 19:42:23 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,21 +299,21 @@ export class FrameData {
 	}
 }
 export class FrameDto {
-	public hostId? : number;
-	public guestID? : number;
+	public hostID : number;
+	public guestID : number;
 	public seq : number;
 	public data : FrameData;
 
 	constructor(){
 		if (debug) console.log('/Store/ class FrameDto | constructor()')
-		this.hostId = 0;
+		this.hostID = 0;
 		this.guestID = 0;
 		this.seq = 0;
 		this.data = new FrameData();
 	}
 	reset(){
 		if (debug) console.log('/Store/ class FrameDto | reset()')
-		this.hostId = 0;
+		this.hostID = 0;
 		this.guestID = 0;
 		this.seq = 0;
 		this.data = new FrameData();

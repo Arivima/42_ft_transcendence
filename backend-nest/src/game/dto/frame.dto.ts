@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 12:04:04 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/19 11:29:39 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/24 19:33:07 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,8 +39,8 @@ export class FrameData {
 }
 
 export class FrameDto {
-	hostId?: number
-	guestID?: number
+	hostId: number
+	guestID: number
 	seq: number
 	data: FrameData
 }
