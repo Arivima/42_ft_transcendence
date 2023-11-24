@@ -302,7 +302,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	@SubscribeMessage('newFrame')
 	async getNewFrame(
-		@MessageBody() frame: FrameDto,
+		@MessageBody('frame') frame: FrameDto,
 		@MessageBody('userID') userID: number
 	)
 	{

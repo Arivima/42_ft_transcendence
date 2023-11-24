@@ -39,7 +39,10 @@ export default defineComponent({
 		},
 		score() : { host : number, guest : number} {
 			if (debug) console.log('| DialogEnd | computed | score : ' + currentGame.value.finalScore.host + ' | ' +  currentGame.value.finalScore.guest)
-			return currentGame.value.finalScore.host, currentGame.value.finalScore.guest
+			return {
+				host: currentGame.value.finalScore.host,
+				guest: currentGame.value.finalScore.guest
+			};
 		},
 		hostName() : string {
 			if (debug) console.log('| DialogEnd | computed | hostName : ' + currentGame.value.host.username)

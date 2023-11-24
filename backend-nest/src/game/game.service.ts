@@ -21,6 +21,7 @@ import { JwtService } from '@nestjs/jwt';
 import { CustomizationOptions } from './dto/customization.dto';
 import { endGameDto } from './dto/endGame.dto';
 import { InviteDto } from './dto/invite.dto';
+import { FrameData } from './dto/frame.dto';
 
 export class GameSocket {
 	user_socket: Socket
@@ -77,7 +78,7 @@ export class GameService {
 	 * @returns map - key: roomId, val: frame data
 	 */
 	getFrames(): Map<string, FrameDto> {
-		return this.getFrames();
+		return this.frames;
 	}
 
 	leaveGame(client: Socket, server: Server) {
@@ -269,6 +270,12 @@ export class GameService {
 			console.log(`Final customization`)
 			console.log(final_customization)
 
+			this.frames.set(roomId, {
+				hostId: gameInfo.hostID,
+				guestID: gameInfo.guestID,
+				seq: -1,
+				data: {} as FrameData
+			} as FrameDto);
 			Object.assign(this.games.get(userID).customization, customization);
 			return {
 				roomId,
