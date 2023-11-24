@@ -28,7 +28,9 @@ export class AuthService {
 			familyName: player.lastName,
 			// otp: player.twofaSecret != null
 		};
-		const token: string = await this.jwtService.signAsync(payload);
+		const token: string = await this.jwtService.signAsync(payload, {
+			expiresIn: "7d"
+		});
 		return token;
 	}
 
@@ -69,7 +71,7 @@ export class AuthService {
 		// or register as new player
 		if (player == null) player = await this.registerPlayer(user);
 
-		// creates a 2h session token for this player
+		// creates a 7d session token for this player
 		const token: string = await this.generateJwt(player);
 
 		return token;
