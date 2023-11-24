@@ -81,6 +81,13 @@ export class PlayersService {
 				profile_completed: true,
 			}
 		});
+		await this.prisma.achieved.create({
+			data: {
+				playerID: userID,
+				achievementName: 'Profile Created',
+				date_of_issue: new Date(),
+			}
+		})
 	}
 
 	async findAll(): Promise<Player[]> {

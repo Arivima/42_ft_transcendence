@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/24 20:56:03 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/24 21:57:56 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -383,6 +383,44 @@ export class GameService {
 				)
 			}
 		});
+	}
+
+	async updateAchievements(finalFrame: FrameDto, userID: number)
+	{
+		const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
+			finalFrame.hostId :
+			finalFrame.guestID;
+		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
+			finalFrame.hostId :
+			finalFrame.guestID;
+		
+		if (userID != winnerID)
+			return ;
+		const player = await this.prisma.player.findUnique({
+			where: {
+				id: userID
+			}
+		});
+
+		let achievementName: string | null = null;
+
+		if (1 == player.wins)
+			achievementName = 'Won One Game';
+		else
+		if (3 == player.wins)
+			achievementName = 'Won Three Games';
+		else
+		if (5 == player.wins)
+			achievementName = 'Won Five Games';
+
+		if (achievementName)
+			this.prisma.achieved.create({
+				data: {
+					playerID: userID,
+					achievementName: achievementName,
+					date_of_issue: new Date(),
+				}
+			});
 	}
 
 	create(createGameDto: CreateGameDto) {
