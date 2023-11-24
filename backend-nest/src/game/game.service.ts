@@ -271,7 +271,7 @@ export class GameService {
 			console.log(final_customization)
 
 			this.frames.set(roomId, {
-				hostId: gameInfo.hostID,
+				hostID: gameInfo.hostID,
 				guestID: gameInfo.guestID,
 				seq: -1,
 				data: {} as FrameData
@@ -323,10 +323,10 @@ export class GameService {
 	async setGameasFinished(finalFrame: FrameDto)
 	{
 		const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
-			finalFrame.hostId :
+			finalFrame.hostID :
 			finalFrame.guestID;
 		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
-			finalFrame.hostId :
+			finalFrame.hostID :
 			finalFrame.guestID;
 		
 		// updating match info
@@ -335,7 +335,7 @@ export class GameService {
 				score_host: finalFrame.data.host.score,
 				score_Guest: finalFrame.data.guest.score,
 
-				hostID: finalFrame.hostId,
+				hostID: finalFrame.hostID,
 				guestID: finalFrame.guestID
 			}
 		})

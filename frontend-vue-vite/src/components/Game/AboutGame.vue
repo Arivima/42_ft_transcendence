@@ -49,7 +49,10 @@ export default defineComponent({
 						>
 						<v-card-title>How to play the game</v-card-title>
 						<v-card-item>
-							<v-card-text>Move your paddle to make the ball bounce and score in your opponent territory to win the game !</v-card-text>
+							<v-card-text>
+								<p>Move your paddle up and down to make the ball bounce and score in your opponent's territory !</p>
+								<p>To win the game you need to score 10 points</p>
+							</v-card-text>
 							<v-card-text>Controls : use 'arrow up' and 'arrow down'</v-card-text>
 							<v-card-text>you can exit the game at any time by clicking the exit button</v-card-text>
 						</v-card-item>

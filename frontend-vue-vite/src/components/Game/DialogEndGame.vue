@@ -16,11 +16,11 @@ export default defineComponent({
 		title() : string {
 			if (debug) console.log('| DialogEnd | computed | title')
 			switch(currentGame.value.endReason){
-					case 'hostWin'	: (this.userIsHost == true ? 'You have won !' : 'You have lost ...')
-					case 'guestWin'	: (this.userIsGuest == true ? 'You have won !' : 'You have lost ...')
+					case 'hostWin'	: return (this.userIsHost == true ? 'You have won !' : 'You have lost ...')
+					case 'guestWin'	: return (this.userIsGuest == true ? 'You have won !' : 'You have lost ...')
 					case 'userLeft'	: return 'You have left the game'
 					case 'aPlayerLeft': return 'A player left the game'
-					case 'opponentLeft'		: return 'Your opponent left the game'
+					case 'opponentLeft' : return 'Your opponent left the game'
 					default: // if 'undefined'
 					return ''
 				}
@@ -76,15 +76,30 @@ export default defineComponent({
 
 			<v-card
 				v-if="someoneWon"
-				class="justify-center ma-5">
-				<v-card-item title="Host">
-					<p>{{ hostName}}</p>
-					<p>{{ score.host }}</p>
-				</v-card-item>
-				<v-card-item title="Guest">
-					<p>{{ guestName}}</p>
-					<p>{{ score.guest }}</p>
-				</v-card-item>
+				class="justify-center ma-5"
+				flat
+				style="display: flex; flex-direction: row;"				
+			>
+				<v-card class="ma-1 pa-1 text-center" flat>
+					<v-card-item title="Host" >
+						<p>{{ hostName}}</p>
+						<v-chip
+							class="my-2 text-h6 font-weight-bold" variant="tonal"
+							:color="score.host > score.guest ? 'success' : score.host === score.guest ? 'grey' : 'error'"
+						>{{ score.host }}</v-chip>
+					</v-card-item>					
+				</v-card>
+
+				<v-card class="ma-1 pa-1 text-center" flat>
+					<v-card-item title="Guest">
+						<p>{{ guestName}}</p>
+						<v-chip
+							class="my-2 text-h6 font-weight-bold" variant="tonal"
+							:color="score.guest > score.host ? 'success' : score.guest === score.host ? 'grey' : 'error'"
+						>{{ score.guest }}</v-chip>
+					</v-card-item>
+				</v-card>
+
 			</v-card>
 
 			<v-card-item class="text-center ma-2">
