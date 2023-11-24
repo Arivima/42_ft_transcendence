@@ -60,6 +60,12 @@ export class PlayersController {
 		return player;
 	}
 
+	@Get('/leaderboard')
+	async getLeaderboard()
+	{
+		return this.playersService.getLeaderboard();
+	}
+
 	@Get('avatar/:id')
 	async getAvatar(@Param('id') id: string, @Res() res: Response) {
 		const filePath = path.join(

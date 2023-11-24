@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/21 19:21:48 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/24 20:56:03 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -328,6 +328,16 @@ export class GameService {
 		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
 			finalFrame.hostID :
 			finalFrame.guestID;
+		const winner = await this.prisma.player.findUnique({
+			where: {
+				id: winnerID
+			}
+		});
+		const loser = await this.prisma.player.findUnique({
+			where: {
+				id: loserID
+			}
+		});
 		
 		// updating match info
 		await this.prisma.plays.create({
@@ -341,12 +351,25 @@ export class GameService {
 		})
 
 		// updating player stats
+		let winnerGames = await this.prisma.player.count({
+			where: {
+				id: winnerID
+			}
+		});
+		let loserGames = await this.prisma.player.count({
+			where: {
+				id: loserID
+			}
+		});
 		await this.prisma.player.update({
 			where: {
 				id: winnerID
 			},
 			data: {
-				wins: {increment: 1}
+				wins: {increment: 1},
+				ladder_lvl: (
+					winnerGames * (winner.wins + 1 + 1)/(winner.losses + 1)
+				)
 			}
 		});
 		await this.prisma.player.update({
@@ -354,7 +377,10 @@ export class GameService {
 				id: loserID
 			},
 			data: {
-				losses: {increment: 1}
+				losses: {increment: 1},
+				ladder_lvl: (
+					loserGames * (loser.wins + 1)/(loser.losses + 1 + 1)
+				)
 			}
 		});
 	}

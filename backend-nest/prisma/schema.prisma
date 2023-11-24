@@ -35,6 +35,7 @@ model Player {
 	profileIntra		String ?
 	wins				Int							@default(0)
 	losses				Int							@default(0)
+	ladder_lvl			Int							@default(0)
 	profile_completed	Boolean						@default(false)
 
 	//TODO	check if we need to Encrypt this
