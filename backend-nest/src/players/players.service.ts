@@ -33,7 +33,7 @@ export class PlayersService {
 	// async downloadFile(url: path)
 
 	async create(createPlayerDto: CreatePlayerDto): Promise<Player> {
-        if (debug) console.log('DEBUG | Players.Service | create() : called');
+		if (debug) console.log('DEBUG | Players.Service | create() : called');
 
 
 		return this.prisma.player.create({
@@ -46,6 +46,30 @@ export class PlayersService {
 				profileIntra: createPlayerDto.profileIntra,
 			},
 		});
+	}
+
+	async getLeaderboard()
+	{
+		let players = (
+			await this.prisma.player.findMany({
+				select: {
+					id: true,
+					username: true,
+					avatar: true,
+					ladder_lvl: true,
+					wins: true,
+					losses: true
+				},
+				orderBy: {ladder_lvl: 'asc'}
+			})
+		);
+
+		for (let player of players)
+		{
+			player.avatar = `/players/avatar/${player.id}`;
+		}
+
+		return (players);
 	}
 
 	async setProfileAsComplete(userID: number) {
