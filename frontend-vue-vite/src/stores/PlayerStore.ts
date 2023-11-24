@@ -229,75 +229,73 @@ export class CustomizationOptions {
 
 	constructor() {
 		if (debug) console.log('/Store/ class CustomizationOptions | constructor()')
-		this.pitch_color = '#FFFFFF';
-		this.paddle_color = '#000000';
-		this.ball_color = '#000000';
+		this.pitch_color = '#FFFFFF'; /*white*/
+		this.paddle_color = '#800080'; /*purple*/ /*'#000000'; black*/
+		this.ball_color = '#800080'; /*purple*/ /*'#000000'; black*/
 	}
 	reset(){
 		if (debug) console.log('/Store/ class CustomizationOptions | reset()')
 		this.pitch_color = '#FFFFFF';
-		this.paddle_color = '#000000';
-		this.ball_color = '#000000';
+		this.paddle_color = '#800080';
+		this.ball_color = '#800080';
 	}
 };
 
-export class PlayerGameData {
-	public paddle: {
-		w: number,
-		h: number
-		sx: number,
-		sy: number,
-		y: number
-	};
-	public score: number;
 
+export class PaddleDto {
+	public w: number;
+	public h: number;
+	public x: number;
+	public y: number;
+	public color: string;
 	constructor() {
-		this.paddle = {
-			w: -1,
-			h: -1,
-			sx: -1,
-			sy: -1,
-			y: -1
-		};
-		this.score = -1;
+		this.w = 2/100;
+		this.h = 20/100;
+		this.x = 0;
+		this.y = 0.5 - this.h / 2;
+		this.color = '#800080';
 	}
-};
+}
 
 export class BallDto {
 	public radius: number;
-	public sx: number;
-	public sy: number;
+	public color: string;
 	public x: number;
 	public y: number;
 	public dx: number;
 	public dy: number;
 	constructor() {
-		this.radius = 0;
-		this.sx = 0;
-		this.sy = 0;
-		this.x = 0;
-		this.y = 0;
-		this.dx = 0;
-		this.dy = 0;
+		this.radius = 1/64;
+		this.color = '#800080';
+		this.x = Math.random();
+		this.y = Math.random();
+		this.dx = ((Math.random() * 100 )% 2) ? 1 : -1;
+		this.dy = ((Math.random() * 100 )% 2) ? 1 : -1;
 	}
 }
+
+export class PlayerGameData {
+	public paddle: PaddleDto
+	public score: number;
+
+	constructor() {
+		this.paddle = new PaddleDto();
+		this.score = 0;
+	}
+};
+
 export class FrameData {
-	public canvas: {
-		w: number,
-		h: number
-	};
 	public ball: BallDto;
 	public host: PlayerGameData;
 	public guest: PlayerGameData;
 
 	constructor() {
-		this.canvas = {
-			w: -1,
-			h: -1,
-		};
 		this.ball = new BallDto();
 		this.host = new PlayerGameData();
 		this.guest = new PlayerGameData();
+
+		this.host.paddle.x = 0
+		this.guest.paddle.x = 1 - this.guest.paddle.w
 	}
 }
 export class FrameDto {
@@ -658,8 +656,11 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 
 			sendFrame(frame: FrameDto) {
 				if (debug) console.log("/Store/ sendFrame");
-				this.user.gameSocket?.emit('newFrame', frame);
-				if (debug) console.log('%c emit("newFrame")', 'background: blue; color: white')
+				this.user.gameSocket?.emit('newFrame', {
+					frame: frame, 
+					userID: this.user.id,
+				});
+				if (debug) console.log(`%c emit("newFrame") #${frame.seq}`, 'background: blue; color: white')
 			},
 
 			exitGame() {
@@ -672,7 +673,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.currentGame.waiting = 'undefined'
 				if (this.currentGame.status == 'building' || this.currentGame.status == 'playing' ) {
 					this.currentGame.status = 'end'
-					this.currentGame.endReason = 'userLeft'
+					if (this.currentGame.endReason == 'undefined')
+						this.currentGame.endReason = 'userLeft'
 				}
 				this.user.status = PlayerStatus.online
 			},
@@ -1312,6 +1314,9 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 		this.currentGame.invite.reset()
 	}
 
+	this.currentGame.frame.hostID = game.hostID;
+	this.currentGame.frame.guestID = game.guestID;
+
 	this.currentGame.gameInfo.hostID = game.hostID;
 	this.currentGame.gameInfo.guestID = game.guestID;
 	this.currentGame.gameInfo.watcher = game.watcher;
@@ -1337,7 +1342,7 @@ async function handleStart(this: any, customization: CustomizationOptions) {
 
 async function handlenewFrame(this: any, frame: FrameDto) {
 	if (debug) console.log("/Store/ handlenewFrame()");
-	if (debug) console.log('%c received("newFrame")', 'background: purple; color: white')
+	if (debug) console.log(`%c received("newFrame") #${frame.seq}`, 'background: cyan; color: white')
 	this.currentGame.frame = frame
 }
 
@@ -1354,14 +1359,16 @@ async function handleEnd(this: any, endGame : endGameDto) {
 	if (this.currentGame.status == 'building' || this.currentGame.status == 'playing'){
 		this.currentGame.status = 'end'
 
-		if (endGame.hostWin)
-			this.currentGame.endReason = 'hostWin'
-		else if (endGame.guestWin)
-			this.currentGame.endReason = 'guestWin'
-		else if (this.currentGame.gameInfo.watcher)
-			this.currentGame.endReason = 'aPlayerLeft'
-		else
-			this.currentGame.endReason = 'opponentLeft'
+		if (this.currentGame.endReason == 'undefined'){
+			if (endGame.hostWin)
+				this.currentGame.endReason = 'hostWin'
+			else if (endGame.guestWin)
+				this.currentGame.endReason = 'guestWin'
+			else if (this.currentGame.gameInfo.watcher)
+				this.currentGame.endReason = 'aPlayerLeft'
+			else
+				this.currentGame.endReason = 'opponentLeft'
+		}
 	}
 	
 	this.currentGame.finalScore.host = endGame.hostScore

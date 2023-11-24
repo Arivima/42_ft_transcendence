@@ -92,7 +92,7 @@ export default {
 			</v-card-item>
 
 			<CanvasGame
-				v-if="status == 'building' || status == 'playing'"
+				v-if="status == 'building' || status == 'playing' || status == 'end'"
 			></CanvasGame>
 
 		</v-card>

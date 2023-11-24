@@ -10,28 +10,30 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+export class PaddleDto {
+	public w: number;
+	public h: number;
+	public x: number;
+	public y: number;
+	public color: string;
+}
+
+export class BallDto {
+	public radius: number;
+	public x: number;
+	public y: number;
+	public dx: number;
+	public dy: number;
+	public color: string;
+}
+
 export class PlayerData {
-	paddle: {
-		w: number,
-		h: number
-		sx: number,
-		sy: number,
-		y: number
-	}
+	paddle: PaddleDto
 	score: number
 }
 
 export class FrameData {
-	canvas: {
-		w: number,
-		h: number
-	}
-	ball: {
-		radius: number,
-		sx: number, sy: number,
-		x: number, y: number,
-		dx: number, dy: number,
-	}
+	ball: BallDto
 	host: PlayerData
 	guest: PlayerData
 }
