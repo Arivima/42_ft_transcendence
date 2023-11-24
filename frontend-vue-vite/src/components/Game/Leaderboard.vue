@@ -1,56 +1,96 @@
 <script lang="ts">
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
+import { VDataTableServer } from 'vuetify/labs/components'
+import { VCardText } from 'vuetify/components'
+import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { user, friends } = storeToRefs(playerStore)
+const { user } = storeToRefs(playerStore)
 
+const _items_per_page = 5
 const debug = false
+
+export interface Board {
+	id: number,
+	username: string,
+	avatar: string,
+	ladder_lvl: number,
+	wins: number,
+	losses: number,
+}
 
 export default {
 	components:	{
+		VDataTableServer,
+		VCardText
+
 },
 	data: () => ({
 		showCustomization: false,
-		items : [
-			{
-				username : 'pippo',
-				avatar : user.value.avatar,
-				won: 3,
-				ladder : 5,
-			},
-		]
+		loading: false,
+		itemsPerPage: _items_per_page,
+		totalItems: 0,
+		board : [] as Board[],
+		headers: [
+			{ title: '', key: 'avatar', align: 'center' },
+			{ title: 'Username', key: 'username', align: 'center' },
+			{ title: 'Ladder', key: 'ladder_lvl', align: 'center' },
+			{ title: 'Victories', key: 'wins', align: 'center' },
+			{ title: 'Losses', key: 'losses', align: 'center' }
+		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
 	}),
 	computed : {
-		// items() : Player[] {
-		// 	return friends.value
-		// }
 	},
 	watch : {
 	},
+	methods : {
+		async fetchData(options: { page: number; itemsPerPage: number }) {
+			if (debug) console.log('| Leaderboard | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
+			this.loading = true
+			const start = (options.page - 1) * options.itemsPerPage
+			const end = start + options.itemsPerPage
+			try {
+				this.board = (await axios.get('players/leaderboard')).data
+
+				// update avatar
+				this.totalItems = this.board.length
+				this.board = this.board.slice(start, end)
+				this.loading = false
+			} catch (err) {
+				this.board = []
+				this.totalItems = 0
+				this.loading = false
+				console.log(err)
+			}
+		},
+	},
+
+
 	beforeCreate() {
-	if (debug) console.log('| BlockedSent | beforeCreate()')
+	if (debug) console.log('| Leaderboard | beforeCreate()')
 	},
 	created() {
-		if (debug) console.log('| BlockedSent | created()')
+		if (debug) console.log('| Leaderboard | created()')
 	},
 	beforeMount() {
-		if (debug) console.log('| BlockedSent | beforeMount()')
+		if (debug) console.log('| Leaderboard | beforeMount()')
+		this.fetchData({page: 1 , itemsPerPage :  this.itemsPerPage})
 	},
 	mounted() {
-		if (debug) console.log('| BlockedSent | mounted()')
+		if (debug) console.log('| Leaderboard | mounted()')
 	},
 	beforeUpdate() {
-		if (debug) console.log('| BlockedSent | beforeUpdate()')
+		if (debug) console.log('| Leaderboard | beforeUpdate()')
 	},
 	updated() {
-		if (debug) console.log('| BlockedSent | updated()')
+		if (debug) console.log('| Leaderboard | updated()')
 	},
 	beforeUnmount() {
-		if (debug) console.log('| BlockedSent | beforeUnmount()')
+		if (debug) console.log('| Leaderboard | beforeUnmount()')
 	},
 	unmounted() {
-		if (debug) console.log('| BlockedSent | unmounted()')
+		if (debug) console.log('| Leaderboard | unmounted()')
 	},
 	}
 </script>
@@ -66,18 +106,27 @@ export default {
 			density="compact"
 		>
 			<v-card-subtitle
-				class="text-overline"
-			>
-			Leaderboard
-			</v-card-subtitle>
-
-	
+				class="text-overline text-center mb-3 pb-3"
+			>Leaderboard</v-card-subtitle>
 		</v-card-item>
+
 		<v-divider></v-divider>
 
-		here a table
+		<v-data-table-server
+			v-model:items-per-page="itemsPerPage"
+			:items="board"
+			:headers=headers
+			:items-length="totalItems"
+			:loading="loading"
+			@update:options="fetchData"
 
+			density="compact"
+			class="text-caption"
+		></v-data-table-server>
 
+		<v-card-item class="text-end mt-3 pt-3">
+			<v-btn @click="fetchData" class="rounded-pill ma-2"><v-icon icon="mdi-refresh"></v-icon></v-btn>
+		</v-card-item>
 	</v-card>
 </template>
 
