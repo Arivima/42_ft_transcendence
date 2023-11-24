@@ -1343,17 +1343,22 @@ async function handleStart(this: any, customization: CustomizationOptions) {
 async function handlenewFrame(this: any, frame: FrameDto) {
 	if (debug) console.log("/Store/ handlenewFrame()");
 	if (debug) console.log(`%c received("newFrame") #${frame.seq}`, 'background: cyan; color: white')
+
 	this.currentGame.frame = frame
 }
 
 async function handleEnd(this: any, endGame : endGameDto) {
 	if (debug) console.log("/Store/ handleEnd() current status : " + this.currentGame.status);
+	if (debug) console.log("endGame.hostWin : " + endGame.hostWin);
+	if (debug) console.log("endGame.hostScore : " + endGame.hostScore);
+	if (debug) console.log("endGame.guestWin : " + endGame.guestWin);
+	if (debug) console.log("endGame.guestScore : " + endGame.guestScore);
 	if (debug) console.log('%c received("endGame")', 'background: purple; color: white')
 	this.user.gameSocket?.emit("leaveGame", {
 		userID: this.user.id
 	})
 	if (debug) console.log('%c emit("leaveGame")', 'background: red; color: black')
-	// normally not necessary but in case
+
 	this.currentGame.waiting = 'undefined'
 
 	if (this.currentGame.status == 'building' || this.currentGame.status == 'playing'){
@@ -1369,10 +1374,8 @@ async function handleEnd(this: any, endGame : endGameDto) {
 			else
 				this.currentGame.endReason = 'opponentLeft'
 		}
+		this.currentGame.finalScore.host = endGame.hostScore
+		this.currentGame.finalScore.guest = endGame.guestScore
 	}
-	
-	this.currentGame.finalScore.host = endGame.hostScore
-	this.currentGame.finalScore.guest = endGame.guestScore
-
 	this.user.status = PlayerStatus.online
 }

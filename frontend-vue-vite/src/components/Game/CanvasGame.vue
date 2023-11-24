@@ -51,6 +51,7 @@ export class TimeState {
 	public clock: number; // cumulates actual running time of game
 	public lastTimeStamp: number; // last update
 	public deltaTime: number; // last time gap between screen updates
+	public latestFrameReceived: number; // last time gap between screen updates
 
 	constructor(){
 		this.start = performance.now();
@@ -58,6 +59,14 @@ export class TimeState {
 		this.clock = 0;
 		this.deltaTime = 0;
 		this.lastTimeStamp = 0;
+		this.latestFrameReceived = 0;
+	}
+	clockLatestFrame(){
+		this.latestFrameReceived = performance.now();
+	}
+	isLagging() : boolean {
+		const now : number = performance.now();
+		return now - this.latestFrameReceived > 1000 
 	}
 	getDeltaTime() {
 		const now : number = performance.now();
@@ -80,37 +89,25 @@ export class TimeState {
 	// send loop
 	// receive loop
 
-	// screen resize
-		//! check if we need to limit min and max canvas size
+	// move paddle ok
+	// move ball - bug on edge
+		// check extreme values (start on edge, get stuck etc)
+	// step, time, smooth animation - NOK
 
-	// move paddle
-
-	// move ball
-	// step
-	// time
-	// smooth animation
-		//! pb when screen resize, different speed ballSpeedFactor
-
-	// check extreme values (start on edge, get stuck etc)
-
-	// bounce off paddle
+	// bounce off paddle - ok
 
 	// handle if !canvas
 	// test score
 
 // Should include
-	// responsivity
-	// customization, maps (collision Y can change ball color)
-	// power-ups
-	// streaming
-	// network issues, like unexpected disconnection or lag
-		// pause
-		// automatic reconnection
-		// catch-up to match
-		// anything else but the game should not crash
-	// browser compatibility
-	// wins and losses, ladder level, achievement
-	// NO CRASH
+	// OK | responsivity
+	//    | customization, maps (collision Y can change ball color)
+	//    | power-ups
+	//    | streaming
+	//    | network issues, like unexpected disconnection or lag ==> pause + exit button
+	//    | browser compatibility
+	//    | wins and losses, ladder level, achievement
+	//    | NO CRASH
 
 
  // Check if needed for browser compatibility
@@ -127,7 +124,8 @@ export default defineComponent({
 			ready : false, /*clean start when component is mounted and gameStatus == playing*/
 
 			gameTime : {} as TimeState,
-			paused: false,
+			paused : false,
+			lag : false,
 
 			keyState: new Map<string, Boolean>([
 				['ArrowUp', false], ['ArrowDown', false], [' ', false]
@@ -162,10 +160,6 @@ export default defineComponent({
 		},
 		newFrame() : FrameDto {
 			if (debug) console.log('| CanvasGame | computed | newFrame ' + currentGame.value.frame.seq)
-			this.frame = currentGame.value.frame
-			if (this.isReadyAndPlaying)
-				this.frame.seq++
-			this.drawOnCanvas();
 			return currentGame.value.frame
 		},
 
@@ -173,10 +167,15 @@ export default defineComponent({
 			if (debug) console.log(`%c| CanvasGame | computed | gameStatus : ${currentGame.value.status}`, 'background: green; color: white')
 			return currentGame.value.status
 		},
-		streaming() : boolean {
+		isStreaming() : boolean {
 			if (debug) console.log('| CanvasGame | computed | streaming')
 			return (currentGame.value.status == 'playing' && currentGame.value.gameInfo.watcher == true)
 		},
+		isMainPlayer() : boolean {
+			if (debug) console.log('| CanvasGame | computed | streaming')
+			return (currentGame.value.status == 'playing' && currentGame.value.gameInfo.watcher == false)
+		},
+
 		endReason() : 'undefined' | 'hostWin' | 'guestWin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft' {
 			if (debug) console.log('| CanvasGame | computed | endReason : ' + currentGame.value.endReason)
 			return currentGame.value.endReason
@@ -208,13 +207,10 @@ export default defineComponent({
 			if (newVal == true)
 				this.onStartGame()
 		},
-		// newFrame: {
-		// 	handler(newVal : FrameDto, oldVal : FrameDto) {
-		// 		if (debug) console.log(`| CanvasGame | watchers | newFrame ? ${newVal == oldVal}`)
-		// 		this.onNewFrame()
-		// 	},
-		// 	deep: true,
-		// },
+		newFrame(newVal : FrameDto) {
+			if (debug) console.log(`| CanvasGame | watchers | newFrame ?`)
+			this.onNewFrame()
+		},
 
 	},
 	methods: {
@@ -229,7 +225,8 @@ export default defineComponent({
 			this.gameTime = new TimeState()
 			this.gameTime.getDeltaTime()
 			/*send first frame*/
-			this.sendFrame();
+			if (true == this.isMainPlayer)
+				this.sendFrame();
 			/*start loop*/
 			this.gameLoop();
 		},
@@ -240,11 +237,15 @@ export default defineComponent({
 			this.drawOnCanvas();
 		},
 
-		// onNewFrame() {
-		// 	if (debug) console.log('| CanvasGame | methods | onNewFrame()')
-		// 	this.updateFrame()
-		// 	this.drawOnCanvas();
-		// },
+		onNewFrame() {
+			if (debug) console.log('| CanvasGame | methods | onNewFrame()')
+			this.frame = this.newFrame
+			this.gameTime.clockLatestFrame()
+			this.lag = false
+			this.drawOnCanvas();
+			if (this.isReadyAndPlaying)
+				this.frame.seq++
+		},
 		// updateFrame(){
 		// 	if (debug) console.log('| CanvasGame | methods | updateFrame()')
 		// 	this.frame = this.newFrame
@@ -257,13 +258,18 @@ export default defineComponent({
 		},
 
 		gameLoop() {
-			// if (debug) console.log('| CanvasGame | methods | gameLoop()')
-					
+			// if (debug) console.log('| CanvasGame | methods | gameLoop()')	
 				if (this.gameStatus == 'playing'){
+					if (true == this.gameTime.isLagging())
+						this.lag = true
+					
 					this.gameTime.getDeltaTime()
-					this.movePaddle();
-					this.moveBall();
-					this.sendFrame();
+					
+					if (true == this.isMainPlayer){
+						this.movePaddle();
+						this.moveBall();
+						this.sendFrame();
+					}
 				}
 				requestAnimationFrame(this.gameLoop);				
 		},
@@ -314,15 +320,16 @@ export default defineComponent({
 			if (!this.canvas || !this.ccontext ){
 				if (debug && !this.canvas) console.log('| CanvasGame | methods | canvasSetup() | EMPTY CANVAS ')
 				if (debug && !this.ccontext) console.log('| CanvasGame | methods | canvasSetup() | EMPTY CONTEXT ')
+				// force page reload ??
 				return;
 			} 
-			// reactive canvas size with 16:9 view ratio
+			/*reactive canvas size with 16:9 view ratio*/
 			this.canvas.width	=  window.innerWidth - window.innerWidth * 50 / 100;
 			this.canvas.height	= 	(this.canvas.width / 16 * 9) > (window.innerHeight - window.innerHeight * 50 / 100) ?
 									(window.innerHeight - window.innerHeight * 50 / 100) 
 									: (this.canvas.width / 16 * 9);
 
-			// set flag to ready
+			/*set flag to ready*/
 			this.ready = true
 		},
 
@@ -374,7 +381,6 @@ export default defineComponent({
 		},
 
 		movePaddle() {
-			// if (debug) console.log('| CanvasGame | methods | movePaddle()')
 			// const step : number = this.gameTime.deltaTime * this.ballSpeedFactor
 			const step =  10 / (this.canvas?.height || 0) /* 1 pixel per step */
 
@@ -477,7 +483,6 @@ export default defineComponent({
 		window.addEventListener('keydown', this.onKeyDown);
 		window.addEventListener('keyup', this.onKeyUp);
 		window.addEventListener('resize', this.onResize);
-
 		/*set-up canvas*/
 		this.canvasSetup();
 
@@ -568,7 +573,35 @@ export default defineComponent({
 			</v-btn>
 		</v-card>
 
-		<v-card :width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
+		<v-overlay
+			:model-value="lag"
+			class="align-center justify-center"
+		>
+			<v-card
+				class="pa-3 ma-3"
+				>
+				<v-card-title>Lost connection to server ...</v-card-title>
+				<v-card-item>
+					<v-card-text>Please wait a little while or exit the game.</v-card-text>
+				</v-card-item>
+				<v-card-item class="align-center justify-center">
+					<v-btn
+						color="primary"
+						variant="tonal"
+						size="x-large"
+						class="ma-2"
+						@click="exitGame" 
+					> Exit Game
+					</v-btn>
+				</v-card-item>
+			</v-card>
+		</v-overlay>
+
+
+
+
+		<!-- <v-card 
+		:width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
 			<v-card class="pa-1 ma-1 w-50">
 				<h2>BALL</h2>
 				<p>| {{ Math.round(newFrame.data.ball.x) }}, {{ Math.round(newFrame.data.ball.y) }}</p>
@@ -589,14 +622,14 @@ export default defineComponent({
 
 
 			</v-card>		
-			<v-card class="pa-1 ma-1 w-50">
-				<h2>CONF</h2>
-				<p>| host {{ host.id }} | guest {{ guest.id }}</p>
-				<p>| canvas | w{{ canvas?.width }} h{{ canvas?.height }}</p>
-				<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
-				<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
-			</v-card>
-		</v-card>
+				<v-card class="pa-1 ma-1 w-50">
+					<h2>CONF</h2>
+					<p>| host {{ host.id }} | guest {{ guest.id }}</p>
+					<p>| canvas | w{{ canvas?.width }} h{{ canvas?.height }}</p>
+					<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
+					<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
+				</v-card>
+		</v-card> -->
 </v-card>
 </template>
 

@@ -27,8 +27,6 @@ export default {
 		fetchStats() {
 		if (debug) console.log('| Stats | methods | fetchStats()')
 			this.stats.loading = true
-			// TODO : ADD IN DATABASE
-
 			fetchGames.value(this.userProfile.id)
 					.then((games : Game[]) => {
 						this.stats.victories = this.stats.losses = this.stats.ladder = 0
@@ -36,12 +34,11 @@ export default {
 							if (game.host == this.userProfile.username) {
 								if (game.host_score > game.guest_score) this.stats.victories++
 								else if (game.host_score < game.guest_score) this.stats.losses++
-								this.stats.ladder += (game.host_score - game.guest_score)
 							} else {
 								if (game.host_score > game.guest_score) this.stats.losses++
 								else if (game.host_score < game.guest_score) this.stats.victories++
-								this.stats.ladder += (game.guest_score - game.host_score)
 							}
+							this.stats.ladder = Math.round(games.length * this.stats.victories / (this.stats.losses + 1))
 						}
 						this.stats.loading = false
 					})
@@ -72,7 +69,6 @@ export default {
     },
 	beforeUpdate() {
 		if (debug) console.log('| Stats | beforeUpdate(' + (this.userProfile.id) + ')')
-		// this.fetchStats();
 	},
 	updated() {
 		if (debug) console.log('| Stats | updated(' + (this.userProfile.id) + ')')
@@ -128,7 +124,6 @@ export default {
 	padding: 1%;
 	outline: solid;
 	outline-color: antiquewhite;
-	/* background-color: rgb(36, 176, 129); */
 	background-color: transparent;
 }
 

@@ -39,7 +39,7 @@ export class FrameData {
 }
 
 export class FrameDto {
-	hostId: number
+	hostID: number
 	guestID: number
 	seq: number
 	data: FrameData
