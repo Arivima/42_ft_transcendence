@@ -56,7 +56,7 @@ export class PlayersController {
 		if (player) {
 			player.avatar = `/players/avatar/${req.user.sub}`
 		}
-		if (debug) if (debug) console.log(`avatar address: ${player.avatar}`);
+		if (debug) console.log(`avatar address: ${player.avatar}`);
 		return player;
 	}
 

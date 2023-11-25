@@ -1,7 +1,7 @@
 <!-- CHAT -->
 <script setup lang="ts">
 import NavSideBar from '../components/NavSideBar.vue'
-import Chat from '../components/Chat/Chat.vue'
+import Chat from '@/components/Chat/Chat.vue'
 import DialogWaiting from '@/components/Game/DialogWaiting.vue';
 import DialogInvite from '@/components/Game/DialogInvite.vue';
 import Notifications from '@/components/Notifications.vue';
@@ -14,19 +14,6 @@ import Notifications from '@/components/Notifications.vue';
         <DialogWaiting></DialogWaiting>
         <DialogInvite></DialogInvite>
         <Chat/>
-        <!-- <v-navigation-drawer permanent>
-        <v-list>
-          <v-list-item title="channels" value="channels"></v-list-item>
-
-          <v-list-item title="direct messaging" value="contacts"></v-list-item>
-
-          <v-list-item title="Settings" value="settings"></v-list-item>
-        </v-list>
-      </v-navigation-drawer> -->
-            <!-- <h1>This is Chata</h1> -->
-        
-        <v-main>
-        </v-main>
     </div>
 </template>
 

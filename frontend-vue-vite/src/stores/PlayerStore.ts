@@ -679,7 +679,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					if (this.currentGame.endReason == 'undefined')
 						this.currentGame.endReason = 'userLeft'
 				}
-				this.user.status = PlayerStatus.online
+				// this.user.status = PlayerStatus.online
 			},
 
 			forceCanvasUnmount() {
@@ -1330,7 +1330,7 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 	Object.assign(this.currentGame.guest, (this.user.id == game.guestID)? this.user : (await fetchPlayer(game.guestID)));
 
 	router.push('/game')
-	this.user.status = PlayerStatus.playing
+	// this.user.status = PlayerStatus.playing
 	this.currentGame.status = 'building'
 	this.currentGame.waiting = 'undefined'
 }

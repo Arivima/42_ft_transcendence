@@ -104,7 +104,7 @@
 		</v-app>
 		<GroupSearchDialog ref="groupSearchDialog" />
 		<GroupCreationDialog ref="groupCreationDialog" />
-PlayerStore		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userIdProp="this.userId" @reload="reloadData"/>
+		<GroupInfoDialog ref="groupInfoDialog" :socketProp="this.socket" :userIdProp="this.userId" @reload="reloadData"/>
 	</div>
 </template>
   
