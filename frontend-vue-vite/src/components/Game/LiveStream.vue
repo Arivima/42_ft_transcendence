@@ -6,7 +6,7 @@ import { VCardText } from 'vuetify/components'
 import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { LiveStream, fetchPlayer } = storeToRefs(playerStore)
+const { liveStreams, fetchPlayer } = storeToRefs(playerStore)
 
 const _items_per_page = 5
 const debug = true
@@ -51,7 +51,8 @@ export default {
 			try {
 					this.list = []
 
-					for (const [hostId, guestId] of LiveStream.value.entries()) {
+					for (const [hostId, guestId] of liveStreams.value.entries()) {
+						console.log(`adding entry: hostID: ${hostId}, guestID: ${guestId}`)
 						const hostUser: Player = await fetchPlayer.value(hostId);
 						const guestUser: Player = await fetchPlayer.value(guestId);
 
