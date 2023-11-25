@@ -38,7 +38,6 @@ model Player {
 	ladder_lvl			Int							@default(0)
 	profile_completed	Boolean						@default(false)
 
-	//TODO	check if we need to Encrypt this
 	twofaSecret			String ?
 
 
@@ -154,6 +153,3 @@ model	Achieved {
 
 	@@id([playerID, achievementName])
 }
-
-//TODO
-//2. Test
