@@ -1,5 +1,5 @@
 <script lang="ts">
-import SearchBar from '../Utils/SearchBar.vue'
+import SearchBar from '@/components/Profile/SearchBar.vue'
 const debug = false
 
 export default {

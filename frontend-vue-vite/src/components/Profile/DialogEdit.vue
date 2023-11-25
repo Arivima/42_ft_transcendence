@@ -6,7 +6,7 @@ import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
 const { user } = storeToRefs(playerStore)
-const debug = true
+const debug = false
 
 export default defineComponent({
 	components: {

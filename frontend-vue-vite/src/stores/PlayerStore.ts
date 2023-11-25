@@ -403,7 +403,6 @@ export class CurrentGame {
 	}
 };
 
-
 // endGame.dto.ts
 export class endGameDto {
 	public hostWin: boolean;
@@ -425,6 +424,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		state: (): {
 			user: Player,
 			currentGame: CurrentGame
+			liveStreams : Map<number, number>
 			loading: boolean, //TODO ? forse rimuovere
 			friends: Player[],
 			blockedUsers: Player[],
@@ -443,6 +443,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			return {
 				user: new Player(),
 				currentGame: new CurrentGame(),
+				liveStreams: new Map<number, number>(),
 				friends: [],
 				blockedUsers: [],
 				publicUsers: [],
@@ -795,6 +796,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
+					this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
+					this.user.gameSocket?.on('endStream', handleEndStream.bind(this));
 					this.user.gameSocket?.on('newInvite', handleNewInvite.bind(this));
 					this.user.gameSocket?.on('deleteInvite', handleDeleteInvite.bind(this));
 					this.user.gameSocket?.on('rejectedInvite', handleRejectedInvite.bind(this));
@@ -1351,10 +1354,6 @@ async function handlenewFrame(this: any, frame: FrameDto) {
 
 async function handleEnd(this: any, endGame : endGameDto) {
 	if (debug) console.log("/Store/ handleEnd() current status : " + this.currentGame.status);
-	if (debug) console.log("endGame.hostWin : " + endGame.hostWin);
-	if (debug) console.log("endGame.hostScore : " + endGame.hostScore);
-	if (debug) console.log("endGame.guestWin : " + endGame.guestWin);
-	if (debug) console.log("endGame.guestScore : " + endGame.guestScore);
 	if (debug) console.log('%c received("endGame")', 'background: purple; color: white')
 	this.user.gameSocket?.emit("leaveGame", {
 		userID: this.user.id
@@ -1380,4 +1379,22 @@ async function handleEnd(this: any, endGame : endGameDto) {
 		this.currentGame.finalScore.guest = endGame.guestScore
 	}
 	this.user.status = PlayerStatus.online
+}
+
+async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
+	if (debug) console.log("/Store/ handleNewStream()");
+	if (debug) console.log('%c received("newStream")', 'background: yellow; color: black')
+
+	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
+		this.liveStreams.set(game.hostID, game.guestID);
+}
+
+async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
+	if (debug) console.log("/Store/ handleEndStream()");
+	if (debug) console.log('%c received("endStream")', 'background: yellow; color: black')
+
+	console.log('number of live games')
+	console.log(this.liveStreams.size)
+
+	this.liveStreams.delete(game.hostID);
 }

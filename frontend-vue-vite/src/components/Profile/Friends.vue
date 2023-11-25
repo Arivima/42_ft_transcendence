@@ -1,7 +1,6 @@
 <script lang="ts">
 import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import SearchBar from '../Utils/SearchBar.vue'
 
 const playerStore = usePlayerStore()
 const { friends } = storeToRefs(playerStore)
@@ -9,7 +8,6 @@ const debug = false
 
 export default {
 	components:	{
-		SearchBar
 	},
 	data: () => ({
 		badgeColor: 'grey',

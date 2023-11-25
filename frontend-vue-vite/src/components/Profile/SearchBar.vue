@@ -1,12 +1,12 @@
 <script lang="ts">
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import CatSnackBar from './CatSnackBar.vue'
+import CatSnackBar from '@/components/Utils/CatSnackBar.vue'
 
 const playerStore = usePlayerStore()
 const { user } = storeToRefs(playerStore)
 
-const debug = true
+const debug = false
 
 export default {
 	components: {
