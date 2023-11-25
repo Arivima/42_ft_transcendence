@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/24 21:57:56 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/25 12:34:54 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -322,22 +322,22 @@ export class GameService {
 	 */
 	async setGameasFinished(finalFrame: FrameDto)
 	{
-		const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
-			finalFrame.hostID :
-			finalFrame.guestID;
-		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
-			finalFrame.hostID :
-			finalFrame.guestID;
-		const winner = await this.prisma.player.findUnique({
-			where: {
-				id: winnerID
-			}
-		});
-		const loser = await this.prisma.player.findUnique({
-			where: {
-				id: loserID
-			}
-		});
+		// const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
+		// 	finalFrame.hostID :
+		// 	finalFrame.guestID;
+		// const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
+		// 	finalFrame.hostID :
+		// 	finalFrame.guestID;
+		// const winner = await this.prisma.player.findUnique({
+		// 	where: {
+		// 		id: winnerID
+		// 	}
+		// });
+		// const loser = await this.prisma.player.findUnique({
+		// 	where: {
+		// 		id: loserID
+		// 	}
+		// });
 		
 		// updating match info
 		await this.prisma.plays.create({
@@ -351,47 +351,53 @@ export class GameService {
 		})
 
 		// updating player stats
-		let winnerGames = await this.prisma.player.count({
-			where: {
-				id: winnerID
-			}
-		});
-		let loserGames = await this.prisma.player.count({
-			where: {
-				id: loserID
-			}
-		});
-		await this.prisma.player.update({
-			where: {
-				id: winnerID
-			},
-			data: {
-				wins: {increment: 1},
-				ladder_lvl: (
-					winnerGames * (winner.wins + 1 + 1)/(winner.losses + 1)
-				)
-			}
-		});
-		await this.prisma.player.update({
-			where: {
-				id: loserID
-			},
-			data: {
-				losses: {increment: 1},
-				ladder_lvl: (
-					loserGames * (loser.wins + 1)/(loser.losses + 1 + 1)
-				)
-			}
-		});
+		// let winnerGames = await this.prisma.plays.count({
+		// 	where: {
+		// 		OR: [
+		// 			{hostID: winnerID},
+		// 			{guestID: winnerID},
+		// 		]
+		// 	}
+		// });
+		// let loserGames = await this.prisma.plays.count({
+		// 	where: {
+		// 		OR: [
+		// 			{hostID: loserID},
+		// 			{guestID: loserID},
+		// 		]
+		// 	}
+		// });
+		// await this.prisma.player.update({
+		// 	where: {
+		// 		id: winnerID
+		// 	},
+		// 	data: {
+		// 		wins: {increment: 1},
+		// 		ladder_lvl: (
+		// 			(winnerGames + 1) * (winner.wins + 1 + 1)/(winner.losses + 1)
+		// 		)
+		// 	}
+		// });
+		// await this.prisma.player.update({
+		// 	where: {
+		// 		id: loserID
+		// 	},
+		// 	data: {
+		// 		losses: {increment: 1},
+		// 		ladder_lvl: (
+		// 			(loserGames + 1) * (loser.wins + 1)/(loser.losses + 1 + 1)
+		// 		)
+		// 	}
+		// });
 	}
 
 	async updateAchievements(finalFrame: FrameDto, userID: number)
 	{
 		const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
-			finalFrame.hostId :
+			finalFrame.hostID :
 			finalFrame.guestID;
 		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
-			finalFrame.hostId :
+			finalFrame.hostID :
 			finalFrame.guestID;
 		
 		if (userID != winnerID)

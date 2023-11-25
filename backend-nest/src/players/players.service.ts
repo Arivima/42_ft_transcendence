@@ -60,7 +60,7 @@ export class PlayersService {
 					wins: true,
 					losses: true
 				},
-				orderBy: {ladder_lvl: 'asc'}
+				orderBy: {ladder_lvl: 'desc'}
 			})
 		);
 

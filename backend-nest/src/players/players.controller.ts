@@ -60,10 +60,10 @@ export class PlayersController {
 		return player;
 	}
 
-	@Get('/leaderboard')
+	@Get('leaderboard')
 	async getLeaderboard()
 	{
-		return this.playersService.getLeaderboard();
+		return await this.playersService.getLeaderboard();
 	}
 
 	@Get('avatar/:id')
