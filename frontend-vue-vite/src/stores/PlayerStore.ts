@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/24 19:42:23 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/25 22:02:17 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ import router from '@/router'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
 
-const debug = true
+const debug = false
 
 export enum PlayerStatus {
 	offline = 'offline',
@@ -915,7 +915,7 @@ async function fetchPlayer(id: number): Promise<Player> {
 		status:
 			player.playing === undefined
 				? PlayerStatus.offline
-				: player.playing
+				: true === player.playing
 				? PlayerStatus.playing
 				: PlayerStatus.online /* playing | online | offline */,
 	}
@@ -1382,16 +1382,19 @@ async function handleEnd(this: any, endGame : endGameDto) {
 }
 
 async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-	if (debug) console.log("/Store/ handleNewStream()");
-	if (debug) console.log('%c received("newStream")', 'background: yellow; color: black')
+	console.log("/Store/ handleNewStream()");
+	console.log('%c received("newStream")', 'background: yellow; color: black')
 
 	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
+	{
+		console.log(`adding game instance to streaming list`);
 		this.liveStreams.set(game.hostID, game.guestID);
+	}
 }
 
 async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-	if (debug) console.log("/Store/ handleEndStream()");
-	if (debug) console.log('%c received("endStream")', 'background: yellow; color: black')
+	console.log("/Store/ handleEndStream()");
+	console.log('%c received("endStream")', 'background: yellow; color: black')
 
 	console.log('number of live games')
 	console.log(this.liveStreams.size)

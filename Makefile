@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: avilla-m <avilla-m@student.42.fr>          +#+  +:+       +#+         #
+#    By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/24 19:39:26 by mmarinel          #+#    #+#              #
-#    Updated: 2023/10/11 18:48:18 by avilla-m         ###   ########.fr        #
+#    Updated: 2023/11/25 21:39:47 by mmarinel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -21,12 +21,6 @@ reset: 	kill all
 
 up:
 	@printf $(BOLDCYAN)"Makefile: Building containers\n"$(RESET)
-	@$(while [[ ! $$(docker ps --format "table {{.Names}}" | tail -n +2 | grep backend) ]]; do \
-		sleep 30; \
-	done;\
-	docker exec -it backend npx prisma generate; \
-	docker exec -it backend npx prisma migrate dev; \
-	docker exec -d backend npx prisma studio &)
 	@docker-compose up --build
 
 
