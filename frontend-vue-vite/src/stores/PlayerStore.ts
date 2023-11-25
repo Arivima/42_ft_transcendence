@@ -436,6 +436,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			fetchPublicUsers: (id: number) => Promise<Player[]>
 			fetchPendingUsers: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
+			fetchAvatar: (avatar: string) => Promise<string>
 			achievements: Achievement[],
 			notifications: (FriendRequest & FriendRequestStatus)[],
 		} => {
@@ -452,6 +453,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				fetchPublicUsers: fetchPublicUsers,
 				fetchPendingUsers: fetchPendingUsers,
 				fetchAchievements: fetchAchievements,
+				fetchAvatar: fetchAvatar,
 				achievements: [],
 				notifications: [],
 				loading: true

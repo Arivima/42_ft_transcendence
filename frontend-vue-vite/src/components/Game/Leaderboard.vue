@@ -6,12 +6,12 @@ import { VCardText } from 'vuetify/components'
 import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { user } = storeToRefs(playerStore)
+const { fetchAvatar } = storeToRefs(playerStore)
 
 const _items_per_page = 5
 const debug = false
 
-export interface Board {
+export interface Entry {
 	id: number,
 	username: string,
 	avatar: string,
@@ -31,11 +31,11 @@ export default {
 		loading: false,
 		itemsPerPage: _items_per_page,
 		totalItems: 0,
-		board : [] as Board[],
+		board : [] as Entry[],
 		headers: [
-			{ title: '', key: 'avatar', align: 'center' },
-			{ title: 'Username', key: 'username', align: 'center' },
-			{ title: 'Ladder', key: 'ladder_lvl', align: 'center' },
+			{ title: 'Rank', key: 'index', align: 'center' },
+			{ title: 'Player', key: 'username', align: 'center' },
+			{ title: 'Ladder Level', key: 'ladder_lvl', align: 'center' },
 			{ title: 'Victories', key: 'wins', align: 'center' },
 			{ title: 'Losses', key: 'losses', align: 'center' }
 		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
@@ -53,7 +53,14 @@ export default {
 			try {
 				this.board = (await axios.get('players/leaderboard')).data
 
+				// Filter out entries with zero wins and losses
+				this.board = this.board.filter(entry => entry.wins > 0 || entry.losses > 0);
+
 				// update avatar
+				this.board.forEach(
+					async (entry : Entry) => {
+						entry.avatar = (await (fetchAvatar.value(entry.avatar)));
+					})
 				this.totalItems = this.board.length
 				this.board = this.board.slice(start, end)
 				this.loading = false
@@ -118,15 +125,27 @@ export default {
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
-			@update:options="fetchData"
+			@update:options="fetchData({page: 1 , itemsPerPage :  itemsPerPage})"
 
 			density="compact"
 			class="text-caption"
-		></v-data-table-server>
+		>
+			<template v-slot:item="{ item, index }">
+				<tr>
+					<td class="text-center">{{ index + 1 }}</td>
+					<td><v-avatar :image="item.avatar" size="small" class="my-1 mr-3"></v-avatar>
+						{{ item.username }}
+					</td>
+					<td class="text-center">{{ item.ladder_lvl }}</td>
+					<td class="text-center">{{ item.wins }}</td>
+					<td class="text-center">{{ item.losses }}</td>
+				</tr>
+			</template>	
+	</v-data-table-server>
 
-		<v-card-item class="text-end mt-3 pt-3">
-			<v-btn @click="fetchData" class="rounded-pill ma-2"><v-icon icon="mdi-refresh"></v-icon></v-btn>
-		</v-card-item>
+		<!-- <v-card-item class="text-end mt-3 pt-3">
+			<v-btn @click="fetchData({page: 1 , itemsPerPage :  itemsPerPage})" class="rounded-pill ma-2"><v-icon icon="mdi-refresh"></v-icon></v-btn>
+		</v-card-item> -->
 	</v-card>
 </template>
 
