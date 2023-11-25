@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/24 21:48:51 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/25 14:14:40 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -331,7 +331,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'endGame'`);
 
 				await this.gameService.setGameasFinished(frame);
-				await this.gameService.updateAchievements(frame, userID);
+				// await this.gameService.updateAchievements(frame, userID);
 			}
 			// send next frame
 			else

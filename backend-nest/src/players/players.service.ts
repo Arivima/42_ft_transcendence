@@ -84,7 +84,7 @@ export class PlayersService {
 		await this.prisma.achieved.create({
 			data: {
 				playerID: userID,
-				achievementName: 'Profile Created',
+				achievementName: 'Your Catventure begins here!',
 				date_of_issue: new Date(),
 			}
 		})

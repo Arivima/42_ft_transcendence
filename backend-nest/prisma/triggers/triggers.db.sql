@@ -64,10 +64,63 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS update_achievements_trigger ON "Plays";
+DROP TRIGGER IF EXISTS update_stats_trigger ON "Plays";
 
-CREATE TRIGGER update_achievements_trigger
+CREATE TRIGGER update_stats_trigger
 BEFORE INSERT ON "Plays"
 FOR EACH ROW
 EXECUTE FUNCTION update_players_stats();
 
+CREATE OR REPLACE FUNCTION update_game_achievements()
+RETURNS TRIGGER AS $$
+DECLARE
+	"winnerID" int;
+	"winnerWins" int;
+	"achievementName" text;
+BEGIN
+	IF  NEW."score_host" > NEW."score_Guest" THEN
+		"winnerID" := NEW."hostID";
+	ELSE
+		"winnerID" := NEW."guestID";
+	END IF;
+
+	SELECT "wins"
+	INTO "winnerWins"
+	FROM "Player"
+	WHERE "id" = "winnerID";
+
+	"achievementName" := '';
+	IF 1 = "winnerWins" + 1 THEN
+		"achievementName" := 'promising kitty';
+	END IF;
+	IF 3 =  "winnerWins" + 1 THEN
+			"achievementName" := 'Now feed me some good tuna!';
+	END IF;
+	IF 5 =  "winnerWins" + 1 THEN
+			"achievementName" := 'I need no Catnip to win!';
+	END IF;
+	
+
+	IF ('' <> "achievementName") THEN
+		INSERT INTO "Achieved" (
+			"playerID",
+			"achievementName",
+			"date_of_issue"
+		)
+		VALUES (
+			"winnerID",
+			"achievementName",
+			CURRENT_TIMESTAMP
+		)
+		ON CONFLICT DO NOTHING;
+	END IF;
+	
+	RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE TRIGGER update_game_achievements_trigger
+BEFORE INSERT ON "Plays"
+FOR EACH ROW
+EXECUTE FUNCTION update_game_achievements();

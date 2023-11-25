@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/25 12:34:54 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/25 14:14:24 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -391,43 +391,43 @@ export class GameService {
 		// });
 	}
 
-	async updateAchievements(finalFrame: FrameDto, userID: number)
-	{
-		const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
-			finalFrame.hostID :
-			finalFrame.guestID;
-		const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
-			finalFrame.hostID :
-			finalFrame.guestID;
+	// async updateAchievements(finalFrame: FrameDto, userID: number)
+	// {
+	// 	// const winnerID: number = finalFrame.data.host.score > finalFrame.data.guest.score ?
+	// 	// 	finalFrame.hostID :
+	// 	// 	finalFrame.guestID;
+	// 	// const loserID: number = finalFrame.data.host.score < finalFrame.data.guest.score ?
+	// 	// 	finalFrame.hostID :
+	// 	// 	finalFrame.guestID;
 		
-		if (userID != winnerID)
-			return ;
-		const player = await this.prisma.player.findUnique({
-			where: {
-				id: userID
-			}
-		});
+	// 	// if (userID != winnerID)
+	// 	// 	return ;
+	// 	// const player = await this.prisma.player.findUnique({
+	// 	// 	where: {
+	// 	// 		id: userID
+	// 	// 	}
+	// 	// });
 
-		let achievementName: string | null = null;
+	// 	// let achievementName: string | null = null;
 
-		if (1 == player.wins)
-			achievementName = 'Won One Game';
-		else
-		if (3 == player.wins)
-			achievementName = 'Won Three Games';
-		else
-		if (5 == player.wins)
-			achievementName = 'Won Five Games';
+	// 	// if (1 == player.wins)
+	// 	// 	achievementName = 'promising kitty';
+	// 	// else
+	// 	// if (3 == player.wins)
+	// 	// 	achievementName = 'Now feed me some good tuna!';
+	// 	// else
+	// 	// if (5 == player.wins)
+	// 	// 	achievementName = 'I need no Catnip to win!';
 
-		if (achievementName)
-			this.prisma.achieved.create({
-				data: {
-					playerID: userID,
-					achievementName: achievementName,
-					date_of_issue: new Date(),
-				}
-			});
-	}
+	// 	// if (achievementName)
+	// 	// 	this.prisma.achieved.create({
+	// 	// 		data: {
+	// 	// 			playerID: userID,
+	// 	// 			achievementName: achievementName,
+	// 	// 			date_of_issue: new Date(),
+	// 	// 		}
+	// 	// 	});
+	// }
 
 	create(createGameDto: CreateGameDto) {
 		return 'This action adds a new game';

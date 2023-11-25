@@ -222,6 +222,32 @@ export class FrienshipsService {
 					recipient_blacklisted: false
 				}
 			});
+
+			const friendship_achievement = await this.prisma.achieved.findMany({
+				where: {
+					OR: [
+						{playerID: requestorID},
+						{playerID: recipientID},
+					],
+					achievementName: 'Chi trova un amico, trova un tesoro'
+				}
+			});
+			if (0 === friendship_achievement.length) {
+				await this.prisma.achieved.create({
+					data: {
+						playerID: requestorID,
+						achievementName: 'Chi trova un amico, trova un tesoro',
+						date_of_issue: new Date()
+					}
+				});
+				await this.prisma.achieved.create({
+					data: {
+						playerID: recipientID,
+						achievementName: 'Chi trova un amico, trova un tesoro',
+						date_of_issue: new Date()
+					}
+				});
+			}
 		}
 		else
 			throw Error('no pending request');
