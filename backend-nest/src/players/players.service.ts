@@ -26,6 +26,22 @@ export class PlayersService {
 		this.connections.delete(userID);
 	}
 
+	changeConnection(userID: number, connection: Connection)
+	{
+		if (this.isLoggedIn(userID))
+			console.log(`user logged in -- playing: ${this.connections.get(userID).playing}`);
+		else
+			console.log(`user NOT logged in`);
+
+		console.log(`changing connection of ${userID} to playing: ${connection.playing}`);
+		this.connections.set(userID, connection);
+		
+		if (this.isLoggedIn(userID))
+			console.log(`user logged in -- playing: ${this.connections.get(userID).playing}`);
+		else
+			console.log(`user NOT logged in`);
+	}
+
 	isLoggedIn(userID: number): boolean {
 		return this.connections.has(userID);
 	}

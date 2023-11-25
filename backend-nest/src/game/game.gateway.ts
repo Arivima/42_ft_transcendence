@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/25 14:14:40 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/25 17:55:11 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@ import { FrameDto } from './dto/frame.dto';
 import { CustomizationOptions } from './dto/customization.dto';
 import { endGameDto } from './dto/endGame.dto';
 import { InviteDto } from './dto/invite.dto';
+import { PlayersService } from 'src/players/players.service';
 
 // TODO
 // TODO		1.1 move maps in service
@@ -29,7 +30,7 @@ import { InviteDto } from './dto/invite.dto';
 // TODO			and keep disconnection simple
 // TODO		1.4 
 
-const debug = true;
+const debug = false;
 
 @WebSocketGateway({
 	cors: {
@@ -45,7 +46,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 	constructor(
 		private readonly gameService: GameService,
-		private readonly jwtService: JwtService
+		private readonly jwtService: JwtService,
+		private readonly pservice: PlayersService
 		)
 	{
 		this.clients = new Map<number, Socket>();
@@ -244,10 +246,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	) {
 		if (!userID || !gameInfo || !customization)
 			return
-			if (debug) console.log(`| GATEWAY GAME | 'sendCustomizationOptions'`);
-			if (debug) console.log(`${customization.ball_color}`);
-			if (debug) console.log(`${customization.paddle_color}`);
-			if (debug) console.log(`${customization.pitch_color}`);
+		if (debug) console.log(`| GATEWAY GAME | 'sendCustomizationOptions'`);
+		if (debug) console.log(`${customization.ball_color}`);
+		if (debug) console.log(`${customization.paddle_color}`);
+		if (debug) console.log(`${customization.pitch_color}`);
 
 		const resp = this.gameService.sendCustomizationOptions(
 			userID,
@@ -259,7 +261,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		{
 			this.server.to(resp.roomId).emit('startGame',
 				resp.final_customization
-			)
+			);
+			this.pservice.changeConnection(gameInfo.hostID, {
+				playing: true
+			});
+			this.pservice.changeConnection(gameInfo.guestID, {
+				playing: true
+			});
 			if (debug) console.log(`| GATEWAY GAME | 'sendCustOptions' | emit : 'startGame'`);
 		}
 	}
@@ -361,111 +369,3 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	}
 
 }
-
-// @SubscribeMessage('newFrame')
-// async getNewFrame(
-// 	@MessageBody() frame: FrameDto,
-// 	@MessageBody('userID') userID: number
-// )
-// {
-// 	console.log(`| GATEWAY GAME | 'newFrame' | current queue : ${this.gameService.getQueue()} `);
-// 	const	roomId: string = this.gameService.getGames().get(userID).roomId;
-// 	const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
-
-// 	if (frame.seq > currentFrame.seq)
-// 	{
-// 		// update score
-// 		if ((frame.data.ball.x + frame.data.ball.sx + frame.data.ball.radius) >=
-// 			frame.data.canvas.w)
-// 		{
-// 			frame.data.host.score += 1;
-
-// 			// check end of game
-// 			if (10 == frame.data.host.score) {
-// 				this.server.to(roomId).emit("endGame", {
-// 					hostWin: true,
-// 					guestWin: false
-// 				} as endGameDto);
-
-// 				// update db
-// 				await this.gameService.setGameasFinished(frame);
-// 			}
-// 		}
-// 		else
-// 		if ((frame.data.ball.x + frame.data.ball.sx - frame.data.ball.radius) <= 0)
-// 		{
-// 			frame.data.guest.score += 1;
-			
-// 			// check end of game
-// 			if (10 == frame.data.guest.score) {
-// 				this.server.to(roomId).emit("endGame", {
-// 					hostWin: false,
-// 					guestWin: true
-// 				} as endGameDto);
-
-// 				// update db
-// 				await this.gameService.setGameasFinished(frame);
-// 			}
-// 		}
-// 		// send next frame
-// 		else
-// 		{
-
-// 			// check guest collisions
-// 			if (
-// 				(
-// 					(
-// 						frame.data.ball.y + frame.data.ball.sy + frame.data.ball.radius >=
-// 						frame.data.guest.paddle.y + frame.data.guest.paddle.sy &&
-// 						frame.data.ball.y + frame.data.ball.sy - frame.data.ball.radius <=
-// 						frame.data.guest.paddle.y + frame.data.guest.paddle.sy + frame.data.guest.paddle.h
-// 					) &&
-// 					(
-// 						frame.data.ball.x + frame.data.ball.sx + frame.data.ball.radius >=
-// 						frame.data.canvas.w - frame.data.guest.paddle.w
-// 					)
-// 				)
-// 			) {
-// 				frame.data.ball.dx
-// 			}
-
-// 			this.gameService.getFrames().set(roomId, frame);
-// 			this.server.to(roomId).emit("newFrame", frame);
-// 		}
-
-// 	}
-// }
-
-// }
-
-// STANDARD CRUD ENDPOINTS
-
-// @SubscribeMessage('createGame')
-// create(@MessageBody() createGameDto: CreateGameDto) {
-// 	console.log(`| GATEWAY GAME | createGame |`);
-// 	return this.gameService.create(createGameDto);
-// }
-
-// @SubscribeMessage('findAllGame')
-// findAll() {
-// console.log(`| GATEWAY GAME | findAllGame |`);
-// 	return this.gameService.findAll();
-// }
-
-// @SubscribeMessage('findOneGame')
-// findOne(@MessageBody() id: number) {
-// 	console.log(`| GATEWAY GAME | findOneGame |`);
-// 	return this.gameService.findOne(id);
-// }
-
-// @SubscribeMessage('updateGame')
-// update(@MessageBody() updateGameDto: UpdateGameDto) {
-// 	console.log(`| GATEWAY GAME | updateGame |`);
-// 	return this.gameService.update(updateGameDto.id, updateGameDto);
-// }
-
-// @SubscribeMessage('removeGame')
-// remove(@MessageBody() id: number) {
-// 	console.log(`| GATEWAY GAME | removeGame |`);
-// 	return this.gameService.remove(id);
-// }

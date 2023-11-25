@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/25 14:14:24 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/25 18:12:24 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ import { CustomizationOptions } from './dto/customization.dto';
 import { endGameDto } from './dto/endGame.dto';
 import { InviteDto } from './dto/invite.dto';
 import { FrameData } from './dto/frame.dto';
+import { PlayersService } from 'src/players/players.service';
 
 export class GameSocket {
 	user_socket: Socket
@@ -51,7 +52,10 @@ export class GameService {
 	 */
 	private frames: Map<string, FrameDto>;
 
-	constructor(private readonly prisma: PrismaService) {
+	constructor(
+		private readonly prisma: PrismaService,
+		private readonly pservice: PlayersService
+	) {
 		this.queue = new Map<number, Socket>();
 		this.games = new Map<number, GameSocket>();
 		this.frames = new Map<string, FrameDto>();
@@ -112,7 +116,10 @@ export class GameService {
 			
 			let game = this.games.get(key);
 			const roomId = game.roomId;
-		
+			
+			this.pservice.changeConnection(key, {
+				playing: false
+			});
 			// leave the room
 			game.user_socket.leave(roomId);
 			console.log(`| GATEWAY GAME | user ${key} socket left ${roomId} `);
