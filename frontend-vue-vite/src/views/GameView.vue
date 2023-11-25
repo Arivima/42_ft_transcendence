@@ -12,11 +12,12 @@ import Debug from '@/components/Debug.vue';
 
 import { storeToRefs } from 'pinia'
 import { usePlayerStore, type Player, type GameInfo, type CustomizationOptions, type FrameDto } from '@/stores/PlayerStore';
+import LiveStream from '@/components/Game/LiveStream.vue';
 
 const playerStore = usePlayerStore()
 const { currentGame } = storeToRefs(playerStore)
 
-const debug = true
+const debug = false
 
 export default {
 	components : {
@@ -29,7 +30,8 @@ export default {
     DialogInvite,
     DialogCustomization,
     DialogEndGame,
-    Debug
+    Debug,
+    LiveStream
 },
 	data: () => ({
 	}),
@@ -64,6 +66,11 @@ export default {
 		<v-card
 			class="game flex-column backgroundGame"
 		>
+
+			<LiveStream
+				v-if="status == 'undefined'"
+			></LiveStream>
+
 			<v-card-item 
 				v-if="status == 'undefined'"
 				class="ma-7"

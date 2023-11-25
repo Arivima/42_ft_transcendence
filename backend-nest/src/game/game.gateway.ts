@@ -164,6 +164,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			invite?.guestID, invite?.hostID,
 			host_socket, guest_socket
 		);
+		
 		// start game
 		this.server.to(roomId).emit("newGame", {
 			hostID: invite?.hostID,
@@ -171,6 +172,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			watcher: false
 		} as CreateGameDto);
 		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite' | emit : 'newGame'`);
+
+		// add to streaming list
+		this.server.emit("newStream", {
+			hostID: invite?.hostID,
+			guestID: invite?.guestID,
+			watcher: false
+		} as CreateGameDto);
+		if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newStream'`);
 	}
 
 	// joining game through matchmaking
@@ -203,6 +212,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					watcher: false
 				} as CreateGameDto);
 				if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
+
+				// add to streaming list
+				this.server.emit("newStream", {
+					hostID,
+					guestID: userID,
+					watcher: false
+				} as CreateGameDto);
+				if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newStream'`);
+
 
 				// exit loop
 				matched = true;
@@ -292,6 +310,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			} as CreateGameDto);
 			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newGame'`);
 
+			// add to streaming list
+			this.server.emit("newStream", {
+				hostID: game.hostID,
+				guestID: game.guestID,
+				watcher: false
+			} as CreateGameDto);
+			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newStream'`);
+
 			// share customization
 			this.server.to(`${client.id}`).emit('startGame', {
 				customization: game.customization
@@ -308,7 +334,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	{
 		if (!userID || !frame)
 			return
-		if (debug) console.log(`| GATEWAY GAME | 'newFrame'`);
+		// if (debug) console.log(`| GATEWAY GAME | 'newFrame'`);
 		
 		const	roomId: string = this.gameService.getGames().get(userID).roomId;
 		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
@@ -322,6 +348,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			// check end of game
 			if (hostWin || guestWin)
 			{
+				// emit last frame
+				this.server.to(roomId).emit("newFrame", frame);
+				if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'newFrame' | last frame`);
+
 				this.server.to(roomId).emit("endGame", {
 					hostWin,
 					guestWin,
@@ -332,12 +362,21 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 				await this.gameService.setGameasFinished(frame);
 				// await this.gameService.updateAchievements(frame, userID);
+
+				// remove from streaming list
+				this.server.emit("endStream", {
+					hostID: currentFrame.hostID,
+					guestID: currentFrame.guestID,
+					watcher : false,
+				} as CreateGameDto);
 			}
+			if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'endStream'`);
+
 			// send next frame
 			else
 			{
 				this.server.to(roomId).emit("newFrame", frame);
-				if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'newFrame'`);
+				// if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'newFrame'`);
 			}
 			
 			this.gameService.getFrames().set(roomId, frame);
