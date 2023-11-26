@@ -130,6 +130,8 @@ export default {
 			density="compact"
 			class="text-caption"
 		>
+		<!-- :to="{ name: 'profile', params: { id: item.id } }" -->
+
 			<template v-slot:item="{ item, index }">
 				<tr>
 					<td class="text-center">{{ index + 1 }}</td>
