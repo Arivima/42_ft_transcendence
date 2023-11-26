@@ -263,6 +263,7 @@ export class GameService {
 			const roomId = this.games.get(userID).roomId;
 			const randN = Math.random() * 1024;
 			const final_customization = {
+				customization: true,
 				pitch_color: randN % 2 == 0 ?
 					other_customizations.pitch_color :
 					customization.pitch_color,
@@ -273,6 +274,13 @@ export class GameService {
 					other_customizations.ball_color :
 					customization.ball_color,
 			} as CustomizationOptions;
+			
+			if (other_customizations.customization == false || customization.customization == false){
+				final_customization.customization = false;
+				final_customization.pitch_color = '#FFFFFF';
+				final_customization.paddle_color = '#800080';
+				final_customization.ball_color = '#800080';
+			}
 
 			console.log(`Final customization`)
 			console.log(final_customization)

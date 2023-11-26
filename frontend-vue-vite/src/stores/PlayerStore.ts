@@ -223,18 +223,21 @@ export class InviteDto {
 };
 
 export class CustomizationOptions {
+	public customization : boolean;
 	public pitch_color: string;
 	public paddle_color: string;
 	public ball_color: string;
 
 	constructor() {
 		if (debug) console.log('/Store/ class CustomizationOptions | constructor()')
+		this.customization = false;
 		this.pitch_color = '#FFFFFF'; /*white*/
 		this.paddle_color = '#800080'; /*purple*/ /*'#000000'; black*/
 		this.ball_color = '#800080'; /*purple*/ /*'#000000'; black*/
 	}
 	reset(){
 		if (debug) console.log('/Store/ class CustomizationOptions | reset()')
+		this.customization = false;
 		this.pitch_color = '#FFFFFF';
 		this.paddle_color = '#800080';
 		this.ball_color = '#800080';
@@ -269,8 +272,8 @@ export class BallDto {
 		this.color = '#800080';
 		this.x = Math.random();
 		this.y = Math.random();
-		this.dx = ((Math.random() * 100 )% 2) ? 1 : -1;
-		this.dy = ((Math.random() * 100 )% 2) ? 1 : -1;
+		this.dx = ((Math.random() * 100 ) % 2) ? 1 : -1;
+		this.dy = ((Math.random() * 100 ) % 2) ? 1 : -1;
 	}
 }
 
