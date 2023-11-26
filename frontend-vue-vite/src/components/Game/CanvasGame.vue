@@ -696,10 +696,10 @@ export default defineComponent({
 
 
 
-		<!-- <v-card 
+		<v-card 
 		:width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
-			<v-card class="pa-1 ma-1 w-50">
-				<h2>BALL</h2>
+			<!-- <v-card class="pa-1 ma-1 w-50"> -->
+				<!-- <h2>BALL</h2>
 				<p>| {{ Math.round(newFrame.data.ball.x) }}, {{ Math.round(newFrame.data.ball.y) }}</p>
 				<p>| x {{Math.round(newFrame.data.ball.x)}} y {{ Math.round(newFrame.data.ball.y) }}</p>
 				<p>| dx {{newFrame.data.ball.dx}} dy {{ newFrame.data.ball.dy }} </p>
@@ -714,18 +714,19 @@ export default defineComponent({
 				<p>	| guest
 					| w{{ Math.round(newFrame.data.guest.paddle.w) }} h{{ Math.round(newFrame.data.guest.paddle.h) }}
 					| {{ Math.round(newFrame.data.guest.paddle.x) }}, {{ Math.round(newFrame.data.guest.paddle.y) }} 
-					| y {{ Math.round(newFrame.data.guest.paddle.y) }}</p>
+					| y {{ Math.round(newFrame.data.guest.paddle.y) }}</p> -->
+			<!-- </v-card>	 -->
 
-
-			</v-card>		
-				<v-card class="pa-1 ma-1 w-50">
-					<h2>CONF</h2>
-					<p>| host {{ host.id }} | guest {{ guest.id }}</p>
-					<p>| canvas | w{{ canvas?.width }} h{{ canvas?.height }}</p>
-					<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
-					<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
-				</v-card>
-		</v-card> -->
+			<v-card class="pa-1 ma-1 w-50">
+				<h2>CONF</h2>
+				<p>| host {{ host.id }} | guest {{ guest.id }}</p>
+				<p>| host {{ gameInfo.hostID }} | guest {{ gameInfo.guestID}}</p>
+				<p>| watcher ? {{ gameInfo.watcher }}</p>
+				<p>| canvas | w{{ canvas?.width }} h{{ canvas?.height }}</p>
+				<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
+				<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
+			</v-card>
+		</v-card>
 </v-card>
 </template>
 

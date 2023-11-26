@@ -19,7 +19,7 @@ export default defineComponent({
 	computed : {
 		dialogBox(){
 			if (debug) console.log('| DialogCustomization | computed | dialogBox : ' + (currentGame.value.status == 'building' && currentGame.value.waiting == ''))
-			return (currentGame.value.status == 'building' && currentGame.value.waiting == 'undefined')
+			return (currentGame.value.status == 'building' && currentGame.value.waiting == 'undefined' && currentGame.value.gameInfo.watcher == false)
 		},
 		opponentName() {
 			if (debug) console.log('| DialogCustomization | computed | opponentName : ' + (user.value.id == currentGame.value.gameInfo.hostID ? currentGame.value.guest.username : user.value.id == currentGame.value.gameInfo.guestID ? currentGame.value.host.username :'N/A'))

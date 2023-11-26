@@ -654,12 +654,12 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendStreamingRequest(playerID: number) {
-				if (debug) console.log("/Store/ sendStreamingRequest");
+				console.log("/Store/ sendStreamingRequest from "  + this.user.id + " to " + playerID);
 				this.user.gameSocket?.emit('joinGame', {
 					userID: this.user.id,
 					playerID,
 				});
-				if (debug) console.log('%c emit("joinGame")', 'background: blue; color: white')
+				console.log('%c emit("joinGame")', 'background: blue; color: white')
 
 				// this.user.gameSocket?.timeout(5000).emit('joinGame', {
 				// 	userID: this.user.id,
@@ -1346,8 +1346,8 @@ async function handleRejectedInvite(this: any) {
 
 // Game
 async function handleNewGame(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-	if (debug) console.log("/Store/ handleNewGame()");
-	if (debug) console.log('%c received("newGame")', 'background: purple; color: white')
+	console.log("/Store/ handleNewGame()");
+	console.log('%c received("newGame")', 'background: purple; color: white')
 
 	if(this.currentGame.invite.sent || this.currentGame.invite.received){
 		this.currentGame.invite.reset()
@@ -1370,8 +1370,8 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 }
 
 async function handleStart(this: any, customization: CustomizationOptions) {
-	if (debug) console.log("/Store/ handleStart()");
-	if (debug) console.log('%c received("startGame")', 'background: purple; color: white')
+	console.log("/Store/ handleStart()");
+	console.log('%c received("startGame")', 'background: purple; color: white')
 
 	Object.assign(this.currentGame.customizations, customization);
 

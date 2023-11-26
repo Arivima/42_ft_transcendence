@@ -6,19 +6,10 @@ import { VCardText } from 'vuetify/components'
 import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { liveStreams, fetchPlayer } = storeToRefs(playerStore)
+const { liveStreams } = storeToRefs(playerStore)
 
 const _items_per_page = 5
 const debug = true
-
-export interface List {
-	host_id: number,
-	host_username: string,
-	host_avatar: string,
-	guest_id: number,
-	guest_username: string,
-	guest_avatar: string,
-}
 
 export default {
 	components:	{
@@ -107,7 +98,7 @@ export default {
 								size="x-small"
 								color="primary"
 								class="ma-0 pa-0 justify-center align-center"
-								@click="streamUser(item.host_id)"
+								@click="streamUser(item.hostID)"
 						></v-btn>
 					</td>
 				</tr>

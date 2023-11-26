@@ -16,8 +16,8 @@ export default defineComponent({
 		title() : string {
 			if (debug) console.log('| DialogEnd | computed | title')
 			switch(currentGame.value.endReason){
-					case 'hostWin'	: return (this.userIsHost == true ? 'You have won !' : 'You have lost ...')
-					case 'guestWin'	: return (this.userIsGuest == true ? 'You have won !' : 'You have lost ...')
+					case 'hostWin'	: return (this.userIsHost == true ? 'You have won !' : this.userisWatcher == true ? 'Host has won' : 'You have lost ...')
+					case 'guestWin'	: return (this.userIsGuest == true ? 'You have won !' : this.userisWatcher == true ? 'Host has won' : 'You have lost ...')
 					case 'userLeft'	: return 'You have left the game'
 					case 'aPlayerLeft': return 'A player left the game'
 					case 'opponentLeft' : return 'Your opponent left the game'
@@ -36,6 +36,10 @@ export default defineComponent({
 		userIsGuest() : boolean {
 			if (debug) console.log('| DialogEnd | computed | userIsGuest : ' + (currentGame.value.guest.id == user.value.id))
 			return (currentGame.value.guest.id == user.value.id)
+		},
+		userisWatcher() : boolean {
+			if (debug) console.log('| DialogEnd | computed | userIsGuest : ' + (currentGame.value.guest.id == user.value.id))
+			return (currentGame.value.gameInfo.watcher == true)
 		},
 		score() : { host : number, guest : number} {
 			if (debug) console.log('| DialogEnd | computed | score : ' + currentGame.value.finalScore.host + ' | ' +  currentGame.value.finalScore.guest)
