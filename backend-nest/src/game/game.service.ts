@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/26 14:21:27 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/26 16:49:33 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -348,6 +348,7 @@ export class GameService {
 	): GameSocket | undefined {
 		const game = this.gameInstances.get(playerID);
 
+		//TODO check only in active games
 		if (game)
 		{
 			const roomId = game.roomId;

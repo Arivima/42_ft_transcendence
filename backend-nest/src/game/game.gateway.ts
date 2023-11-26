@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/26 15:03:49 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/26 16:49:58 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -336,14 +336,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				watcher: true
 			} as CreateGameDto);
 			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newGame'`);
-
-			// add to streaming list
-			this.server.emit("newStream", {
-				hostID: game.hostID,
-				guestID: game.guestID,
-				watcher: false
-			} as CreateGameDto);
-			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newStream'`);
 
 			// share customization
 			this.server.to(`${client.id}`).emit('startGame', {
