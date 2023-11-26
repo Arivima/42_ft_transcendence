@@ -137,6 +137,7 @@ export default defineComponent({
 			/* local values */
 			canvas : null as HTMLCanvasElement | null,
 			ccontext: null as CanvasRenderingContext2D | null,
+			step : 1 / 150,
 
 			ballSpeedFactor : 500/1000, // px/sec (1000 milliseconds)
 	}),
@@ -158,11 +159,21 @@ export default defineComponent({
 			if (debug) console.log('| CanvasGame | computed | customizations()')
 			return currentGame.value.customizations
 		},
+		isCustomized() : boolean{
+			return currentGame.value.customizations.customization
+		},
+
+
 		newFrame() : FrameDto {
 			if (debug) console.log('| CanvasGame | computed | newFrame ' + currentGame.value.frame.seq)
 			return currentGame.value.frame
 		},
-
+		scoreHost() : number {
+			return currentGame.value.frame.data.host.score
+		},
+		scoreGuest() : number {
+			return currentGame.value.frame.data.guest.score
+		},
 		gameStatus() : 'undefined' | 'building' | 'playing' | 'end' {
 			if (debug) console.log(`%c| CanvasGame | computed | gameStatus : ${currentGame.value.status}`, 'background: green; color: white')
 			return currentGame.value.status
@@ -211,7 +222,6 @@ export default defineComponent({
 			if (debug) console.log(`| CanvasGame | watchers | newFrame ?`)
 			this.onNewFrame()
 		},
-
 	},
 	methods: {
 		onStartGame() {
@@ -341,15 +351,15 @@ export default defineComponent({
 				this.ccontext.fillRect(0, 0, this.canvas.width , this.canvas.height);
 				/*Pitch background*/
 				this.ccontext.fillStyle = this.customizations.pitch_color;
-				this.ccontext.fillRect(0, 0, this.canvas.width , this.canvas.height); 
+				this.ccontext.fillRect(0, 0, this.canvas.width , this.canvas.height);
 				/*Pitch line*/
-				this.ccontext.fillStyle = "black";
+				this.ccontext.fillStyle = this.ccontext.strokeStyle = this.invertColor(this.customizations.pitch_color);
 				this.ccontext.beginPath();	
 				this.ccontext.moveTo(this.canvas.width / 2, 0)
 				this.ccontext.lineTo(this.canvas.width / 2, this.canvas.height)
 				this.ccontext.stroke();
 				/*Pitch circle*/
-				this.ccontext.fillStyle = "black";
+				this.ccontext.fillStyle = this.ccontext.strokeStyle = this.invertColor(this.customizations.pitch_color);
 				this.ccontext.beginPath(); 
 				this.ccontext.arc(
 					this.canvas.width / 2, this.canvas.height / 2, /*x, y*/
@@ -358,18 +368,22 @@ export default defineComponent({
 				);
 				this.ccontext.stroke();
 				/*paddles*/
-				this.ccontext.fillStyle = this.newFrame.data.host.paddle.color;
+				let rainbow_color : string = ''
+				if (this.isCustomized && (this.newFrame.data.host.score > 7 || this.newFrame.data.guest.score > 7))
+					rainbow_color = this.rainbowColor(this.newFrame.data.ball.x);
+
+				this.ccontext.fillStyle = rainbow_color? rainbow_color : this.newFrame.data.host.paddle.color;
 				this.ccontext.fillRect(	this.AbsPosCanvasX(this.newFrame.data.host.paddle.x),
 										this.AbsPosCanvasY(this.newFrame.data.host.paddle.y), 
 										this.AbsPosCanvasX(this.newFrame.data.host.paddle.w),
 										this.AbsPosCanvasY(this.newFrame.data.host.paddle.h));
-				this.ccontext.fillStyle = this.newFrame.data.guest.paddle.color;
+				this.ccontext.fillStyle = rainbow_color? rainbow_color : this.newFrame.data.guest.paddle.color;
 				this.ccontext.fillRect(	this.AbsPosCanvasX(this.newFrame.data.guest.paddle.x),
 										this.AbsPosCanvasY(this.newFrame.data.guest.paddle.y), 
 										this.AbsPosCanvasX(this.newFrame.data.guest.paddle.w),
 										this.AbsPosCanvasY(this.newFrame.data.guest.paddle.h));
 				/*ball*/
-				this.ccontext.fillStyle = this.newFrame.data.ball.color;
+				this.ccontext.fillStyle = this.ccontext.strokeStyle = rainbow_color ? rainbow_color : this.newFrame.data.ball.color;
 				this.ccontext.beginPath();
 				this.ccontext.arc(	this.AbsPosCanvasX(this.newFrame.data.ball.x), 
 									this.AbsPosCanvasY(this.newFrame.data.ball.y), 
@@ -384,14 +398,18 @@ export default defineComponent({
 			// const step : number = this.gameTime.deltaTime * this.ballSpeedFactor
 			const step =  10 / (this.canvas?.height || 0) /* 1 pixel per step */
 
-
 			if (this.keyState.get('ArrowUp') === true) {
 				if (this.userIsHost) {
 					if (this.frame.data.host.paddle.y - step > 0)
 						this.frame.data.host.paddle.y -= step;
+					else
+						this.frame.data.host.paddle.y = 0
+
 				} else {
 					if (this.frame.data.guest.paddle.y - step > 0)
 						this.frame.data.guest.paddle.y -= step;
+					else
+						this.frame.data.guest.paddle.y = 0
 				}
 				if (debug)console.log('ArrowUp')
 				if (debug)console.log('paddle step : ' + step)
@@ -402,9 +420,13 @@ export default defineComponent({
 				if (this.userIsHost) {
 					if (this.frame.data.host.paddle.y + this.frame.data.host.paddle.h + step < 1)
 						this.frame.data.host.paddle.y += step;
+					else
+						this.frame.data.host.paddle.y = 1 - this.frame.data.host.paddle.h
 				} else {
 					if (this.frame.data.guest.paddle.y + this.frame.data.guest.paddle.h + step < 1)
 						this.frame.data.guest.paddle.y += step;
+					else
+						this.frame.data.guest.paddle.y = 1 - this.frame.data.guest.paddle.h
 				}
 				if (debug)console.log('ArrowDown')
 				if (debug)console.log('paddle step : ' + step)
@@ -412,18 +434,91 @@ export default defineComponent({
 			}
 		},
 
-		collisionX(direction : number){
+		rainbowColor(value : number){
+			// Ensure the input value is within the valid range [0, 1]
+			value = Math.min(1, Math.max(0, value));
+
+			const hue = value * 360; // Map the value to the hue range (0-360)
+
+			// Set fixed saturation and lightness for a bright gradient
+			const saturation = 90;
+			const lightness = 60 + 20 * Math.sin(value * Math.PI * 2);
+
+			// Convert HSL to RGB
+			const c = (1 - Math.abs(2 * (lightness / 100) - 1)) * (saturation / 100);
+			const x = c * (1 - Math.abs(((hue / 60) % 2) - 1));
+			let rgb = [0, 0, 0];
+
+			if (hue < 60) rgb = [c, x, 0];
+			else if (hue < 120) rgb = [x, c, 0];
+			else if (hue < 180) rgb = [0, c, x];
+			else if (hue < 240) rgb = [0, x, c];
+			else if (hue < 300) rgb = [x, 0, c];
+			else rgb = [c, 0, x];
+
+			// Adjust RGB values to match the 0-255 range
+			const [r, g, b] = rgb.map(value => Math.round(value * 255));
+
+			// Convert RGB values to a hexadecimal color code
+			const color = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+
+			return color;
+		},
+
+		invertColor(hex: string) : string {
+			if (hex.length !== 7 && hex.length !== 9)
+				return hex
+
+
+			if (hex[0] == '#')
+				hex = hex.slice(1);
+
+			const r = parseInt(hex.slice(0, 2), 16);
+			const g = parseInt(hex.slice(2, 4), 16);
+			const b = parseInt(hex.slice(4, 6), 16);
+
+			const invertedR = 255 - r;
+			const invertedG = 255 - g;
+			const invertedB = 255 - b;
+
+			const invertedHex = (1 << 24) + (invertedR << 16) + (invertedG << 8) + invertedB;
+
+			let result = invertedHex.toString(16).slice(1);
+
+			if (hex.length === 9) {
+				const a = parseInt(hex.slice(6, 8), 16);
+				const invertedA = 255 - a;
+				const invertedAlphaHex = (invertedA | (1 << 8)).toString(16).slice(1);
+				result += invertedAlphaHex;
+			}
+			return '#' + result;
+		},
+
+		collisionX(){
 			if (debug) console.log(`| CanvasGame | methods | collisionX() 
 				guest ${this.frame.data.guest.score} 
 				host ${this.frame.data.host.score} `)
-			return direction == 1 ? this.frame.data.guest.score++ : this.frame.data.host.score++			
+			if (this.frame.data.ball.dx == 1){
+				this.frame.data.guest.score++
+				if (this.isCustomized)
+					this.frame.data.host.paddle.h *= 1.1
+			} else {
+				this.frame.data.host.score++
+				if (this.isCustomized)
+					this.frame.data.guest.paddle.h *= 1.1
+			}
+			if (this.isCustomized)
+				this.step *= 1.12
 		},
-		collisionY(direction : number){
-			return direction == 1 ? this.frame.data.ball.color = '#0000FF' : this.frame.data.ball.color = this.customizations.ball_color	
+		collisionY(){
+			if (this.frame.data.ball.dy == 1)
+				this.frame.data.ball.color = this.invertColor(this.customizations.ball_color)
+			else
+				this.frame.data.ball.color = this.customizations.ball_color	
 		},
 
 		moveBall() {
-			const step =  1 / 150 /* 0.5 seconds from x = 0 to x = width */
+			const step =  this.step /* 0.5 seconds from x = 0 to x = width */
 			// const step : number = this.gameTime.deltaTime * this.ballSpeedFactor
 
 			// collision of X axis
@@ -441,14 +536,15 @@ export default defineComponent({
 			}
 			/* check collision wall */
 			else if (this.frame.data.ball.x + this.frame.data.ball.radius > 1 || this.frame.data.ball.x - this.frame.data.ball.radius < 0) {
-					this.frame.data.ball.dx *= -1;
-				this.collisionX(this.frame.data.ball.dx)
+				this.frame.data.ball.dx *= -1;
+				this.collisionX()
 			}
 
 			// collision of Y axis
 			if (this.frame.data.ball.y + this.frame.data.ball.radius > 1 || this.frame.data.ball.y - this.frame.data.ball.radius < 0){
 				this.frame.data.ball.dy *= -1;
-				this.collisionY(this.frame.data.ball.dy)
+				if (this.isCustomized)
+					this.collisionY()
 			}
 
 			/*update position of ball*/

@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 export class CustomizationOptions {
+	customization : boolean
 	pitch_color: string
 	paddle_color: string
 	ball_color: string
