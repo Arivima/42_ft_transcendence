@@ -33,7 +33,7 @@ export default {
 		totalItems: 0,
 		board : [] as Entry[],
 		headers: [
-			{ title: 'Rank', key: 'index', align: 'center' },
+			{ title: 'Rank',align: 'center' },
 			{ title: 'Player', key: 'username', align: 'center' },
 			{ title: 'Ladder Level', key: 'ladder_lvl', align: 'center' },
 			{ title: 'Victories', key: 'wins', align: 'center' },
@@ -109,45 +109,37 @@ export default {
 		class="component justify-center align-center"	
 		min-width="500"
 	>
-		<v-card-item
-			density="compact"
-		>
-			<v-card-subtitle
-				class="text-overline text-center mb-3 pb-3"
-			>Leaderboard</v-card-subtitle>
+		<v-card-item density="compact">
+			<v-card-subtitle class="text-overline text-center mb-3 pb-3">Leaderboard</v-card-subtitle>
 		</v-card-item>
-
 		<v-divider></v-divider>
-
 		<v-data-table-server
 			v-model:items-per-page="itemsPerPage"
 			:items="board"
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
-			@update:options="fetchData({page: 1 , itemsPerPage :  itemsPerPage})"
-
+			@update:options="fetchData"
+			no-data-text="No one has played catPong yet, please come back later"
 			density="compact"
 			class="text-caption"
 		>
-		<!-- :to="{ name: 'profile', params: { id: item.id } }" -->
-
 			<template v-slot:item="{ item, index }">
 				<tr>
 					<td class="text-center">{{ index + 1 }}</td>
-					<td><v-avatar :image="item.avatar" size="small" class="my-1 mr-3"></v-avatar>
-						{{ item.username }}
-					</td>
+					<td class="text-caption justify-start ">
+						<v-btn
+							:to="{ name: 'profile', params: { id: item.id } }"
+							variant="text" class="text-caption justify-start " block>
+							<v-avatar :image="item.avatar" size="small" class="my-1 mr-3"></v-avatar>
+							{{ item.username }}
+						</v-btn></td>
 					<td class="text-center">{{ item.ladder_lvl }}</td>
 					<td class="text-center">{{ item.wins }}</td>
 					<td class="text-center">{{ item.losses }}</td>
 				</tr>
 			</template>	
-	</v-data-table-server>
-
-		<!-- <v-card-item class="text-end mt-3 pt-3">
-			<v-btn @click="fetchData({page: 1 , itemsPerPage :  itemsPerPage})" class="rounded-pill ma-2"><v-icon icon="mdi-refresh"></v-icon></v-btn>
-		</v-card-item> -->
+		</v-data-table-server>
 	</v-card>
 </template>
 

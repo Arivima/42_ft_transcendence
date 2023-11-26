@@ -38,8 +38,18 @@ export default {
 	},
 	methods : {
 		streamUser(id : number){
-			if (debug) console.log('| Leaderboard | methods | streamUser()')
+			if (debug) console.log('| LiveStream | methods | streamUser()')
 			playerStore.sendStreamingRequest(id);
+		},
+		async fetchData(options: { page: number; itemsPerPage: number }) {
+			if (debug) console.log('| LiveStream | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
+			this.loading = true
+			const start = (options.page - 1) * options.itemsPerPage
+			const end = start + options.itemsPerPage
+			this.list = liveStreams
+			this.totalItems = this.list.length
+			this.list = this.list.slice(start, end)
+			this.loading = false
 		},
 	},
 
@@ -53,45 +63,37 @@ export default {
 		class="component justify-center align-center"	
 		min-width="500"
 	>
-		<v-card-item
-			density="compact"
-		>
-			<v-card-subtitle
-				class="text-overline text-center mb-3 pb-3"
-			>Now streaming</v-card-subtitle>
+		<v-card-item density="compact">
+			<v-card-subtitle class="text-overline text-center mb-3 pb-3">Now streaming</v-card-subtitle>
 		</v-card-item>
-
 		<v-divider></v-divider>
-
 		<v-data-table-server
 			v-model:items-per-page="itemsPerPage"
 			:items="list"
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
+			@update:options="fetchData"
 			no-data-text="there is no live game at the moment, please come back later"
-
 			density="compact"
 			class="text-caption"
 		>
 			<template v-slot:item="{ item }">
 				<tr>
-					<td class="text-center">
-						<v-avatar
-							:image="item.hostAvatar"
-							size="small"
-							class="my-1 mr-3"
-						></v-avatar>
-						{{ item.hostUsername }}
-					</td>
-					<td class="text-center">
-						<v-avatar
-							:image="item.guestAvatar"
-							size="small"
-							class="my-1 mr-3"
-						></v-avatar>
-						{{ item.guestUsername }}
-					</td>
+					<td class="text-caption justify-start text-center">
+						<v-btn
+							:to="{ name: 'profile', params: { id: item.hostID } }"
+							variant="text" class="text-caption justify-start " block>
+							<v-avatar :image="item.hostAvatar" size="small" class="my-1 mr-3"></v-avatar>
+							{{ item.hostUsername }}
+						</v-btn></td>
+					<td class="text-caption justify-start text-center">
+						<v-btn
+							:to="{ name: 'profile', params: { id: item.guestID } }"
+							variant="text" class="text-caption justify-start " block>
+							<v-avatar :image="item.guestAvatar" size="small" class="my-1 mr-3"></v-avatar>
+							{{ item.guestUsername }}
+						</v-btn></td>
 					<td class="text-start">
 						<v-btn
 								icon="mdi-play"
