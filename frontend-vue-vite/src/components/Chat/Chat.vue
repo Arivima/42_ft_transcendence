@@ -14,7 +14,7 @@
 									
 								<v-item-group v-model="activeChat">
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
-										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
+										<v-list-item :value="index" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
 										>
 											<v-avatar color="grey lighten-1 white--text" size="36" v-if="!item.isGroup && item.avatar" :image="item.avatar">
 											</v-avatar>
@@ -457,6 +457,8 @@ export default {
 		},
 
 		openGroupCreationPopup() {
+			this.messages = [];
+			this.activeChat = 0;
 			this.$refs.groupCreationDialog.groupChatDialog = true;
 			this.$refs.groupCreationDialog.friends = this.friendsChat;
 			this.$refs.groupCreationDialog.socket = this.socket;
@@ -477,6 +479,7 @@ export default {
 					return;
 				}
 				this.$refs.groupInfoDialog.groupInfo = response;
+				
 				for (let i = 0; i < response.members.length; i++) {
 					if (response.members[i].id == user.value.id) {
 						this.$refs.groupInfoDialog.user.isAdmin = response.members[i].isAdmin;

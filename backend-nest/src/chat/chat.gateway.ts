@@ -3,10 +3,11 @@ import { Socket, Server } from 'socket.io';
 import { ChatService } from './chat.service';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { CreateChatDto } from './dto/create-chat.dto';
-import { UpdateChatDto } from './dto/update-chat.dto';
+import { UpdateGroupDto } from './dto/update-group.dto';
 import { JwtService } from '@nestjs/jwt';
 import { async } from 'rxjs';
 import { response } from 'express';
+import { group } from 'console';
 
 const debug = false;
 
@@ -210,12 +211,17 @@ export class ChatGateway {
     let senderID = this.jwtService.decode(client.handshake.auth.token)['sub']
 
     let resIds = await this.chatService.create(createChatDto, Number(senderID));
+    // let blocked_users = await this.chatService.getBlockedUsers(Number(senderID));
+    let blocked_users = await this.chatService.getBlockedUsers(Number(senderID));
+
     if (resIds == "isMuted")
       return { success: false };
     if (!resIds)
       return
     console.log(`DEBUG | chat.gateway | handleMessage | resIds: ${resIds}`);
     for (let resId of resIds) {
+      if (blocked_users.includes(resId.playerID))
+        createChatDto.content = "This message is blocked";
       recClientId = this.clients.get(Number(resId.playerID));
       let data = JSON.stringify({ data: JSON.stringify({ ...createChatDto, "senderName": resId.senderName}) });
       if (recClientId)
@@ -242,5 +248,17 @@ export class ChatGateway {
     console.log(`DEBUG | chat.controller | joinGroup | memberId: ${recClientId}`);
     if (recClientId)
       this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0]?.createdAt, isGroup: true });
+  }
+  @SubscribeMessage("editGroup")
+  async editGroup(@MessageBody("group") group: UpdateGroupDto, @ConnectedSocket() client: Socket) {
+    // console.log(`DEBUG | chat.controller | editGroup | group: ${group}`);
+    let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
+    let res = await this.chatService.editGroup(group, Number(userId));
+    if (!res)
+      return { error: "not admin" };
+    return { success: true };
+    // let recClientId = this.clients.get(Number(userId));
+    // if (recClientId)
+    //   this.server.to(`${recClientId.id}`).emit('editgroup', { id: group.id, name: group.name});
   }
 }

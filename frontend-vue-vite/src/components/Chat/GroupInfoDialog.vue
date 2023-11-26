@@ -4,9 +4,15 @@
 			<div class="d-flex justify-space-between align-center pa-2 pointer elevation-1 mb-2">
 				<!-- <v-avatar class="mr-2"> -->
 				<v-card-title>{{ groupInfo.name }}</v-card-title>
+				<!-- edit group visibility button -->
+			<div>
+				<v-btn icon @click="editGroupPrivacy()" v-if="this.user.isAdmin" class="mr-2">
+					<v-icon>mdi-pencil</v-icon>
+				</v-btn>
 				<v-btn icon @click="addusertogroup()" v-if="this.user.isAdmin">
 					<v-icon>mdi-account-plus</v-icon>
 				</v-btn>
+			</div>
 			</div>
 			<v-card-text>
 				<!-- <v-img :src="groupInfo.imageUrl" aspect-ratio="1.5">
@@ -18,7 +24,7 @@
 							<v-list-item-title>{{ member.name }}</v-list-item-title>
 							<v-list-item-subtitle v-if="member.isAdmin">Administrator</v-list-item-subtitle>
 							<v-list-item-action class="float-right">
-								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId"/>
+								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId && member.id !== groupInfo.founder"/>
 								<v-btn @click="viewProfile(member.id)" color="secondary" class="mr-2" outlined>
 									View Profile
 								</v-btn>
@@ -33,13 +39,14 @@
 			</v-card-actions>
 		</v-card>
 		<GroupAddUserDialog ref="groupAddUserDialog" :socketProp="this.socket" :groupId="this.groupInfo.id" :userId="userId"/>
+		<GruopEditDialog ref="gruopEditDialog"/>
 	</v-dialog>
 </template>
 
 <script>
 import PopUpUserEdit from './PopUpUserEdit.vue';
 import GroupAddUserDialog from './GroupAddUserDialog.vue';
-
+import GruopEditDialog from './GruopEditDialog.vue';
 export default {
 	props: {
 		socketProp: {
@@ -104,6 +111,7 @@ export default {
 	components: {
 		PopUpUserEdit,
 		GroupAddUserDialog,
+		GruopEditDialog
 	},
 	data() {
 		return {
@@ -113,10 +121,13 @@ export default {
 			userId: 0,
 			user: {},
 			groupInfo: {
+				id: 0,
 				name: '',
 				imageUrl: '',
 				founder: '',
+				visibility: '',
 				members: [],
+				founder: '',
 			},
 		};
 	},
@@ -139,7 +150,6 @@ export default {
 		},
 		addusertogroup() {
 			this.$refs.groupAddUserDialog.groupAddUserDialog = true;
-			console.log("this.$refs.groupAddUserDialog", this.userId, this.groupInfo.id);
 			this.socket.emit("getfriendsnotingroup", { userId: this.userId, groupId: this.groupInfo.id }, (response) => {
 				this.$refs.groupAddUserDialog.friends = response.friends;
 			});
@@ -154,11 +164,13 @@ export default {
 				this.groupInfoDialog = false;
 			});
 		},
-		openGroupInfoPopup(group) {
+		editGroupPrivacy() {
+			this.$refs.gruopEditDialog.groupChatDialog = true;
+			this.$refs.gruopEditDialog.group = this.groupInfo;
+			this.$refs.gruopEditDialog.socket = this.socket;
+			
 		},
 
-		openGroupChatPopup(group) {
-		},
 		closeGroupChatPopup() {
 			this.groupInfoDialog = false;
 		},
