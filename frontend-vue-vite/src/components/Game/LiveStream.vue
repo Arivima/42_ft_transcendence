@@ -31,56 +31,37 @@ export default {
 		loading: false,
 		itemsPerPage: _items_per_page,
 		totalItems: 0,
-		list : [] as List[],
+		list : liveStreams,
 		headers: [
 			{ title: 'Host', key: 'host.username', align: 'center' },
 			{ title: 'Gest', key: 'guest.username', align: 'center' },
 			{ title: 'watch', key: 'watch', align: 'start' },
 		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
 	}),
+	created() {
+		playerStore.sendGetActiveGames();
+	},
 	computed : {
 	},
 	watch : {
 	},
 	methods : {
 		async fetchData(options: { page: number; itemsPerPage: number }) {
-			if (debug) console.log('| Leaderboard | methods | fetchData() page:' + options.page + ' ipp: ' + options.itemsPerPage)
-			this.loading = true
-			const start = (options.page - 1) * options.itemsPerPage
-			const end = start + options.itemsPerPage
-			try {
-					this.list = []
-
-					for (const [hostId, guestId] of liveStreams.value.entries()) {
-						console.log(`adding entry: hostID: ${hostId}, guestID: ${guestId}`)
-						const hostUser: Player = await fetchPlayer.value(hostId);
-						const guestUser: Player = await fetchPlayer.value(guestId);
-
-						if (hostUser && guestUser) {
-							const listEntry: List = {
-								host_id: hostUser.id,
-								host_username: hostUser.username,
-								host_avatar: hostUser.avatar,
-								guest_id: guestUser.id,
-								guest_username: guestUser.username,
-								guest_avatar: guestUser.avatar,
-							};
-							this.list.push(listEntry);
-						}
-					}
-				this.totalItems = this.list.length
-				this.list = this.list.slice(start, end)
-				this.loading = false
-			} catch (err) {
-				this.list = []
-				this.totalItems = 0
-				this.loading = false
-				console.log(err)
-			}
+			playerStore.sendGetActiveGames();
+			// playerStore.sendGetActiveGames();
+			// this.list = Array.from(
+			// 	liveStreams.value as Map<any, any>, (el, _) => {
+			// 		let [key, val] = el;
+			// 		return {
+			// 			host_id: key,
+			// 			guest_id: val,
+			// 		} as List;
+			// 	}
+			// )
 		},
 		streamUser(id : number){
 			if (debug) console.log('| Leaderboard | methods | streamUser()')
-			playerStore.sendStreamingRequest(id)
+			playerStore.sendStreamingRequest(id);
 		},
 	},
 
@@ -120,19 +101,19 @@ export default {
 				<tr>
 					<td class="text-center">
 						<v-avatar
-							:image="item.host_avatar"
+							:image="item.hostAvatar"
 							size="small"
 							class="my-1 mr-3"
 						></v-avatar>
-						{{ item.host_username }}
+						{{ item.hostUsername }}
 					</td>
 					<td class="text-center">
 						<v-avatar
-							:image="item.guest_avatar"
+							:image="item.guestAvatar"
 							size="small"
 							class="my-1 mr-3"
 						></v-avatar>
-						{{ item.guest_username }}
+						{{ item.guestUsername }}
 					</td>
 					<td class="text-start">
 						<v-btn

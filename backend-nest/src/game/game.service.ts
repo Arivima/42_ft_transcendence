@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/25 18:12:24 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/26 13:33:33 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ import { endGameDto } from './dto/endGame.dto';
 import { InviteDto } from './dto/invite.dto';
 import { FrameData } from './dto/frame.dto';
 import { PlayersService } from 'src/players/players.service';
+import { ActiveGameDto } from './dto/activeGame.dto';
 
 export class GameSocket {
 	user_socket: Socket
@@ -77,6 +78,37 @@ export class GameService {
 		return this.games;
 	}
 
+	getActiveGames(): ActiveGameDto[]
+	{
+		let activeGames = new Map<string, ActiveGameDto>();
+
+		for (let [_, gameSocket] of this.games.entries())
+		{
+			// insert game only if it is active and not yet inserted in the returning array
+			if (
+				this.games.has(gameSocket.hostID) &&
+				this.games.has(gameSocket.guestID) &&
+				false === activeGames.has(gameSocket.roomId)
+				)
+			{
+				//! DANGER no constructor provided in class definition
+				const customization = new CustomizationOptions();
+				
+				Object.assign(customization, gameSocket.customization);
+				activeGames.set(gameSocket.roomId, {
+					roomId: gameSocket.roomId,
+					hostID: gameSocket.hostID,
+					guestID: gameSocket.guestID,
+					customization
+				});
+			}
+		}
+		return Array.from(activeGames, (el, index) => {
+			let [key, val] = el;
+			return val;
+		});
+	}
+
 	/**
 	 * 
 	 * @returns map - key: roomId, val: frame data
@@ -87,19 +119,19 @@ export class GameService {
 
 	leaveGame(client: Socket, server: Server) {
 		
-		let key: number = -1;
+		let id: number = -1;
 		
 		// check in queue
 		for (let [userID, csock] of this.queue) {
 			if (client.id == csock.id) {
-				key = userID;
+				id = userID;
 				break ;
 			}
 		}
 
-		if (-1 != key) {
-			console.log(`| GATEWAY GAME | user ${key} socket removed from Queue`);
-			this.queue.delete(key);
+		if (-1 != id) {
+			console.log(`| GATEWAY GAME | user ${id} socket removed from Queue`);
+			this.queue.delete(id);
 			console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 			return ;
 		}
@@ -107,24 +139,24 @@ export class GameService {
 		// check in active games
 		for (let [userID, {user_socket: csock, ...rest}] of this.games) {
 			if (client?.id == csock?.id) {
-				key = userID;
+				id = userID;
 				break ;
 			}
 		}
 
-		if (-1 != key) {
+		if (-1 != id) {
 			
-			let game = this.games.get(key);
+			let game = this.games.get(id);
 			const roomId = game.roomId;
 			
-			this.pservice.changeConnection(key, {
+			this.pservice.changeConnection(id, {
 				playing: false
 			});
 			// leave the room
 			game.user_socket.leave(roomId);
-			console.log(`| GATEWAY GAME | user ${key} socket left ${roomId} `);
+			console.log(`| GATEWAY GAME | user ${id} socket left ${roomId} `);
 
-			if (key == game.hostID || key == game.guestID)
+			if (id == game.hostID || id == game.guestID)
 			{
 				// signaling end of game to whole room
 				server.to(roomId).emit("endGame", {
@@ -137,8 +169,8 @@ export class GameService {
 			}
 			
 			// deleting user game
-			this.games.delete(key);
-			console.log(`| GATEWAY GAME | user ${key} socket removed from games`);
+			this.games.delete(id);
+			console.log(`| GATEWAY GAME | user ${id} socket removed from games`);
 			
 			// deleting room if all players left
 			for (let [userID, game] of this.games) {

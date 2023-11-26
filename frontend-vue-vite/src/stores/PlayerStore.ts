@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/25 22:02:17 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/26 13:01:21 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -418,13 +418,38 @@ export class endGameDto {
 	}
 };
 
+export class ActiveGameDto
+{
+	public roomId: string
+	public hostID: number
+	public guestID: number
+	public customization: CustomizationOptions
+
+	public hostUsername: string
+	public hostAvatar: string
+	public guestUsername: string
+	public guestAvatar: string
+
+	constructor() {
+		this.roomId = '-1';
+		this.hostID = -1;
+		this.guestID = -1;
+		this.customization = new CustomizationOptions();
+
+		this.hostUsername = '';
+		this.guestUsername = '';
+		this.hostAvatar = '';
+		this.guestAvatar = '';
+	}
+};
+
 
 //?: make multiple players store
 export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 		state: (): {
 			user: Player,
 			currentGame: CurrentGame
-			liveStreams : Map<number, number>
+			liveStreams : ActiveGameDto[]
 			loading: boolean, //TODO ? forse rimuovere
 			friends: Player[],
 			blockedUsers: Player[],
@@ -443,7 +468,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			return {
 				user: new Player(),
 				currentGame: new CurrentGame(),
-				liveStreams: new Map<number, number>(),
+				liveStreams: [] as ActiveGameDto[],
 				friends: [],
 				blockedUsers: [],
 				publicUsers: [],
@@ -620,6 +645,11 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			// streaming
+			sendGetActiveGames() {
+				console.log(`/ Store / emit getActiveGames`);
+				this.user.gameSocket?.emit('getActiveGames');
+			},
+
 			sendStreamingRequest(playerID: number) {
 				if (debug) console.log("/Store/ sendStreamingRequest");
 				this.user.gameSocket?.emit('joinGame', {
@@ -796,8 +826,9 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
-					this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
-					this.user.gameSocket?.on('endStream', handleEndStream.bind(this));
+					this.user.gameSocket?.on('getActiveGames', handleNewActiveGames.bind(this));
+					// this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
+					// this.user.gameSocket?.on('endStream', handleEndStream.bind(this));
 					this.user.gameSocket?.on('newInvite', handleNewInvite.bind(this));
 					this.user.gameSocket?.on('deleteInvite', handleDeleteInvite.bind(this));
 					this.user.gameSocket?.on('rejectedInvite', handleRejectedInvite.bind(this));
@@ -1381,23 +1412,42 @@ async function handleEnd(this: any, endGame : endGameDto) {
 	this.user.status = PlayerStatus.online
 }
 
-async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-	console.log("/Store/ handleNewStream()");
-	console.log('%c received("newStream")', 'background: yellow; color: black')
+async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
+	console.log(`/ Store / handleNewActiveGames`);
 
-	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
+	for (const game of activeGames)
 	{
-		console.log(`adding game instance to streaming list`);
-		this.liveStreams.set(game.hostID, game.guestID);
+		console.log(`next game: roomId: ${game.roomId}; hostID: ${game.hostID}; guestID: ${game.guestID}`);
+
+		const host = await fetchPlayer(game.hostID);
+		const guest = await fetchPlayer(game.guestID);
+
+		game.hostUsername = host.username;
+		game.hostAvatar = host.avatar;
+		game.guestUsername = guest.username;
+		game.guestAvatar = guest.avatar;
 	}
+
+	this.liveStreams = activeGames;
 }
 
-async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-	console.log("/Store/ handleEndStream()");
-	console.log('%c received("endStream")', 'background: yellow; color: black')
+// async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
+// 	console.log("/Store/ handleNewStream()");
+// 	console.log('%c received("newStream")', 'background: yellow; color: black')
 
-	console.log('number of live games')
-	console.log(this.liveStreams.size)
+// 	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
+// 	{
+// 		console.log(`adding game instance to streaming list`);
+// 		this.liveStreams.set(game.hostID, game.guestID);
+// 	}
+// }
 
-	this.liveStreams.delete(game.hostID);
-}
+// async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
+// 	console.log("/Store/ handleEndStream()");
+// 	console.log('%c received("endStream")', 'background: yellow; color: black')
+
+// 	console.log('number of live games')
+// 	console.log(this.liveStreams.size)
+
+// 	this.liveStreams.delete(game.hostID);
+// }
