@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/26 13:38:48 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/26 15:03:49 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -208,7 +208,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		if (debug) console.log(`| GATEWAY GAME | 'matchMaking' |`);
 		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
-		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size} `);
+		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGameInstances().size} `);
 		let matched: boolean = false;
 		let roomId: string;
 		
@@ -248,7 +248,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.gameService.getQueue().set(userID, userSocket);
 		}
 		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
-		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGames().size / 2} `);
+		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGameInstances().size / 2} `);
 	}
 
 	@SubscribeMessage("cancelMatchMaking")
@@ -294,6 +294,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			);
 			
 			// Sending updated list of active games to all
+			this.gameService.calculateActiveGames();
 			this.server.emit('getActiveGames', this.gameService.getActiveGames());
 			
 			// changin status of host and guest to 'Playing'
@@ -362,7 +363,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			return
 		// if (debug) console.log(`| GATEWAY GAME | 'newFrame'`);
 		
-		const	roomId: string = this.gameService.getGames().get(userID).roomId;
+		const	roomId: string = this.gameService.getGameInstances().get(userID).roomId;
 		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
 		const	hostWin: boolean = (10 == frame?.data?.host?.score);
 		const	guestWin: boolean = (10 == frame?.data?.guest?.score);
@@ -417,10 +418,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (!userID || !socket)
 			return
 
-		if (debug) console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
+		console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
 		
-		const game = this.gameService.getGames().get(userID);
-		const shutdownRoom = game.hostID == userID || game.guestID == userID;
+		const game = this.gameService.getGameInstances().get(userID);
+		// leaveGame gets called two times with current flow
+		const shutdownRoom = game && (game.hostID == userID || game.guestID == userID);
 
 		// deleting game instance of player
 		this.gameService.leaveGame(socket, this.server);
@@ -432,6 +434,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		//! (meaning, the opponent left, but not the user whose profile you are viewing)
 		// send new active game list if one of host and guest left game
 		if (shutdownRoom) {
+			this.gameService.calculateActiveGames();
 			this.server.emit('getActiveGames', this.gameService.getActiveGames());
 		}
 

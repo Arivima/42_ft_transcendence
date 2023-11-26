@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/26 13:33:33 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/26 14:21:27 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,20 +46,25 @@ export class GameService {
 	 * key: userID
 	 * value: sockets + game info
 	 */
-	private games: Map<number, GameSocket>;
+	private gameInstances: Map<number, GameSocket>;
 	/**
 	 * key: roomID
 	 * value: next frame data
 	 */
 	private frames: Map<string, FrameDto>;
+	/**
+	 * 
+	 */
+	private activeGames: ActiveGameDto[];
 
 	constructor(
 		private readonly prisma: PrismaService,
 		private readonly pservice: PlayersService
 	) {
 		this.queue = new Map<number, Socket>();
-		this.games = new Map<number, GameSocket>();
+		this.gameInstances = new Map<number, GameSocket>();
 		this.frames = new Map<string, FrameDto>();
+		this.activeGames = [] as ActiveGameDto[];
 	}
 
 	/**
@@ -70,24 +75,28 @@ export class GameService {
 		return this.queue;
 	}
 
+	getActiveGames(): ActiveGameDto[] {
+		return this.activeGames;
+	}
+
 	/**
 	 * 
 	 * @returns map - key: userID, val: game room info
 	 */
-	getGames(): Map<number, GameSocket> {
-		return this.games;
+	getGameInstances(): Map<number, GameSocket> {
+		return this.gameInstances;
 	}
 
-	getActiveGames(): ActiveGameDto[]
+	calculateActiveGames()
 	{
 		let activeGames = new Map<string, ActiveGameDto>();
 
-		for (let [_, gameSocket] of this.games.entries())
+		for (let [_, gameSocket] of this.gameInstances.entries())
 		{
 			// insert game only if it is active and not yet inserted in the returning array
 			if (
-				this.games.has(gameSocket.hostID) &&
-				this.games.has(gameSocket.guestID) &&
+				this.gameInstances.has(gameSocket.hostID) &&
+				this.gameInstances.has(gameSocket.guestID) &&
 				false === activeGames.has(gameSocket.roomId)
 				)
 			{
@@ -103,7 +112,7 @@ export class GameService {
 				});
 			}
 		}
-		return Array.from(activeGames, (el, index) => {
+		this.activeGames = Array.from(activeGames, (el, index) => {
 			let [key, val] = el;
 			return val;
 		});
@@ -137,7 +146,7 @@ export class GameService {
 		}
 
 		// check in active games
-		for (let [userID, {user_socket: csock, ...rest}] of this.games) {
+		for (let [userID, {user_socket: csock, ...rest}] of this.gameInstances) {
 			if (client?.id == csock?.id) {
 				id = userID;
 				break ;
@@ -146,7 +155,7 @@ export class GameService {
 
 		if (-1 != id) {
 			
-			let game = this.games.get(id);
+			let game = this.gameInstances.get(id);
 			const roomId = game.roomId;
 			
 			this.pservice.changeConnection(id, {
@@ -169,11 +178,11 @@ export class GameService {
 			}
 			
 			// deleting user game
-			this.games.delete(id);
+			this.gameInstances.delete(id);
 			console.log(`| GATEWAY GAME | user ${id} socket removed from games`);
 			
 			// deleting room if all players left
-			for (let [userID, game] of this.games) {
+			for (let [userID, game] of this.gameInstances) {
 				if (roomId === game.roomId)
 					return ;
 			}
@@ -181,8 +190,8 @@ export class GameService {
 			console.log(`| GATEWAY GAME | room ${roomId} removed from frames`);
 
 			console.log(`currently ${this.queue.size} users in queue`);
-			console.log(`currently ${this.games.size / 2} active games`);
-			for (let [userID, gameSock] of this.games) {
+			console.log(`currently ${this.gameInstances.size / 2} active games`);
+			for (let [userID, gameSock] of this.gameInstances) {
 				console.log(`Found Active Game`);
 				console.log(`userID: ${userID}; roomId: ${roomId}`);
 			}
@@ -217,8 +226,8 @@ export class GameService {
 			guestID: userID
 		};
 		this.queue.delete(hostID);
-		this.games.set(hostID, hostGameSocket);
-		this.games.set(userID, guestGameSocket);
+		this.gameInstances.set(hostID, hostGameSocket);
+		this.gameInstances.set(userID, guestGameSocket);
 
 		return roomId;
 	}
@@ -279,7 +288,7 @@ export class GameService {
 	): {roomId: string, final_customization: CustomizationOptions} | undefined
 	{
 
-		const other_customizations = this.games.get(
+		const other_customizations = this.gameInstances.get(
 			userID == gameInfo.hostID ?
 			gameInfo.guestID :
 			gameInfo.hostID
@@ -292,7 +301,7 @@ export class GameService {
 		
 		if (JSON.stringify({}) != JSON.stringify(other_customizations))
 		{
-			const roomId = this.games.get(userID).roomId;
+			const roomId = this.gameInstances.get(userID).roomId;
 			const randN = Math.random() * 1024;
 			const final_customization = {
 				pitch_color: randN % 2 == 0 ?
@@ -315,13 +324,13 @@ export class GameService {
 				seq: -1,
 				data: {} as FrameData
 			} as FrameDto);
-			Object.assign(this.games.get(userID).customization, customization);
+			Object.assign(this.gameInstances.get(userID).customization, customization);
 			return {
 				roomId,
 				final_customization
 			};
 		}
-		Object.assign(this.games.get(userID).customization, customization);
+		Object.assign(this.gameInstances.get(userID).customization, customization);
 		return undefined;
 	}
 
@@ -337,7 +346,7 @@ export class GameService {
 		playerID: number,
 		user_socket: Socket
 	): GameSocket | undefined {
-		const game = this.games.get(playerID);
+		const game = this.gameInstances.get(playerID);
 
 		if (game)
 		{
@@ -347,7 +356,7 @@ export class GameService {
 			// updating structures
 			Object.assign(my_gameSocket, game);
 			my_gameSocket.user_socket = user_socket;
-			this.games.set(userID, my_gameSocket);
+			this.gameInstances.set(userID, my_gameSocket);
 
 			return game;
 		}

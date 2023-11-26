@@ -33,8 +33,8 @@ export default {
 		totalItems: 0,
 		list : liveStreams,
 		headers: [
-			{ title: 'Host', key: 'host.username', align: 'center' },
-			{ title: 'Gest', key: 'guest.username', align: 'center' },
+			{ title: 'Host', key: 'hostUsername', align: 'center' },
+			{ title: 'Guest', key: 'guestUsername', align: 'center' },
 			{ title: 'watch', key: 'watch', align: 'start' },
 		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
 	}),
@@ -46,19 +46,6 @@ export default {
 	watch : {
 	},
 	methods : {
-		async fetchData(options: { page: number; itemsPerPage: number }) {
-			playerStore.sendGetActiveGames();
-			// playerStore.sendGetActiveGames();
-			// this.list = Array.from(
-			// 	liveStreams.value as Map<any, any>, (el, _) => {
-			// 		let [key, val] = el;
-			// 		return {
-			// 			host_id: key,
-			// 			guest_id: val,
-			// 		} as List;
-			// 	}
-			// )
-		},
 		streamUser(id : number){
 			if (debug) console.log('| Leaderboard | methods | streamUser()')
 			playerStore.sendStreamingRequest(id);
@@ -91,7 +78,6 @@ export default {
 			:headers=headers
 			:items-length="totalItems"
 			:loading="loading"
-			@update:options="fetchData"
 			no-data-text="there is no live game at the moment, please come back later"
 
 			density="compact"
