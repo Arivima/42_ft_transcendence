@@ -31,10 +31,22 @@ export class ChatGateway {
 
 
   async handleConnection(client: any, ...args: any[]) {
-    const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
-      secret: process.env.JWT_SECRET
-    });
-    this.clients.set(Number(user.sub), client);
+    try {
+      const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
+        secret: process.env.JWT_SECRET
+      });
+      this.clients.set(Number(user.sub), client);
+    } catch (error) {
+      console.log(`DEBUG | chat.gateway | handleConnection | error: ${error}`);
+      // redirect to login page
+      client.emit('redirect', '/login');
+      
+    }
+    // const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
+    //   secret: process.env.JWT_SECRET
+    // });
+    // console.log(`DEBUG | chat.gateway | handleConnection | user: ${user.sub}`);
+    // this.clients.set(Number(user.sub), client);
   }
 
   handleDisconnect(client: any) {

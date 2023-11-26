@@ -5,7 +5,6 @@
 		<v-card-text>
 		  <v-text-field v-model="groupSearch" label="Group Chat Name" @input="searchGroups"></v-text-field>
 		</v-card-text>
-		<!-- show search result groups -->
 		<v-card-title>Search Result</v-card-title>
 		<v-card-text>
 			<v-list dense>
@@ -14,15 +13,12 @@
 						<v-list-item-title>{{ group.name }}</v-list-item-title>
 						<v-list-item-subtitle v-if="group.visibility === 'public'">Public</v-list-item-subtitle>
 						<v-list-item-subtitle v-if="group.visibility === 'protected'">Protected</v-list-item-subtitle>
-						<!-- insert group password if protected on click -->
 						<v-list-item-action class="float-right">
 							<v-text-field v-if="group.visibility === 'protected'" v-model="group.password" label="Password for protected groups" style="width: 200px; margin-top: 10px; padding-right: 10px;"></v-text-field>
 							<v-btn color="primary" class="mr-2" outlined @click="joinGroup(group.groupID, group.password)">
 								Join Group
 							</v-btn>
 						</v-list-item-action>
-
-
 					</v-list-item>
 				</div>
 			</v-list>
