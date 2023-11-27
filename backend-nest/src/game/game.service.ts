@@ -25,10 +25,13 @@ import { FrameData } from './dto/frame.dto';
 import { PlayersService } from 'src/players/players.service';
 import { ActiveGameDto } from './dto/activeGame.dto';
 
+const debug = false
+
 export class GameSocket {
 	user_socket: Socket
 	roomId: string
 
+	finished: boolean
 	customization: CustomizationOptions
 	hostID: number
 	guestID: number
@@ -139,9 +142,9 @@ export class GameService {
 		}
 
 		if (-1 != id) {
-			console.log(`| GATEWAY GAME | user ${id} socket removed from Queue`);
+			if (debug) console.log(`| GATEWAY GAME | user ${id} socket removed from Queue`);
 			this.queue.delete(id);
-			console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
+			if (debug) console.log(`| GATEWAY GAME | current queue : ${this.queue.size} `);
 			return ;
 		}
 
@@ -163,7 +166,7 @@ export class GameService {
 			});
 			// leave the room
 			game.user_socket.leave(roomId);
-			console.log(`| GATEWAY GAME | user ${id} socket left ${roomId} `);
+			if (debug) console.log(`| GATEWAY GAME | user ${id} socket left ${roomId} `);
 
 			if (id == game.hostID || id == game.guestID)
 			{
@@ -174,12 +177,12 @@ export class GameService {
 					hostScore: -1,
 					guestScore: -1,
 				} as endGameDto)
-				console.log(`| GATEWAY GAME | leaveGame | emit : endGame`);
+				if (debug) console.log(`| GATEWAY GAME | leaveGame | emit : endGame`);
 			}
 			
 			// deleting user game
 			this.gameInstances.delete(id);
-			console.log(`| GATEWAY GAME | user ${id} socket removed from games`);
+			if (debug) console.log(`| GATEWAY GAME | user ${id} socket removed from games`);
 			
 			// deleting room if all players left
 			for (let [userID, game] of this.gameInstances) {
@@ -187,7 +190,7 @@ export class GameService {
 					return ;
 			}
 			this.frames.delete(roomId);
-			console.log(`| GATEWAY GAME | room ${roomId} removed from frames`);
+			if (debug) console.log(`| GATEWAY GAME | room ${roomId} removed from frames`);
 
 			console.log(`currently ${this.queue.size} users in queue`);
 			console.log(`currently ${this.gameInstances.size / 2} active games`);
@@ -208,12 +211,13 @@ export class GameService {
 		const roomId: string = `${userID}:${hostID}`;
 		hostSocket?.join(roomId);
 		userSocket?.join(roomId);
-		console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket?.id} & ${userSocket?.id} joined ${roomId} `);
+		if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | ${hostSocket?.id} & ${userSocket?.id} joined ${roomId} `);
 
 		// update data structures
 		let hostGameSocket: GameSocket = {
 			user_socket: hostSocket,
 			roomId,
+			finished: false,
 			customization: {} as CustomizationOptions,
 			hostID,
 			guestID: userID
@@ -221,6 +225,7 @@ export class GameService {
 		let guestGameSocket: GameSocket = {
 			user_socket: userSocket,
 			roomId,
+			finished: false,
 			customization: {} as CustomizationOptions,
 			hostID,
 			guestID: userID
@@ -239,7 +244,7 @@ export class GameService {
 	
 	async playerMatch(hostID: number, guestID: number): Promise<boolean>
 	{
-		console.log(`playerMatch: hostID: ${hostID} ${typeof hostID}, guestID: ${guestID} ${typeof guestID}`);
+		if (debug) console.log(`playerMatch: hostID: ${hostID} ${typeof hostID}, guestID: ${guestID} ${typeof guestID}`);
 
 		let friendship = await this.prisma.beFriends.findUnique({
 			where: {
@@ -255,7 +260,7 @@ export class GameService {
 		});
 
 		if (null === friendship) {
-			console.log(`frienship take 2`);
+			if (debug) console.log(`frienship take 2`);
 			friendship = await this.prisma.beFriends.findUnique({
 					where: {
 						requestorID_recipientID: {
@@ -274,7 +279,7 @@ export class GameService {
 			return true;
 		if (friendship.recipient_blacklisted || friendship.requestor_blacklisted)
 		{
-			console.log(`user blacklisted`)
+			if (debug) console.log(`user blacklisted`)
 			return false;
 		}
 
@@ -288,16 +293,17 @@ export class GameService {
 	): {roomId: string, final_customization: CustomizationOptions} | undefined
 	{
 
+		const otherID = userID == gameInfo.hostID ? gameInfo.guestID : gameInfo.hostID
 		const other_customizations = this.gameInstances.get(
 			userID == gameInfo.hostID ?
 			gameInfo.guestID :
 			gameInfo.hostID
 		)?.customization || {} as CustomizationOptions;
 
-		console.log(`User ${userID} customization`)
-		console.log(customization)
-		console.log(`Opponent ${userID == gameInfo.hostID ? gameInfo.guestID : gameInfo.hostID} customization`)
-		console.log(other_customizations)
+		if (debug) console.log(`User ${userID} customization`)
+		if (debug) console.log(customization)
+		if (debug) console.log(`Opponent ${userID == gameInfo.hostID ? gameInfo.guestID : gameInfo.hostID} customization`)
+		if (debug) console.log(other_customizations)
 		
 		if (JSON.stringify({}) != JSON.stringify(other_customizations))
 		{
@@ -323,8 +329,8 @@ export class GameService {
 				final_customization.ball_color = '#800080';
 			}
 
-			console.log(`Final customization`)
-			console.log(final_customization)
+			if (debug) console.log(`Final customization`)
+			if (debug) console.log(final_customization)
 
 			this.frames.set(roomId, {
 				hostID: gameInfo.hostID,
@@ -332,7 +338,9 @@ export class GameService {
 				seq: -1,
 				data: {} as FrameData
 			} as FrameDto);
-			Object.assign(this.gameInstances.get(userID).customization, customization);
+			//! final_customization here instead of customization
+			Object.assign(this.gameInstances.get(userID).customization, final_customization); 
+			Object.assign(this.gameInstances.get(otherID).customization, final_customization); 
 			return {
 				roomId,
 				final_customization

@@ -80,7 +80,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 		
 		if (-1 != key) {
-			console.log(`GAME GATEWAY | disconnecting user ${key}`);
+			if (debug) console.log(`GAME GATEWAY | disconnecting user ${key}`);
 			this.clients.delete(key);
 		}
 		
@@ -91,7 +91,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	getActiveGames(
 		@ConnectedSocket() client: Socket
 	) {
-		console.log(`GAME | getActiveGames`);
+		if (debug) console.log(`GAME | getActiveGames`);
 
 		const activeGames = this.gameService.getActiveGames();
 
@@ -105,14 +105,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('invite') invite: InviteDto
 	){
 		if (debug) console.log(`| GATEWAY GAME | 'sendInvite'`);
-		console.log(invite)
+		if (debug) console.log(invite)
 
 		if (!invite?.hostID || !invite?.guestID)
 			return
 
 		let recipientSocket = this.clients.get(invite?.guestID);
 
-		console.log(`recipient socket : ${recipientSocket.id}`)
+		if (debug) console.log(`recipient socket : ${recipientSocket.id}`)
 
 		if (recipientSocket)
 		{
@@ -125,14 +125,14 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	cancelInvite(@MessageBody('invite') invite: InviteDto )
 	{
 		if (debug) console.log(`| GATEWAY GAME | 'cancelInvite'`);
-		console.log(invite)
+		if (debug) console.log(invite)
 
 		if (!invite?.hostID || !invite?.guestID)
 			return
 
 			let recipientSocket = this.clients.get(invite?.guestID);
 
-		console.log(`recipient socket : ${recipientSocket?.id}`)
+			if (debug) console.log(`recipient socket : ${recipientSocket?.id}`)
 
 		if (recipientSocket)
 		{
@@ -145,13 +145,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	rejectInvite(@MessageBody('invite') invite: InviteDto )
 	{
 		if (debug) console.log(`| GATEWAY GAME | 'rejectInvite'`);
-		console.log(invite)
+		if (debug) console.log(invite)
 
 		if (!invite?.hostID || !invite?.guestID)
 			return
 
 		let requestorSocket = this.clients.get(invite?.hostID);
-		console.log(`recipient requestorSocket : ${requestorSocket.id}`)
+		if (debug) console.log(`recipient requestorSocket : ${requestorSocket.id}`)
 
 		if (requestorSocket)
 		{
@@ -162,15 +162,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	@SubscribeMessage('acceptInvite')
 	acceptInvite(@MessageBody('invite') invite: InviteDto ) {
 		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite'`);
-		console.log(invite)
+		if (debug) console.log(invite)
 
 		if (!invite?.hostID || !invite?.guestID)
 			return
 
 		const host_socket = this.clients.get(invite?.hostID);
 		const guest_socket = this.clients.get(invite?.guestID);
-		console.log(`host_socket : ${host_socket?.id}`)
-		console.log(`guest_socket : ${guest_socket?.id}`)
+		if (debug) console.log(`host_socket : ${host_socket?.id}`)
+		if (debug) console.log(`guest_socket : ${guest_socket?.id}`)
 		
 		// Create game instance
 		let roomId = this.gameService.matchPlayers(
@@ -355,6 +355,10 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			return
 		// if (debug) console.log(`| GATEWAY GAME | 'newFrame'`);
 		
+		const	finished = (
+			this.gameService.getGameInstances().get(frame.hostID).finished ||
+			this.gameService.getGameInstances().get(frame.guestID).finished
+		);
 		const	roomId: string = this.gameService.getGameInstances().get(userID).roomId;
 		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);
 		const	hostWin: boolean = (10 == frame?.data?.host?.score);
@@ -379,7 +383,11 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 				} as endGameDto);
 				if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'endGame'`);
 
-				await this.gameService.setGameasFinished(frame);
+				if (false === finished) {
+					this.gameService.getGameInstances().get(frame.guestID).finished = true;
+					this.gameService.getGameInstances().get(frame.hostID).finished = true;
+					await this.gameService.setGameasFinished(frame);
+				}
 				// await this.gameService.updateAchievements(frame, userID);
 
 				// remove from streaming list
@@ -410,7 +418,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (!userID || !socket)
 			return
 
-		console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
+			if (debug) console.log(`| GATEWAY GAME | 'leaveGame' | ${userID} `);
 		
 		const game = this.gameService.getGameInstances().get(userID);
 		// leaveGame gets called two times with current flow
@@ -431,8 +439,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		}
 
 		for (let [userID, uSock] of this.clients) {
-			console.log(`found client`);
-			console.log(`userID: ${userID}; socket.id: ${uSock.id}`);
+			if (debug) console.log(`found client`);
+			if (debug) console.log(`userID: ${userID}; socket.id: ${uSock.id}`);
 		}
 	}
 
