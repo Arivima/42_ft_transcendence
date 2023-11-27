@@ -38,7 +38,7 @@ export default {
 		}
 	},
 	computed: {
-		visibility() : string {
+		visibility() : 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
 			if (debug) console.log('| UserCard | computed : visibility')
 			let profileType = playerStore.visibility(this.userProfile.id);
 			return profileType
