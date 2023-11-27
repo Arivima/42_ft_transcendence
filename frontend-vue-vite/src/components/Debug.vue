@@ -1,5 +1,5 @@
 <script lang="ts">
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
+import { usePlayerStore, type Player, type Invite } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
@@ -36,9 +36,7 @@ export default {
 		waiting() : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing' {
 			return currentGame.value.waiting
 		},
-		invite() : { received: boolean, senderID: number, senderUsername: string,
-					sent: boolean, recipientID: number, 
-			} {
+		invite() : Invite{
 			return currentGame.value.invite
 		},
 		streaming() : boolean {
@@ -94,13 +92,14 @@ export default {
 			</v-card>
 
 			<v-card style="display: flex; flex-direction: column; height: fit-content;" class="ma-2 pa-2">
-				<p style="color: purple;">Received</p>
-				<p style="color: purple;">invite = {{ invite.received }}</p>
-				<p style="color: purple;">invite = {{ invite.senderID }}</p>
-				<p style="color: purple;">invite = {{ invite.senderUsername }}</p>
-				<p style="color: purple;">Sent</p>
-				<p style="color: purple;">invite = {{ invite.sent }}</p>
-				<p style="color: purple;">invite = {{ invite.recipientID }}</p>
+				<p style="color: purple;">| Received |</p>
+				<p style="color: purple;">{{ invite.received }}</p>
+				<p style="color: purple;">{{ invite.senderID }}</p>
+				<p style="color: purple;">{{ invite.senderUsername }}</p>
+				<p style="color: purple;">| Sent |</p>
+				<p style="color: purple;">{{ invite.sent }}</p>
+				<p style="color: purple;">{{ invite.recipientID }}</p>
+				<p style="color: purple;">{{ invite.recipientUsername }}</p>
 			</v-card>	
 
 

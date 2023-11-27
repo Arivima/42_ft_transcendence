@@ -511,10 +511,13 @@ export default defineComponent({
 				this.step *= 1.12
 		},
 		collisionY(){
-			if (this.frame.data.ball.dy == 1)
-				this.frame.data.ball.color = this.invertColor(this.customizations.ball_color)
-			else
-				this.frame.data.ball.color = this.customizations.ball_color	
+			if (this.isCustomized){
+				if (this.frame.data.ball.dy == 1)
+					this.frame.data.ball.color = this.invertColor(this.customizations.ball_color)
+				else
+					this.frame.data.ball.color = this.customizations.ball_color					
+			}
+
 		},
 
 		moveBall() {
@@ -523,28 +526,27 @@ export default defineComponent({
 
 			// collision of X axis
 			/* check collision paddle guest */
-			if ((this.frame.data.ball.x + this.frame.data.ball.radius + this.frame.data.guest.paddle.w > 1)
-				&& ((this.frame.data.ball.y < (this.frame.data.guest.paddle.y + this.frame.data.guest.paddle.h))
-					&& (this.frame.data.ball.y > this.frame.data.guest.paddle.y))){
+			if ((this.frame.data.ball.x + step + this.frame.data.ball.radius + this.frame.data.guest.paddle.w > 1)
+				&& ((this.frame.data.ball.y + step < (this.frame.data.guest.paddle.y + this.frame.data.guest.paddle.h))
+				&& (this.frame.data.ball.y + step > this.frame.data.guest.paddle.y))){
 					this.frame.data.ball.dx *= -1;
 			}
 			/* check collision paddle host */
-			else if ((this.frame.data.ball.x - this.frame.data.ball.radius - this.frame.data.host.paddle.w < 0)
-				&& ((this.frame.data.ball.y < (this.frame.data.host.paddle.y + this.frame.data.host.paddle.h))
-					&& (this.frame.data.ball.y > this.frame.data.host.paddle.y))){
+			else if ((this.frame.data.ball.x - this.frame.data.ball.radius - step - this.frame.data.host.paddle.w < 0)
+				&& ((this.frame.data.ball.y + step < (this.frame.data.host.paddle.y + this.frame.data.host.paddle.h))
+				&& (this.frame.data.ball.y + step > this.frame.data.host.paddle.y))){
 					this.frame.data.ball.dx *= -1;
 			}
 			/* check collision wall */
-			else if (this.frame.data.ball.x + this.frame.data.ball.radius > 1 || this.frame.data.ball.x - this.frame.data.ball.radius < 0) {
+			else if (this.frame.data.ball.x + step + this.frame.data.ball.radius > 1 || this.frame.data.ball.x + step - this.frame.data.ball.radius < 0) {
 				this.frame.data.ball.dx *= -1;
 				this.collisionX()
 			}
 
 			// collision of Y axis
-			if (this.frame.data.ball.y + this.frame.data.ball.radius > 1 || this.frame.data.ball.y - this.frame.data.ball.radius < 0){
+			if (this.frame.data.ball.y + step + this.frame.data.ball.radius > 1 || this.frame.data.ball.y + step - this.frame.data.ball.radius < 0){
 				this.frame.data.ball.dy *= -1;
-				if (this.isCustomized)
-					this.collisionY()
+				this.collisionY()
 			}
 
 			/*update position of ball*/
