@@ -57,8 +57,17 @@ export class PlayersController {
 			player.avatar = `/players/avatar/${req.user.sub}`
 		}
 		if (debug) console.log(`avatar address: ${player.avatar}`);
+
 		return player;
 	}
+
+	// @Get('status/:id')
+	// getUserStatus(@Param('id') id: string) : 'offline' | 'online' | 'playing' {
+	// 	const status : 'offline' | 'online' | 'playing' = this.playersService.getConnection(Number(id))
+	// 	console.log(`p.controller | status : ${status}`)
+	// 	return status;
+	// }
+
 
 	@Get('leaderboard')
 	async getLeaderboard()
@@ -208,18 +217,18 @@ export class PlayersController {
 	}
 
 	@Patch('me')
-	async updateMe(@Request() req, @Body() updatePlaterDto: UpdatePlayerDto)
+	async updateMe(@Request() req, @Body() updatePlayerDto: UpdatePlayerDto)
 	{
 		if (debug) console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
 		try {
-			await this.playersService.update(Number(req.user.sub), updatePlaterDto);
+			await this.playersService.update(Number(req.user.sub), updatePlayerDto);
 		}
 		catch(err) {
 			if (
 				(err instanceof PrismaClientKnownRequestError) &&
 				(err as PrismaClientKnownRequestError).code == 'P2002'
 			)
-				throw new HttpException(`username ${updatePlaterDto.username} is already in use`, HttpStatus.CONFLICT);
+				throw new HttpException(`username ${updatePlayerDto.username} is already in use`, HttpStatus.CONFLICT);
 			else
 				throw new HttpException('Internal Server Error', HttpStatus.INTERNAL_SERVER_ERROR);
 		}

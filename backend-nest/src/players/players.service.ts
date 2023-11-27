@@ -8,39 +8,81 @@ export class Connection {
 	playing: boolean;
 }
 
-const debug = false;
+const debug = true;
 
 @Injectable()
 export class PlayersService {
 	private connections: Map<number, Connection>;
 
 	constructor(private readonly prisma: PrismaService) {
+		if (debug) console.log('\x1b[36m%s\x1b[0m', '| constructor PlayersService');
 		this.connections = new Map<number, Connection>();
 	}
 
 	addConnection(userID: number) {
 		this.connections.set(userID, { playing: false });
+
+		if (debug) console.log('\x1b[36m%s\x1b[0m', '| addConnection');
+		if (debug) console.log(`| user ${userID} is :
+					${this.connections.has(userID) === false ? 'offline'
+					: this.connections.get(userID).playing === true ? 'playing' : 'online'}`);
+
+					if (debug) console.log('Printing connections:');
+		for (const [playerId, connection] of this.connections.entries()) {
+			if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
+		}
+
 	}
 
 	removeConnection(userID: number) {
 		this.connections.delete(userID);
+
+		if (debug) console.log('\x1b[36m%s\x1b[0m', '| removeConnection');
+		if (debug) console.log(`| user ${userID} is :
+					${this.connections.has(userID) === false ? 'offline'
+					: this.connections.get(userID).playing === true ? 'playing' : 'online'}`);
+
+					if (debug) console.log('Printing connections:');
+		for (const [playerId, connection] of this.connections.entries()) {
+			if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
+			}
+
 	}
 
 	changeConnection(userID: number, connection: Connection)
 	{
-		if (this.isLoggedIn(userID))
-			console.log(`user logged in -- playing: ${this.connections.get(userID).playing}`);
-		else
-			console.log(`user NOT logged in`);
+		if (debug) console.log('\x1b[36m%s\x1b[0m', '| changeConnection');
+		if (debug) console.log(`| user ${userID} was :
+					${this.connections.has(userID) === false ? 'offline'
+					: this.connections.get(userID).playing === true ? 'playing' : 'online'}`);
 
-		console.log(`changing connection of ${userID} to playing: ${connection.playing}`);
 		this.connections.set(userID, connection);
-		
-		if (this.isLoggedIn(userID))
-			console.log(`user logged in -- playing: ${this.connections.get(userID).playing}`);
-		else
-			console.log(`user NOT logged in`);
+
+		if (debug) console.log(`| user ${userID} is :
+					${this.connections.has(userID) === false ? 'offline'
+					: this.connections.get(userID).playing === true ? 'playing' : 'online'}`);
+
+					if (debug) console.log('Printing connections:');
+		for (const [playerId, connection] of this.connections.entries()) {
+			if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
+			}
 	}
+
+	// getConnection(userID: number) : 'offline' | 'online' | 'playing'
+	// {
+	// 	const status : 'offline' | 'online' | 'playing' = 	this.connections.has(userID) ? 
+	// 														(this.connections.get(userID).playing === true ? 'playing' : 'online')
+	// 														:'offline'
+
+	// 	if (debug) console.log('\x1b[36m%s\x1b[0m', `| getConnection : ${status}`);
+	// 	if (debug) console.log('Printing connections:');
+	// 	for (const [playerId, connection] of this.connections.entries()) {
+	// 		if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
+	// 	  }
+
+
+	// 	return status
+	// }	
 
 	isLoggedIn(userID: number): boolean {
 		return this.connections.has(userID);
@@ -125,11 +167,13 @@ export class PlayersService {
 			})),
 			...this.connections.get(id),
 		};
-
 		return JSON.stringify(player) == '{}' ? null : player;
 	}
 
 	async update(id: number, updatePlayerDto: UpdatePlayerDto): Promise<Player> {
+		if (debug) console.log(`pservice update`);
+		if (debug) console.log(updatePlayerDto);
+
 		return await this.prisma.player.update({
 			where: { id },
 			data: updatePlayerDto,

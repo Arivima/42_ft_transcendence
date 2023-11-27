@@ -7,12 +7,13 @@ import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
-const { user, currentGame } = storeToRefs(playerStore)
+const { user } = storeToRefs(playerStore)
 const debug = false
 
 export default {
 	data() {
 		return {
+			// liveStatus : 'offline' as 'offline' | 'online' | 'playing'
 		}
 	},
 	computed: {
@@ -20,6 +21,10 @@ export default {
 		if (debug) console.log('| NavSideBar | computed | user(' + user.value.id + ')')
 			return user.value
 		},
+		// status() : Player {
+		// if (debug) console.log('| NavSideBar | computed | status')
+		// 	return user.value.playing
+		// },
 		avatar() : string {
 			if (debug) console.log('| NavSideBar | computed | avatar()')
 			return user.value.avatar
@@ -41,6 +46,14 @@ export default {
 				console.log(err)
 			}
 		},
+		// async fetchStatus() {
+		// 	try {
+		// 		this.liveStatus = await playerStore.fetchStatus(user.value.id);
+		// 		console.log('liveStatus:', this.liveStatus);
+		// 	} catch (error) {
+		// 		console.error('Error fetching status:', error);
+		// 	}
+		// },
 	},
 
 }
@@ -82,6 +95,9 @@ export default {
 							title="Community chat"
 						></v-list-item>
 					</v-list>
+						<!-- <v-btn @click="fetchStatus">fetchStatus</v-btn> -->
+						<!-- <v-list-item>status : {{ status }}</v-list-item> -->
+						<!-- <v-list-item>liveStatus : {{ liveStatus }}</v-list-item> -->
 				</v-list>
 			</v-card>
 
