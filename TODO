@@ -1,3 +1,78 @@
+TODO ARIELLE
+	MUST-DO
+		MODIFY
+
+		- AVM | improve chat UI so notifications can be on top
+		- AVM | npm update to latest stable library version (on clean status)
+		DO
+		- AVM | browser compatibility : chrome, firefox, safari
+		- AVM | error handling / warning : 500, crash, does not work
+		- AVM | SQL injections protected
+		- AVM | server-side sanitization (any user input)
+		- AVM | clean console.log
+	console
+
+		- when all is done, test with 5+ players, 10+ games
+
+		- 1v1 games should not count for ladder_lvl
+		- difference between matchmaking (ladder mode) games and invite (1v1) games should be made
+
+		RESOLVE
+		- AVM | recheck at the start of customization when there has been another game before
+		- MM | add WS to have reactive status
+		- AVM | prevent players to watch their own games (host game or guest game)
+		- AVM | check reactivity front + do we need to take out .value when using store
+		- AVM | streaming : customize bug, last frame ? rainbow 
+
+		wait matteo
+		- DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
+		- Dialog2FA : same problem
+
+		- Game : ball bug
+
+	KEEP IN MIND
+		- jwt expired
+		- 2fa login redirect
+
+	NICE_TO_HAVE, IF THERE IS TIME
+		- beautify, consistent UI
+		- smooth paddle animation
+	
+	PROBABLY WON'T HAVE TIME
+		- convert chat code to typescript
+		- check that whole front is typescript compliant
+		- Gme : slow paddle
+
+
+
+DONE
+- AVM | status : maybe two instanciations of the map
+- MM | Match History : double entry : Game.gateway:382:this.gameService.setGameasFinished(frame);
+- AVM | invitation : risolved cancelling invite bug + enforced receiver and sender availability
+- AVM | fixed UI DialogEdit to make it more intuitive
+- AVM | visibility match history and achievement set to public
+
+
+risolved by itself
+- AVM | bug when game has been played : weirdly, looks ok
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 1. Handle Images url to png (or blob) files in db
 2. Add "insert into Achievements.." script by hand
 3. Do "Add friend", etc. stuff
