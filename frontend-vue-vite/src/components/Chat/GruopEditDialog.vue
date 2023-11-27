@@ -49,10 +49,16 @@
 	  },
 	  editGroup() {
 		try {
-				this.socket.emit("editGroup", { group: this.group }, (response) => {
-					if (response.success != true)
-						alert("You are not allowed to edit this group");
-				});
+			console.log("group", this.group);
+				if (this.group.name == "")
+					alert("Group name cannot be empty");
+				else if (this.group.visibility == "protected" && (!this.group.password || this.group.password == ""))
+					alert("Group password cannot be empty");
+				else
+					this.socket.emit("editGroup", { group: this.group }, (response) => {
+						if (response.success != true)
+							alert("You are not allowed to edit this group");
+					});
 		} catch (error) {
 				console.error("Error emitting 'edit group':", error);
 		}
