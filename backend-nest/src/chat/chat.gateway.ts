@@ -150,7 +150,7 @@ export class ChatGateway {
     let recClientId: Socket;
     if (!me)
       return { success: false };
-    this.chatService.removeUserFromGroup(Number(me), Number(groupId), Number(me)).then((otherMembers) => {
+    return this.chatService.removeUserFromGroup(Number(me), Number(groupId), Number(me)).then((otherMembers) => {
       if (debug) console.log(`DEBUG | chat.controller | removeMeFromGroup | otherMembers: ${otherMembers}`);
       if (otherMembers[0] === "bad request")
         return { success: false };
@@ -170,7 +170,6 @@ export class ChatGateway {
         this.server.to(`${recClientId.id}`).emit('removeparent', { id: groupId });
       return { success: true };
     });
-    return { success: true };
   }
   
 

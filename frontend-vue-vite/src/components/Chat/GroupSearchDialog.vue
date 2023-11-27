@@ -54,6 +54,7 @@
 	  filteredFriends() {
 		return this.friends
 	  },
+	  
 	},
 	methods: {
 	  closeGroupChatPopup() {
@@ -89,18 +90,8 @@
 			console.error("Error emitting 'joingroup':", error);
 		}
 	  },
-	//   viewGroup(groupId) {
-	// 	try {
-	// 		this.socket.emit("viewgroup", { groupId: groupId }, (response) => {
-	// 			console.log("response", response);
-	// 			this.groups = response.groups;
-	// 		});
-	// 	} catch (error) {
-	// 		console.error("Error emitting 'viewgroup':", error);
-	// 	}
-	//   },
-
 	},
+	
   };
   </script>
   

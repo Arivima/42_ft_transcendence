@@ -159,7 +159,8 @@ export default {
 				// console.log("response removemefromgroup", response);
 				if (response.success == false)
 					alert("You not allowed to leave this group");
-				
+				// waits(50);
+				console.log("response removemefromgroup", response);
 				this.$emit("reload");
 				this.groupInfoDialog = false;
 			});

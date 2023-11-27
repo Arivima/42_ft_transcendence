@@ -358,7 +358,9 @@ export default {
 		},
 
 		reloadData() {
+			console.log("reloadData");
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+				console.log("response", response);
 				friends.value.forEach((friend) => {
 					response.sortedData.forEach((parentResponse) => {
 						if (friend.id == parentResponse.id) {
@@ -467,6 +469,13 @@ export default {
 		openSearchGroupPopup() {
 			this.$refs.groupSearchDialog.dialog = true;
 			this.$refs.groupSearchDialog.socket = this.socket;
+			try {
+				this.socket.emit("searchgroups", { groupSearch: this.groupSearch }, (response) => {
+					this.$refs.groupSearchDialog.groups = response.groups;
+				});
+			} catch (error) {
+				console.error("Error emitting 'searchgroups':", error);
+			}
 		},
 		openGroupInfoPopup() {
 			this.$refs.groupInfoDialog.groupInfoDialog = true;

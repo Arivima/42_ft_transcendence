@@ -75,10 +75,17 @@
 	  },
 	  createGroupChatWithSelectedFriends() {
 		try {
-				this.group.members.push(this.group.founderId);
-				this.socket.emit("creategroupchat", { group: this.group }, (response) => {
-					console.log("response", response);
-				});
+				if (this.group.name == "")
+					alert("Group name cannot be empty");
+				else if (this.group.visibility == "protected" && (!this.group.password || this.group.password == ""))
+					alert("Group password cannot be empty");
+				else
+				{
+					this.group.members.push(this.group.founderId);
+					this.socket.emit("creategroupchat", { group: this.group }, (response) => {
+						console.log("response", response);
+					});
+				}
 			} catch (error) {
 				console.error("Error emitting 'getmessagesprivatechat':", error);
 		}
