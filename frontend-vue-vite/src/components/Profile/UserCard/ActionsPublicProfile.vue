@@ -28,7 +28,7 @@ export default {
 	},
     methods: {
 		toggleFriendshipRequest(){
-			console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
+			if (debug) console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
 
 			if (this.pending)
 				playerStore.sendFriendshipRejection(Number(this.userProfile.id));

@@ -5,6 +5,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { BeFriends, Player } from '@prisma/client';
 import { SendFriendshipRequestDto } from './dto/send-friendship-request.dto';
 
+const debug = false
+
 @Injectable()
 export class FrienshipsService {
 
@@ -23,7 +25,7 @@ export class FrienshipsService {
 			}
 		});
 		const [existingReqID, existingRecipID] = await this.getFriendship(userID, recipientID);
-		console.log(`existingReqID: ${existingReqID}; existingReqID: ${existingReqID}`);
+		if (debug) console.log(`existingReqID: ${existingReqID}; existingReqID: ${existingReqID}`);
 		let friendship: BeFriends | null = null 
 		if (undefined != existingReqID)
 			friendship = await this.prisma.beFriends.findUnique({
@@ -116,7 +118,7 @@ export class FrienshipsService {
 		let friendship: BeFriends;
 
 		if (undefined == requestorID) {
-			console.log(`creating friendship record`);
+			if (debug) console.log(`creating friendship record`);
 			await this.prisma.beFriends.create({
 				data: {
 					are_friends: false,
@@ -210,7 +212,7 @@ export class FrienshipsService {
 		});
 
 		if (friendship && friendship.pending_friendship) {
-			console.log(`updating the db with requestorID: ${requestorID}; recipientID: ${recipientID}`)
+			if (debug) console.log(`updating the db with requestorID: ${requestorID}; recipientID: ${recipientID}`)
 			await this.prisma.beFriends.update({
 				where: {
 					requestorID_recipientID: {requestorID, recipientID}

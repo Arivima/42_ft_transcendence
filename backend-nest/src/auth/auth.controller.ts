@@ -126,6 +126,7 @@ export class AuthController {
 	@Protected()//TODO REMOVE DECOAATOR
 	@Post('2fa/remove')
 	async remove2fa(@Body('otp') otp: string, @Request() req) {
+        console.log('DEBUG | Auth.controller | remove2fa() | otp : ' + otp);
 		return (await this.authService.removeOTP(Number(req.user.sub), otp))
 	}
 }
