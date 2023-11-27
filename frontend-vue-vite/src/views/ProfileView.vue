@@ -37,7 +37,7 @@ export default {
 		}
 	},
 	computed: {
-		visibility() : string {
+		visibility() : 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
 			if (debug) console.log('| ProfileView | computed | visibility')
 			let profileType = playerStore.visibility(this.userProfile?.id);
 			return profileType
@@ -125,7 +125,7 @@ export default {
 <div class="profile">
 	<NavSideBar />
 	<Notifications />
-	<!-- <Debug></Debug> -->
+	<Debug></Debug>
 	<DialogWaiting></DialogWaiting>
 	<DialogInvite></DialogInvite>
 	<!-- <v-main> -->
@@ -140,7 +140,7 @@ export default {
 			<v-card class="child1">
 				<v-card
 					class="child2"
-					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile'"
 				>
 					<Achievements
 						:userProfile="(userProfile as Player)"
@@ -148,7 +148,7 @@ export default {
 					></Achievements>
 					<Suspense><MatchHistoryTable
 						:userProfile="(userProfile as Player)"
-						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile'"
 					></MatchHistoryTable></Suspense>
 				</v-card>
 				<v-card class="child2"

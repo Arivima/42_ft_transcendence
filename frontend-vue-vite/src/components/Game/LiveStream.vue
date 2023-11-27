@@ -9,7 +9,7 @@ const playerStore = usePlayerStore()
 const { liveStreams } = storeToRefs(playerStore)
 
 const _items_per_page = 5
-const debug = true
+const debug = false
 
 export default {
 	components:	{
