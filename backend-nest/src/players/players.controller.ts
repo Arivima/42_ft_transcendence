@@ -219,7 +219,8 @@ export class PlayersController {
 	@Patch('me')
 	async updateMe(@Request() req, @Body() updatePlayerDto: UpdatePlayerDto)
 	{
-		if (debug) console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
+		console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
+		console.error(updatePlayerDto);
 		try {
 			await this.playersService.update(Number(req.user.sub), updatePlayerDto);
 		}

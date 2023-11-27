@@ -1,6 +1,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
 import axios from 'axios'
+
 import { usePlayerStore } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
@@ -42,6 +43,10 @@ export default defineComponent({
 			],
 		}
 	},
+	created() {
+		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem(import.meta.env.JWT_KEY);
+		axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT;
+	},
 	methods: {
 		async setProfileasComplete() {
 			try {
@@ -75,17 +80,15 @@ export default defineComponent({
 			this.errorUsername = true
 			this.errorMessageUsername = message
 		},
-		// NEW
 		async sendUsername(){
 			if (debug) console.log('| DialogEdit | methods | sendUsername()')
 			this.loadingUsername = true
-
+			console.log(`username : ${this.username}`)
 			axios
 				.patch(`players/me`, 
-						 {
-							username : this.username
-						}
-					
+					{
+						username: this.username
+					}
 				)
 				.then(async () => {
 					playerStore.updateUsername()
@@ -214,7 +217,7 @@ export default defineComponent({
 						variant="outlined"
 						class="my-2"
 					></v-text-field>
-					<v-btn v-show="isValidUsername" text="Upload" @click="sendUsername" size="x-small" border color="primary" variant="tonal"></v-btn>
+					<v-btn v-show="isValidUsername" text="Upload" @click="sendUsername" size="small" border color="primary" variant="elevated"></v-btn>
 				</v-form>
 				<v-alert v-model="errorUsername" color="error" density="compact" class="my-3">{{ errorMessageUsername }}</v-alert>
 				<!-- <v-alert v-model="successUsername" color="success" density="compact" class="my-3">{{ successMessageUsername }}</v-alert> -->
@@ -260,15 +263,15 @@ export default defineComponent({
 						</v-avatar>
 					</div>
 					<v-card-text class="px-0 font-weight-light ">Click on 'upload' to confirm the change</v-card-text>
-					<v-btn text="Upload" @click="sendAvatar" size="x-small" border color="primary" variant="tonal"></v-btn>
+					<v-btn text="Upload" @click="sendAvatar" size="small" border color="primary" variant="elevated"></v-btn>
 					<v-alert v-model="errorAvatar" color="error" density="compact" class="my-3">{{ errorMessageAvatar }}</v-alert>
 					<!-- <v-alert v-model="successAvatar" color="success" density="compact" class="my-3">{{ successMessageAvatar }}</v-alert> -->
 				</v-card-item>
 			</v-expand-transition>
 
-			<div class="text-end">
-				<v-btn text="Done" @click="setProfileasComplete" border class="me-4" color="primary" variant="tonal"></v-btn>
-			</div>
+			<v-card-item class="text-end">
+				<v-btn text="Close" size="large" @click="setProfileasComplete" border class="me-4" color="primary" variant="tonal"></v-btn>
+			</v-card-item>
 		</v-card>
 	</v-dialog>
 </template>

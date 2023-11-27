@@ -139,12 +139,20 @@ export class PlayersService {
 				profile_completed: true,
 			}
 		});
-		await this.prisma.achieved.create({
-			data: {
+		//* inserting only if not already present
+		await this.prisma.achieved.upsert({
+			where: {
+				playerID_achievementName: {
+					playerID: userID,
+					achievementName: 'Your Catventure begins here!',
+				}
+			},
+			create: {
 				playerID: userID,
 				achievementName: 'Your Catventure begins here!',
 				date_of_issue: new Date(),
-			}
+			},
+			update: {}
 		})
 	}
 
