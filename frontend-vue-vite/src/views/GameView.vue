@@ -54,13 +54,13 @@ export default {
 
 <template>
 	<NavSideBar />
-	<Notifications></Notifications>
+	<Notifications/>
 	<!-- <Debug></Debug> -->
 	<AboutGame v-if="status == 'undefined'"></AboutGame>
-	<DialogWaiting></DialogWaiting>
-	<DialogInvite></DialogInvite>
-	<DialogCustomization></DialogCustomization>
-	<DialogEndGame></DialogEndGame>
+	<DialogWaiting/>
+	<DialogInvite/>
+	<DialogCustomization/>
+	<DialogEndGame/>
 
 	<v-main>
 		<v-card
@@ -125,6 +125,7 @@ export default {
     left: 0;
     transform: scale(1.1);
     background: url(../../cats_ai.webp) no-repeat center center;
+    /* background: url(../../catwar.png) no-repeat center center; */
     background-size: cover;
 }
 

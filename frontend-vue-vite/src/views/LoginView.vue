@@ -1,17 +1,9 @@
-<!-- LOGIN -->
-
-<!-- TODO
-- responsiveness on screen size : it's popping out
-- try to center the button
--->
-
 <script lang="ts">
 
 export default {
   setup() {
     const loginUrl = `http://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/auth/42`
 
-    // expose to template and other options API hooks
     return {
       loginUrl
     }
@@ -59,7 +51,4 @@ export default {
     background: url(../../cats_ai.webp) no-repeat center center;
     background-size: cover;
 }
-    /* background: url( 'https://images.unsplash.com/photo-1636734909254-ff5c43927e10?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') no-repeat center center; */
-    /* background: url(../../public/cats.jpg) no-repeat center center; */
-
 </style>

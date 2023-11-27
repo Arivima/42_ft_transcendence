@@ -1,8 +1,8 @@
 <template>
-	<div id="chat" class="d-flex flex-column">
-		<v-app>
-			<v-container class="fill-height pa-0">
-				<v-row class="no-gutters elevation-4">
+	<div id="chat" class="d-flex flex-column backgroundChat">
+		<v-app  style="background-color: transparent;">
+			<v-container class="fill-height pa-0"  >
+				<v-row class="no-gutters elevation-4" style="background-color: white;">
 					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
 						<v-responsive class="overflow-y-auto fill-height" height="500">
 							<v-list subheader >
@@ -506,8 +506,6 @@ export default {
 }
 
 #chat {
-	/* background-color: aqua; */
-	/* outline: solid; */
 	/* all available screen */
 	width: 100%;
 	height: 100%;
@@ -516,6 +514,17 @@ export default {
 	/* flexbox */
 	display: flex;
 	flex-direction: column;
-	
+
+    top: 0;
+    left: 0;
+    transform: scale(1.1);
+    /* background: url(../../catwar.png) no-repeat center center; */
+    /* background: url(../../nyancat_bg.jpeg) no-repeat center center; */
+    /* background: url(../../blackcat.jpeg) no-repeat center center; */
+    background: url(../../blackcatspace.jpg) no-repeat center center;
+    background-size: cover;
+    position:absolute;
+	background-position: 100% 100%;
 }
+
 </style>
