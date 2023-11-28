@@ -2,7 +2,7 @@
 	<div id="chat" class="d-flex flex-column backgroundChat">
 		<v-app  style="background-color: transparent;">
 			<v-container class="fill-height pa-0"  >
-				<v-row class="no-gutters elevation-4" style="background-color: white;">
+				<v-row class="no-gutters" style="background-color: white;">
 					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
 						<v-responsive class="overflow-y-auto fill-height" height="500">
 							<v-list subheader >
@@ -12,7 +12,7 @@
 								</v-btn>
 								<div class="">
 									
-								<v-item-group v-model="activeChat">
+								<v-item-group v-model="this.activeChat">
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
 										<v-list-item :value="index" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
 										>
@@ -207,21 +207,14 @@ export default {
 			console.log("parsedData", message);
 			const parsedData = JSON.parse(JSON.parse(message).data);
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
-				// let fg = false;
 				response.sortedData.forEach((parentResponse, index) => {
 					if (this.activeChat && this.parents[this.activeChat - 1].id == parentResponse.id) {
 						this.activeChat = index + 1;
 					parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString() ? parentResponse.lastMessage : "";
-					// parentResponse.newMessage = true;
-					// parentResponse.lastMessage = parsedData.content;
 					}
 				});
 				friends.value.forEach((friend) => {
 					response.sortedData.forEach((parentResponse, index) => {
-						// if (this.activeChat && !fg && this.parents[this.activeChat - 1].id == parentResponse.id) {
-						// 	this.activeChat = index + 1;
-						// 	fg = true;
-						// }
 						if (friend.id == parentResponse.id)
 							parentResponse.avatar = friend.avatar;
 					});
@@ -243,6 +236,36 @@ export default {
 					this.socket.emit("getmessages", { userId: user.value.id, chatId: this.parents[this.activeChat - 1].id, isGroup: this.parents[this.activeChat - 1].isGroup }, (response) => {
 						let messages = response.messages;
 						let subscriptions = response.subscriptions;
+						console.log("messages", messages);
+						if (response.isBlocked == true)
+						{
+							this.messages = []
+							alert("You can't send message to this Chat 1")
+							this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+								response.sortedData.forEach((parentResponse, index) => {
+									if (this.activeChat && this.parents[this.activeChat - 1].id == parentResponse.id)
+										this.activeChat = index + 1;
+									parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString();
+								});
+								friends.value.forEach((friend) => {
+									response.sortedData.forEach((parentResponse) => {
+										if (friend.id == parentResponse.id)
+											parentResponse.avatar = friend.avatar;
+									});
+									response.friends.forEach((friendResponse) => {
+										if (friend.id == friendResponse.id) {
+											friendResponse.avatar = friend.avatar;
+										}
+									});
+								});
+								this.parents = response.sortedData;
+								this.friendsChat = response.friends;
+								this.groups = response.rooms;
+								// console.log("this.activeChat", response.success);
+								this.activeChat = 0;
+							});
+							return;
+						}
 
 						for (let i = 0; i < messages.length; i++) {
 							if (messages[i].senderID == user.value.id)
@@ -314,11 +337,10 @@ export default {
 			else if (newMessage.groupID)
 				newMessage.receiversID = this.parents[this.activeChat - 1].id;
 			newMessage.createdAt = new Date();
-			console.log("newMessage", newMessage);
 			this.socket.emit("message", newMessage, (r) => {
 				if (r.success == false) {
 					this.messages = []
-					alert("You can't send message to this Chat, because you are banned or Muted contact administrator of this group")
+					alert("You can't send message to this Chat")
 				}
 				this.socket.emit("getparents", { userId: user.value.id }, (response) => {
 					response.sortedData.forEach((parentResponse, index) => {
@@ -343,8 +365,9 @@ export default {
 					this.parents = response.sortedData;
 					this.friendsChat = response.friends;
 					this.groups = response.rooms;
-					// console.log("this.activeChat", response.success);
-					this.activeChat = 1 ? r.success == true : 0;
+					console.log("this.activeChat", r.success);
+					this.activeChat = r.success == true ? 1 : 0;
+					console.log("this.activeChat", this.activeChat);
 				});
 				newMessage.createdAt = showTime(newMessage.createdAt);
 				this.messages.push(newMessage);
@@ -382,14 +405,11 @@ export default {
 
 		activateChat(chatId, index, isGroup) {
 			this.activeChat = index + 1;
-			console.log("this.activeChat", this.activeChat);
 			this.$refs.groupInfoDialog.user.isAdmin = false;
 			this.$refs.groupInfoDialog.user.isMuted = false;
 			this.$refs.groupInfoDialog.user.isBanned = false;
 			this.isGroupActive = isGroup;
 			this.fetchMessagesForChat(chatId, isGroup);
-			// if (isGroup)
-			// 	playerStore.sendInvitation(chatId);
 		},
 
 		viewUserProfile(userId) {
@@ -433,6 +453,36 @@ export default {
 				this.socket.emit("getmessages", { userId, chatId, isGroup }, (response) => {
 					let messages = response.messages;
 					let subscriptions = response.subscriptions;
+					console.log("messages", response);
+					if (response.isBlocked == true)
+					{
+						this.messages = []
+						alert("You can't send message to this Chat 2")
+						this.socket.emit("getparents", { userId: user.value.id }, (response) => {
+							response.sortedData.forEach((parentResponse, index) => {
+								if (this.activeChat && this.parents[this.activeChat - 1].id == parentResponse.id)
+									this.activeChat = index + 1;
+								parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString();
+							});
+							friends.value.forEach((friend) => {
+								response.sortedData.forEach((parentResponse) => {
+									if (friend.id == parentResponse.id)
+										parentResponse.avatar = friend.avatar;
+								});
+								response.friends.forEach((friendResponse) => {
+									if (friend.id == friendResponse.id) {
+										friendResponse.avatar = friend.avatar;
+									}
+								});
+							});
+							this.parents = response.sortedData;
+							this.friendsChat = response.friends;
+							this.groups = response.rooms;
+							// console.log("this.activeChat", response.success);
+							this.activeChat = 0;
+						});
+						return;
+					}
 
 					for (let i = 0; i < messages.length; i++) {
 						if (messages[i].senderID == user.value.id)

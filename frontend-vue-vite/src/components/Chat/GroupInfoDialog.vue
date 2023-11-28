@@ -22,9 +22,20 @@
 					<div class="flex-1 mt-4 mb-4 overflow-y-auto fill-height max-height-400 px-4">
 						<v-list-item v-for="(member, index) in groupInfo.members" :key="index">
 							<v-list-item-title>{{ member.name }}</v-list-item-title>
-							<v-list-item-subtitle v-if="member.isAdmin">Administrator</v-list-item-subtitle>
+							<div class="d-flex align-center">
+								<v-list-item-subtitle v-if="member.isAdmin && member.name !== groupInfo.founder">Administrator</v-list-item-subtitle>
+								<v-list-item-subtitle v-if="member.isAdmin && member.name === groupInfo.founder">Founder</v-list-item-subtitle>
+
+								<v-list-item-subtitle v-if="member.isMuted">
+									<v-icon>mdi-volume-off</v-icon>
+								</v-list-item-subtitle>
+								<v-list-item-subtitle v-if="member.isBanned">
+									<v-icon>mdi-account-off</v-icon>
+								</v-list-item-subtitle>
+
+							</div>
 							<v-list-item-action class="float-right">
-								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId && member.id !== groupInfo.founder"/>
+								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId && member.name !== groupInfo.founder"/>
 								<v-btn @click="viewProfile(member.id)" color="secondary" class="mr-2" outlined>
 									View Profile
 								</v-btn>

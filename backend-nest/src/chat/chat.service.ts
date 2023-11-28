@@ -941,6 +941,35 @@ export class ChatService {
 
   async getMessagesPrivateChat(me: number, friend: number) {
     console.log(`DEBUG | chat.service | getMessagesPrivateChat | me: ${me} | friend: ${friend}`);
+    let isBlocked = await this.prisma.beFriends.findMany({
+      where: {
+        OR: [
+          {
+            requestorID: me,
+            recipientID: friend,
+            requestor_blacklisted: true,
+          },
+          {
+            recipientID: me,
+            requestorID: friend,
+            recipient_blacklisted: true,
+          },
+          {
+            recipientID: me,
+            requestorID: friend,
+            requestor_blacklisted: true,
+          },
+          {
+            requestorID: me,
+            recipientID: friend,
+            recipient_blacklisted: true,
+          },
+        ]
+      },
+    })
+    if (isBlocked.length > 0)
+      return { isBlocked: true };
+    
     let res = await this.prisma.message.findMany({
       where: {
         OR: [
@@ -1005,6 +1034,14 @@ export class ChatService {
           },
           {
             recipientID: me,
+            requestor_blacklisted: true,
+          },
+          {
+            recipientID: me,
+            recipient_blacklisted: true,
+          },
+          {
+            requestorID: me,
             recipient_blacklisted: true,
           },
         ],
