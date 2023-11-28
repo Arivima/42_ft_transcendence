@@ -143,27 +143,20 @@ export default {
 					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile'"
 				>
 					<Achievements
-						:userProfile="(userProfile as Player)"
+						:userProfile="userProfile as Player || undefined"
 						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
 					></Achievements>
-					<Suspense><MatchHistoryTable
-						:userProfile="(userProfile as Player)"
+					<MatchHistoryTable
+						:userProfile="userProfile as Player || undefined"
 						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile'"
-					></MatchHistoryTable></Suspense>
+					></MatchHistoryTable>
 				</v-card>
 				<v-card class="child2"
 					v-if="visibility === 'MyProfile'"
 				>
-					<AddFriend
-						v-if="visibility == 'MyProfile'"
-					></AddFriend>
-
-					<Friends
-						v-if="visibility == 'MyProfile'"
-					></Friends>
-					<BlockedSent
-						v-if="visibility == 'MyProfile'"
-					></BlockedSent>
+					<AddFriend/>
+					<Friends/>
+					<BlockedSent/>
 				</v-card>
 			</v-card>
 		</v-card>

@@ -115,7 +115,7 @@ export default {
 .component {
 	padding: 2%;
 	margin: 2%;
-	background-color: lightcyan;
+	background-color: white;
 	outline: solid;
 	outline-color: antiquewhite;
 }

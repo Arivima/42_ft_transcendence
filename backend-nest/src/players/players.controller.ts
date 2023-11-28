@@ -64,7 +64,7 @@ export class PlayersController {
 	// @Get('status/:id')
 	// getUserStatus(@Param('id') id: string) : 'offline' | 'online' | 'playing' {
 	// 	const status : 'offline' | 'online' | 'playing' = this.playersService.getConnection(Number(id))
-	// 	console.log(`p.controller | status : ${status}`)
+	// 	if (debug) console.log(`p.controller | status : ${status}`)
 	// 	return status;
 	// }
 
@@ -219,8 +219,8 @@ export class PlayersController {
 	@Patch('me')
 	async updateMe(@Request() req, @Body() updatePlayerDto: UpdatePlayerDto)
 	{
-		console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
-		console.error(updatePlayerDto);
+		if (debug) console.log(`DEBUG | players.controller | Patch(/player/me) : updateMe()`);
+		if (debug) console.log(updatePlayerDto);
 		try {
 			await this.playersService.update(Number(req.user.sub), updatePlayerDto);
 		}

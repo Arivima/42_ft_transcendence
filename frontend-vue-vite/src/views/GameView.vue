@@ -55,7 +55,7 @@ export default {
 <template>
 	<NavSideBar />
 	<Notifications/>
-	<!-- <Debug></Debug> -->
+	<Debug></Debug>
 	<AboutGame v-if="status == 'undefined'"></AboutGame>
 	<DialogWaiting/>
 	<DialogInvite/>

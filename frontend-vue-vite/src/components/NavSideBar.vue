@@ -1,9 +1,5 @@
-<!-- TODO
-- overall size on the page
--->
-
 <script lang="ts">
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
+import { usePlayerStore, PlayerStatus, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
@@ -13,26 +9,8 @@ const debug = false
 export default {
 	data() {
 		return {
-			// liveStatus : 'offline' as 'offline' | 'online' | 'playing'
+			user : user
 		}
-	},
-	computed: {
-		user() : Player {
-		if (debug) console.log('| NavSideBar | computed | user(' + user.value.id + ')')
-			return user.value
-		},
-		// status() : Player {
-		// if (debug) console.log('| NavSideBar | computed | status')
-		// 	return user.value.playing
-		// },
-		avatar() : string {
-			if (debug) console.log('| NavSideBar | computed | avatar()')
-			return user.value.avatar
-		},
-		username() : string {
-			if (debug) console.log('| NavSideBar | computed | username(' + user.value.username + ')')
-			return user.value.username
-		},
 	},
 	methods : {
 		async logOut() {
@@ -43,17 +21,15 @@ export default {
 			}
 			catch(err) {
 				//TODO TOAST ERROR
-				console.log(err)
+				console.error(err)
 			}
 		},
-		// async fetchStatus() {
-		// 	try {
-		// 		this.liveStatus = await playerStore.fetchStatus(user.value.id);
-		// 		console.log('liveStatus:', this.liveStatus);
-		// 	} catch (error) {
-		// 		console.error('Error fetching status:', error);
-		// 	}
-		// },
+		getBadgeColor(status : PlayerStatus) : string {
+			if (debug) console.log('| NavSideBar | methods | getBadgeColor()')
+			if (status == PlayerStatus.online) return 'green'
+			else if (status == PlayerStatus.playing) return 'blue'
+			else return 'grey'			
+		},
 	},
 
 }
@@ -73,13 +49,17 @@ export default {
 			>
 				<v-list>
 					<v-list-item
-						:prepend-avatar="avatar"
 						:title="user.firstName"
-						:subtitle="username"
+						:subtitle="user.username"
 						:to="{ name: 'profile' }"
 						rounded
 						class="ma-2 pa-2"
 					>
+						<template v-slot:prepend>
+							<v-badge dot :color="getBadgeColor(user.status)">
+								<v-avatar :image="user.avatar"></v-avatar>
+							</v-badge>
+						</template>
 					</v-list-item>
 					<v-divider></v-divider>
 					<v-list nav>
@@ -95,9 +75,6 @@ export default {
 							title="Community chat"
 						></v-list-item>
 					</v-list>
-						<!-- <v-btn @click="fetchStatus">fetchStatus</v-btn> -->
-						<!-- <v-list-item>status : {{ status }}</v-list-item> -->
-						<!-- <v-list-item>liveStatus : {{ liveStatus }}</v-list-item> -->
 				</v-list>
 			</v-card>
 

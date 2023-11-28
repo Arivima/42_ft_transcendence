@@ -205,9 +205,9 @@ export class CustomizationOptions {
 	reset(){
 		if (debug) console.log('/Store/ class CustomizationOptions | reset()')
 		this.customization = false;
-		this.pitch_color = '#FFFFFF';
-		this.paddle_color = '#800080';
-		this.ball_color = '#800080';
+		this.pitch_color = '#FFFFFF'; /*white*/
+		this.paddle_color = '#800080'; /*purple*/ /*'#000000'; black*/
+		this.ball_color = '#800080'; /*purple*/ /*'#000000'; black*/
 	}
 };
 
@@ -431,7 +431,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			fetchPublicUsers: (id: number) => Promise<Player[]>
 			fetchPendingUsers: (id: number) => Promise<Player[]>
 			fetchAchievements: (id: number) => Promise<Achievement[]>
-			// fetchStatus: (id: number) => Promise<'offline' | 'online' | 'playing'>
 			fetchAvatar: (avatar: string) => Promise<string>
 			achievements: Achievement[],
 			notifications: (FriendRequest & FriendRequestStatus)[],
@@ -450,7 +449,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				fetchPublicUsers: fetchPublicUsers,
 				fetchPendingUsers: fetchPendingUsers,
 				fetchAchievements: fetchAchievements,
-				// fetchStatus: fetchStatus,
 				fetchAvatar: fetchAvatar,
 				achievements: [],
 				notifications: [],
@@ -488,15 +486,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					userID: this.user.id,
 					friendID
 				});
-				// this.user.notificationsSocket?.emit('updateFrienshipRequest', {
-				// 	bearerID: this.user.id,
-				// 	recipientID: this.user.id,
-				// 	requestorID: requestorID,
-				// 	are_friends: false,
-				// 	pending_friendship: false,
-				// 	requestor_blacklisted: false,
-				// 	recipient_blacklisted: false,
-				// });
 			},
 
 			toggleBlockUser(profileID: number, block: boolean) {
@@ -508,23 +497,38 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				});
 			},
 
-
-
 			
 			// game socket actions
+			isUserAvailable() : boolean {
+				this.sendGetActiveGames()
+				//! wait for liveStreams to be updated
+				return (
+					(this.currentGame.invite.sent == false && this.currentGame.invite.received == false)
+					&& (this.currentGame.status == 'undefined')
+					&& (this.currentGame.waiting == 'undefined')
+					&& (false === this.liveStreams.some(
+							(activeGame) => {
+								return activeGame.hostID === this.user.id || activeGame.guestID === this.user.id
+						}))
+				)
+			},
 			// matchmaking
 			sendMatchMakingRequest() {
 				if (debug) console.log("/Store/ sendMatchMakingRequest");
-				
-				if (!this.user.gameSocket)
-					if (debug) console.log(`/Store/ user socket is undefined`);
-				if (debug) console.log(`/Store/ user socket: ${this.user.gameSocket}`);
-				if (debug) console.log(`/Store/ socketID: ${this.user.gameSocket?.id}`);
-				this.user.gameSocket?.emit('matchMaking', {
-					userID: this.user.id
-				});
-				if (debug) console.log('%c emit("matchMaking")', 'background: blue; color: white')
-				this.currentGame.waiting = 'matchmaking'
+				if (true == this.isUserAvailable())
+				{
+					if (!this.user.gameSocket)
+						if (debug) console.log(`/Store/ user socket is undefined`);
+					if (debug) console.log(`/Store/ user socket: ${this.user.gameSocket}`);
+					if (debug) console.log(`/Store/ socketID: ${this.user.gameSocket?.id}`);
+
+					this.user.gameSocket?.emit('matchMaking', {
+						userID: this.user.id
+					});
+					console.log('%c emit("matchMaking")', 'background: blue; color: white')
+					this.currentGame.waiting = 'matchmaking'
+				} else
+					alert("You cannot join a new game, you are already busy")
 			},
 			// maybe delete acknoledgements
 			cancelMatchMakingRequest() {
@@ -533,7 +537,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit('cancelMatchMaking', {
 					userID: this.user.id
 				});
-				if (debug) console.log('%c emit("cancelMatchMaking")', 'background: blue; color: white')
+				console.log('%c emit("cancelMatchMaking")', 'background: blue; color: white')
 				this.currentGame.waiting = 'undefined'
 			},
 
@@ -541,22 +545,20 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			sendInvitation(guestID : number) {
 				if (debug) console.log(`/Store/ sendInvitation from user ${this.user.id} to ${guestID} `);
 
-				if (
-					(this.currentGame.invite.sent === false && this.currentGame.invite.received === false)
-					&& (this.currentGame.status === 'undefined')
-					&& (this.currentGame.waiting === 'undefined')
-				) {
+				if (true == this.isUserAvailable())
+				{
 					this.user.gameSocket?.emit('sendInvite', { 
 						invite : {
 							hostID: this.user.id,
 							guestID: guestID,					
 						}
 					});
-					if (debug) console.log('%c emit("sendInvite")', 'background: blue; color: white')
+					console.log('%c emit("sendInvite")', 'background: blue; color: white')
 					this.currentGame.waiting = 'invite'
 					this.currentGame.invite.sent = true
 					this.currentGame.invite.recipientID = guestID					
-				}
+				} else
+					alert("You cannot send a new invite, you are already busy")
 			},
 			cancelInvitation() {
 				if (debug) console.log(`/Store/ cancelInvitation from user ${this.user.id} to ${this.currentGame.invite.recipientID} `);
@@ -566,7 +568,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						guestID: this.currentGame.invite.recipientID,					
 					}
 				});
-				if (debug) console.log('%c emit("cancelInvite")', 'background: blue; color: white')
+				console.log('%c emit("cancelInvite")', 'background: blue; color: white')
 				this.currentGame.waiting = 'undefined'
 				this.currentGame.invite.reset()
 			},
@@ -580,7 +582,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						guestID: this.user.id,					
 					}
 				});
-				if (debug) console.log('%c emit("acceptInvite")', 'background: blue; color: white')
+				console.log('%c emit("acceptInvite")', 'background: blue; color: white')
 				this.currentGame.invite.reset()
 
 			},
@@ -593,7 +595,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				};
 
 				this.user.gameSocket?.emit('rejectInvite', { invite });
-				if (debug) console.log('%c emit("rejectInvite")', 'background: blue; color: white')
+				console.log('%c emit("rejectInvite")', 'background: blue; color: white')
 				
 				// when no arg : no modification has been performed so we don't update the state
 				if (rejectedInvite === undefined)
@@ -608,12 +610,16 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendStreamingRequest(playerID: number) {
-				console.log("/Store/ sendStreamingRequest from "  + this.user.id + " to " + playerID);
-				this.user.gameSocket?.emit('joinGame', {
-					userID: this.user.id,
-					playerID,
-				});
-				console.log('%c emit("joinGame")', 'background: blue; color: white')
+				if (debug) console.log("/Store/ sendStreamingRequest from "  + this.user.id + " to " + playerID);
+				if (true == this.isUserAvailable())
+				{
+					this.user.gameSocket?.emit('joinGame', {
+						userID: this.user.id,
+						playerID,
+					});
+					console.log('%c emit("joinGame")', 'background: blue; color: white')					
+				} else
+					alert("You cannot join a new streaming session, you are already busy")
 			},
 
 			// game
@@ -627,7 +633,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					gameInfo: this.currentGame.gameInfo,
 					userID: this.user.id
 				});
-				if (debug) console.log('%c emit("sendCustomizationOptions")', 'background: blue; color: white')
+				console.log('%c emit("sendCustomizationOptions")', 'background: blue; color: white')
 				this.currentGame.waiting = 'customization'
 
 			},
@@ -647,14 +653,13 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit("leaveGame", {
 					userID: this.user.id
 				})
-				if (debug) console.log('%c emit("leaveGame")', 'background: red; color: black')
+				console.log('%c emit("leaveGame")', 'background: red; color: black')
 				this.currentGame.waiting = 'undefined'
 				if (this.currentGame.status == 'building' || this.currentGame.status == 'playing' ) {
 					this.currentGame.status = 'end'
 					if (this.currentGame.endReason == 'undefined')
 						this.currentGame.endReason = 'userLeft'
 				}
-				// this.user.status = PlayerStatus.online
 			},
 
 			forceCanvasUnmount() {
@@ -761,10 +766,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 								: PlayerStatus.online /* playing | online | offline */,
 						my_friend: true
 					}
-					// console.log('playerStore : fetchData : player.playing === undefined')
-					// console.log(player.playing === undefined ? 'offline' : player.playing === true ? 'playing' : 'online')
-					// console.log('playerStore : fetchData : user status')
-					// console.log(this.user.status)
 					this.user.avatar = await fetchAvatar('/players/avatar/' + this.user.id);
 
 					this.user.notificationsSocket?.on('friendship-requests', fillNotifications.bind(this));
@@ -775,6 +776,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
+					this.user.gameSocket?.on('alert', handleAlerts.bind(this));
 					this.user.gameSocket?.on('getActiveGames', handleNewActiveGames.bind(this));
 					// this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
 					// this.user.gameSocket?.on('endStream', handleEndStream.bind(this));
@@ -786,7 +788,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.gameSocket?.on('endGame', handleEnd.bind(this));
 					this.user.gameSocket?.on('newFrame', handlenewFrame.bind(this));
 					this.user.gameSocket?.on('connect_error', (err) => {
-						console.log(`connect error: ${err}`);
+						console.error(`connect error: ${err}`);
 					})
 
 					this.friends = (await axios.get(`players/friends/${this.user.id}`, {params: {includePending: false}})).data
@@ -816,9 +818,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					).data
 					this.loading = false;
 				} catch (_) {
-					console.log('axios failed inside user store')
-					console.log(this.user)
-					// this.user.reset();
+					console.error('axios failed inside user store')
+					console.error(this.user)
 					this.user = emptyUser;
 				}
 				return this.user
@@ -854,9 +855,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				if (debug) console.log("/Store/ usePlayerStore.logout()");
 				await axios.delete('auth/42')
 				localStorage.removeItem(import.meta.env.JWT_KEY);
-				// this.user.reset()
 				Object.assign(this.user, emptyUser);
-				// this.user = emptyUser;
 			}
 		}
 	});
@@ -882,15 +881,12 @@ async function fetchGames(id: number): Promise<Game[]> {
 async function fetchPlayer(id: number): Promise<Player> {
 	if (debug) console.log("/Store/ fetchPlayer(" + id + ')');
 
-	// let user : Player = new Player()
 	let user : Player = emptyUser
 
 	if (id <= 0)
 		return user
 
 		let player : Player = (await axios.get(`players/${id}`)).data
-	// 	let player : Player = new Player()
-	// player = (await axios.get(`players/${id}`)).data
 	user = {
 		...player,
 		status:
@@ -901,11 +897,7 @@ async function fetchPlayer(id: number): Promise<Player> {
 				: PlayerStatus.online /* playing | online | offline */,
 	}
 
-	// console.log('playerStore : fetchPlayer : player.playing === undefined')
-	// console.log(player.playing === undefined ? 'offline' : player.playing === true ? 'playing' : 'online')
-	// console.log('playerStore : fetchPlayer : user status')
-	// console.log(user.status)
-
+	
 	try {
 		user.avatar = await fetchAvatar(user.avatar);
 	}
@@ -927,13 +919,6 @@ async function fetchAchievements(id: number): Promise<Achievement[]> {
 	return achievements
 }
 
-// async function fetchStatus(id: number): Promise<'offline' | 'online' | 'playing'> {
-// 	if (debug) console.log("/Store/ fetchStatus(" + id + ')');
-// 	const status : 'offline' | 'online' | 'playing' = (await axios.get(`players/status/${id}`)).data
-// 	console.log(`p.store | status : ${status}`)
-// 	return status
-// }
-
 // takes a string as following '/players/avatar/' + player.id
 async function fetchAvatar(avatar: string): Promise<string> {
 	if (debug) console.log("/Store/ fetchAvatar(" + avatar + ')');
@@ -945,7 +930,7 @@ async function fetchAvatar(avatar: string): Promise<string> {
 		return `data:${contentType};base64,${Buffer.from(response.data, 'binary').toString('base64')}`;
 	}
 	catch (error) {
-		console.log(`fetchAvatar() Exception: ${error}`)
+		console.error(`fetchAvatar() Exception: ${error}`)
 		return '';
 	}
 }
@@ -1040,7 +1025,6 @@ async function handleNewRequest(this: any, data: FriendRequest) {
 
 	//updating pending users
 	const usr = await fetchPlayer(friendID);
-	// if (usr.isEmpty() == false){
 	if (JSON.stringify(emptyUser) != JSON.stringify(usr)) {
 		this.pendingUsers.push(usr);
 	}
@@ -1073,7 +1057,6 @@ async function handleFriendshipAccept(
 
 	// Adding to friends
 	const newFriend = await fetchPlayer(newFriendID);
-	// if (newFriend.isEmpty() == false){
 		if (JSON.stringify(emptyUser) != JSON.stringify(newFriend)) {
 		this.friends.push(newFriend);
 	}
@@ -1117,7 +1100,6 @@ async function handleFriendshipReject(
 	
 	// add as public user
 	const newPublic = await fetchPlayer(friendID);
-	// if (newPublic.isEmpty() == false){
 	if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
 		this.publicUsers.push(newPublic);
 	}
@@ -1217,7 +1199,6 @@ async function handleBlockedUser(
 	}
 	else {
 		const affectedUser = await fetchPlayer(affectedUserID);
-		// if (affectedUser.isEmpty() == false)
 			if (JSON.stringify(emptyUser) != JSON.stringify(affectedUser))
 			this.publicUsers.push(affectedUser);
 	}
@@ -1225,7 +1206,6 @@ async function handleBlockedUser(
 	// if blocked, add to blocked users, otherwise remove from it
 	if (userBlocked) {
 		const affectedUser = await fetchPlayer(affectedUserID);
-		// if (affectedUser.isEmpty() == false){
 			if (JSON.stringify(emptyUser) != JSON.stringify(affectedUser)) {
 			this.blockedUsers.push(affectedUser);
 		}
@@ -1248,7 +1228,7 @@ async function handleBlockedUser(
 // 	data: FriendRequestUpdate
 // )
 // {
-// 	console.log('update-friendship-request emitted from the server');
+// 	if (debug) console.log('update-friendship-request emitted from the server');
 // 	// ACCEPT friendship succeeded
 // 	if (this.user.id == data.recipientID && false == data.pending_friendship)
 // 	{
@@ -1265,7 +1245,7 @@ async function handleBlockedUser(
 //TODO continue
 async function handleNotificationsError(this: any, data: FriendRequestError) {
 	if (debug) console.log("/Store/ notificationsError()");
-	console.log(
+	console.error(
 		`frienship-error: {\n
 			msg: ${data.msg},\n
 			requestorID: ${data.requestorID},\n
@@ -1275,47 +1255,51 @@ async function handleNotificationsError(this: any, data: FriendRequestError) {
 }
 
 // Received events : Game Sockets
+async function handleAlerts(this: any, payload: { message: string }){
+	if (debug) console.log("/Store/ handleAlerts()");
+	console.log('%c received("alert")', 'background: red; color: white')
+	alert(payload.message)
+}
 // Invites
 	//! in this part we should have snackbar to better handle UE
 async function handleNewInvite(this: any, invite : InviteDto) : Promise<boolean> {
 	if (debug) console.log("/Store/ handleNewInvite()");
-	if (debug) console.log('%c received("newInvite")', 'background: purple; color: white')
+	console.log('%c received("newInvite")', 'background: purple; color: white')
 	// can receive new invites only if has not sent any AND is not already handling invites
 
-
-	if (
-		(this.currentGame.invite.sent === false && this.currentGame.invite.received === false)
-		&& (this.currentGame.status === 'undefined')
-		&& (this.currentGame.waiting === 'undefined')
-	) {
+	if (this.isUserAvailable())
+	{
 		this.currentGame.invite.received = true
 		this.currentGame.invite.senderID = invite.hostID
 		this.currentGame.invite.senderUsername = (await fetchPlayer(invite.hostID)).username	
 		return true	
 	} else {
 		this.rejectInvitation(invite)
+		alert(`Declined invitation from ${invite.hostID} because you are busy`)
 	}
 	return false
 }
 
 async function handleDeleteInvite(this: any, invite : InviteDto) {
 	if (debug) console.log("/Store/ handleDeleteInvite()");
-	if (debug) console.log('%c received("deletedInvite")', 'background: purple; color: white')
+	console.log('%c received("deletedInvite")', 'background: purple; color: white')
 	if (invite.hostID == this.currentGame.invite.senderID){
+		alert(`${this.currentGame.invite.senderUsername} cancelled the invitation`)
 		this.currentGame.invite.reset()	
 	}
 }
 async function handleRejectedInvite(this: any) {
 	if (debug) console.log("/Store/ handleRejectedInvite()");
-	if (debug) console.log('%c received("rejectedInvite")', 'background: purple; color: white')
+	console.log('%c received("rejectedInvite")', 'background: purple; color: white')
 	//! in this part we should have some sort of snackbar on host session : guest rejected offer
+	alert(`your invitation to ${this.currentGame.invite.recipientUsername} was rejected`)
 	this.currentGame.waiting = 'undefined'
 	this.currentGame.invite.reset()
 }
 
 // Game
 async function handleNewGame(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-	console.log("/Store/ handleNewGame()");
+	if (debug) console.log("/Store/ handleNewGame()");
 	console.log('%c received("newGame")', 'background: purple; color: white')
 
 	if(this.currentGame.invite.sent || this.currentGame.invite.received){
@@ -1333,13 +1317,12 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 	Object.assign(this.currentGame.guest, (this.user.id == game.guestID)? this.user : (await fetchPlayer(game.guestID)));
 
 	router.push('/game')
-	// this.user.status = PlayerStatus.playing
 	this.currentGame.status = 'building'
 	this.currentGame.waiting = 'undefined'
 }
 
 async function handleStart(this: any, customization: CustomizationOptions) {
-	console.log("/Store/ handleStart()");
+	if (debug) console.log("/Store/ handleStart()");
 	console.log('%c received("startGame")', 'background: purple; color: white')
 
 	Object.assign(this.currentGame.customizations, customization);
@@ -1357,11 +1340,11 @@ async function handlenewFrame(this: any, frame: FrameDto) {
 
 async function handleEnd(this: any, endGame : endGameDto) {
 	if (debug) console.log("/Store/ handleEnd() current status : " + this.currentGame.status);
-	if (debug) console.log('%c received("endGame")', 'background: purple; color: white')
+	console.log('%c received("endGame")', 'background: purple; color: white')
 	this.user.gameSocket?.emit("leaveGame", {
 		userID: this.user.id
 	})
-	if (debug) console.log('%c emit("leaveGame")', 'background: red; color: black')
+	console.log('%c emit("leaveGame")', 'background: red; color: black')
 
 	this.currentGame.waiting = 'undefined'
 
@@ -1385,11 +1368,11 @@ async function handleEnd(this: any, endGame : endGameDto) {
 }
 
 async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
-	console.log(`/ Store / handleNewActiveGames`);
+	if (debug) console.log(`/ Store / handleNewActiveGames`);
 
 	for (const game of activeGames)
 	{
-		console.log(`next game: roomId: ${game.roomId}; hostID: ${game.hostID}; guestID: ${game.guestID}`);
+		if (debug) console.log(`next game: roomId: ${game.roomId}; hostID: ${game.hostID}; guestID: ${game.guestID}`);
 
 		const host = await fetchPlayer(game.hostID);
 		const guest = await fetchPlayer(game.guestID);
@@ -1404,22 +1387,22 @@ async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
 }
 
 // async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-// 	console.log("/Store/ handleNewStream()");
+// 	if (debug) console.log("/Store/ handleNewStream()");
 // 	console.log('%c received("newStream")', 'background: yellow; color: black')
 
 // 	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
 // 	{
-// 		console.log(`adding game instance to streaming list`);
+// 		if (debug) console.log(`adding game instance to streaming list`);
 // 		this.liveStreams.set(game.hostID, game.guestID);
 // 	}
 // }
 
 // async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-// 	console.log("/Store/ handleEndStream()");
+// 	if (debug) console.log("/Store/ handleEndStream()");
 // 	console.log('%c received("endStream")', 'background: yellow; color: black')
 
-// 	console.log('number of live games')
-// 	console.log(this.liveStreams.size)
+// 	if (debug) console.log('number of live games')
+// 	if (debug) console.log(this.liveStreams.size)
 
 // 	this.liveStreams.delete(game.hostID);
 // }

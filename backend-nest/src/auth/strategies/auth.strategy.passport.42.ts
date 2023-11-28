@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-42';
 
+const debug = true
+
 @Injectable()
 export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 	constructor() {
@@ -10,7 +12,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 			clientSecret: process.env.SECRET,
 			callbackURL: process.env.CALLBACK_URL,
 		});
-        console.log('DEBUG | auth.strategy | constructor() : called');
+        if (debug) console.log('DEBUG | auth.strategy | constructor() : called');
 	}
 
 	async validate(
@@ -19,7 +21,7 @@ export class FortyTwoStrategy extends PassportStrategy(Strategy, '42') {
 		profile: any,
 		done: (error: any, profile: any) => any,
 	) {
-        console.log('DEBUG | auth.strategy | validate() : called');
+        if (debug) console.log('DEBUG | auth.strategy | validate() : called');
 
 		// store profile in req.user
 		const user = {

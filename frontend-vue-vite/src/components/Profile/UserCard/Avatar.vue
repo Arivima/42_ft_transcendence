@@ -1,7 +1,11 @@
 <script lang="ts">
-import { type Player, PlayerStatus } from '@/stores/PlayerStore'
-const debug = false
+import { usePlayerStore, type Player, PlayerStatus } from '@/stores/PlayerStore'
+import { storeToRefs } from 'pinia'
 
+const playerStore = usePlayerStore()
+const { user, friends } = storeToRefs(playerStore)
+
+const debug = true
 
 export default {
 	props: {
@@ -12,30 +16,46 @@ export default {
 	},
     data () {
         return {
+			user : user,
+			friends : friends,
         }
     },
 	computed: {
+		visibility() : 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
+			return playerStore.visibility(this.userProfile?.id);
+		},
+		status() : string {
+			if (this.visibility === 'MyProfile')
+				return this.user.status
+			if (this.visibility === 'FriendProfile'){
+				for (const friend of this.friends) {
+					if (friend.id === this.userProfile.id)
+						return friend.status;
+				}				
+			}
+			return ''
+		},
 		badgeColor() : string {
-			if (debug) console.log('| Avatar | computed : badgeColor')
-			if (this.userProfile.status == PlayerStatus.playing)
+			if (this.status == PlayerStatus.playing)
 				return 'blue'
-			else if (this.userProfile.status == PlayerStatus.online)
+			else if (this.status == PlayerStatus.online)
 				return 'green'
 			else
 				return 'grey'
-		},
-		avatar() : string {
-			if (debug) console.log('| Avatar | computed : avatar')
-			return this.userProfile.avatar
-		},
-		username() : string {
-			if (debug) console.log('| Avatar | computed : username')
-			return this.userProfile.username
 		},
 	},
 	watch : {
 		userProfile(newValue : Player) {
 			if (debug) console.log('| Avatar | watch | userProfile : new value : ' + newValue.username)
+		},
+		visibility(newValue : 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile') {
+			if (debug) console.log('| Avatar | watch | visibility : new value : ' + newValue)
+		},
+		status(newValue : string) {
+			if (debug) console.log('| Avatar | watch | status : new value : ' + newValue)
+		},
+		badgeColor(newValue : string) {
+			if (debug) console.log('| Avatar | watch | badgeColor : new value : ' + newValue)
 		},
 	},
 }
@@ -43,17 +63,28 @@ export default {
 
 <template>
 		<v-card class="itemAvatar" density="comfortable" variant="flat">
-			<v-badge bordered inline :color="badgeColor" :content="userProfile.status">
+
+			<v-badge
+				v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+				bordered inline
+				:color="badgeColor" 
+				:content="status">
 				<v-avatar size="130" rounded="1">
-					<v-img cover :src="avatar"></v-img>
+					<v-img cover :src="userProfile.avatar"></v-img>
 				</v-avatar>
 			</v-badge>
+
+			<v-avatar
+				v-if="visibility === 'PublicProfile' || visibility === 'BlockedProfile'"
+				size="130" rounded="1">
+				<v-img cover :src="userProfile.avatar"></v-img>
+			</v-avatar>
+
 			<div class="backgroundItem ma-3">
 				<v-card-item
-					:title="username"
+					:title="userProfile.username"
 					:subtitle="userProfile.firstName + ' ' + userProfile.lastName"
-				>
-				</v-card-item>
+				></v-card-item>
 			</div>
 		</v-card>
 

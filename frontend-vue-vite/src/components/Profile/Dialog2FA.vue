@@ -1,12 +1,10 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { VOtpInput } from 'vuetify/labs/VOtpInput'
 import axios from 'axios'
 const debug = false
 
 export default defineComponent({
 	components: {
-		VOtpInput
 	},
 	props: {
 		mode: {
@@ -72,7 +70,7 @@ export default defineComponent({
 						})
 						.catch((error) => {
 							this.displayError('Error: Server internal error.')
-							console.log(error)
+							console.error(error)
 						})
 						.finally(() => (this.loading = false))
 					break
@@ -93,7 +91,7 @@ export default defineComponent({
 						})
 						.catch((error) => {
 							this.displayError('Error: Server internal error.')
-							console.log(error)
+							console.error(error)
 						})
 						.finally(() => (this.loading = false))
 					break
@@ -112,7 +110,7 @@ export default defineComponent({
 						})
 						.catch((error) => {
 							this.displayError('Error: Server internal error.')
-							console.log(error)
+							console.error(error)
 						})
 						.finally(() => (this.loading = false))
 					break

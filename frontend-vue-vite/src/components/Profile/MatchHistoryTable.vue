@@ -2,7 +2,7 @@
 import { usePlayerStore, type Game, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 import { VCardText } from 'vuetify/components'
-import { VDataTableServer } from 'vuetify/labs/components'
+// import { VDataTableServer } from 'vuetify/labs/components'
 
 const playerStore = usePlayerStore()
 const { fetchGames } = storeToRefs(playerStore)
@@ -17,12 +17,13 @@ const debug = false
 //TODO FIX and avoid using STORE
 export default {
 	components: {
-    VDataTableServer,
+    // VDataTableServer,
     VCardText
 },
 	props: {
 		userProfile: {
 			type: Object as () => Player,
+			default: undefined,
 			required: true
 		},
 	},
@@ -47,37 +48,43 @@ export default {
 			this.loading = true
 			const start = (options.page - 1) * options.itemsPerPage
 			const end = start + options.itemsPerPage
-			try {
-				// await this.getUserProfile()
-				this.games = await fetchGames.value(this.userProfile.id)
-				this.games = this.games.filter((game) => {
-					if (
-						this.searchedBoth &&
-						(false == game.guest.toLowerCase().includes(this.searchedBoth.toLowerCase()) &&
-						false == game.host.toLowerCase().includes(this.searchedBoth.toLowerCase()))
-					)
-						return false
-					return true
-				})
-				this.games.sort((a: Game, b: Game) => {
-					return Date.parse(b.createdAt) - Date.parse(a.createdAt)
-				})
-				this.totalItems = this.games.length
-				this.games = this.games.slice(start, end)
-				this.loading = false
-			} catch (err) {
-				//TODO show toast
-				this.games = []
-				this.totalItems = 0
-				this.loading = false
-				console.log(err)
+			if (this.userProfile != undefined){
+				try {
+					// await this.getUserProfile()
+					this.games = await fetchGames.value(this.userProfile.id)
+					this.games = this.games.filter((game) => {
+						if (
+							this.searchedBoth &&
+							(false == game.guest.toLowerCase().includes(this.searchedBoth.toLowerCase()) &&
+							false == game.host.toLowerCase().includes(this.searchedBoth.toLowerCase()))
+						)
+							return false
+						return true
+					})
+					this.games.sort((a: Game, b: Game) => {
+						return Date.parse(b.createdAt) - Date.parse(a.createdAt)
+					})
+					this.totalItems = this.games.length
+					this.games = this.games.slice(start, end)
+					this.loading = false
+				} catch (err) {
+					//TODO show toast
+					this.games = []
+					this.totalItems = 0
+					this.loading = false
+					console.error(err)
+				}				
 			}
+
 		},
 		getColor(hostA : String, a : Number, b : Number){
-			if (hostA == this.userProfile.username)
-				return (a > b ? 'success' : a == b ? 'warning' : 'error')
-			else
-				return ('grey-darken-2')
+			if (this.userProfile != undefined)
+			{
+				if (hostA == this.userProfile.username)
+					return (a > b ? 'success' : a == b ? 'warning' : 'error')
+				else
+					return ('grey-darken-2')				
+			}
 		}
 	},
 	watch: {
@@ -96,25 +103,25 @@ export default {
 		if (debug) console.log('| MatchHistoyTable | beforeCreate()')
 	},
 	created() {
-		if (debug) console.log('| MatchHistoyTable | created(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | created(' + (this.userProfile?.id) + ')')
 	},
 	beforeMount() {
-		if (debug) console.log('| MatchHistoyTable | beforeMount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | beforeMount(' + (this.userProfile?.id) + ')')
 	},
 	mounted() {
-		if (debug) console.log('| MatchHistoyTable | mounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | mounted(' + (this.userProfile?.id) + ')')
 	},
 	beforeUpdate() {
-		if (debug) console.log('| MatchHistoyTable | beforeUpdate(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | beforeUpdate(' + (this.userProfile?.id) + ')')
 	},
 	updated() {
-		if (debug) console.log('| MatchHistoyTable | updated(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | updated(' + (this.userProfile?.id) + ')')
 	},
 	beforeUnmount() {
-		if (debug) console.log('| MatchHistoyTable | beforeUnmount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | beforeUnmount(' + (this.userProfile?.id) + ')')
 	},
 	unmounted() {
-		if (debug) console.log('| MatchHistoyTable | unmounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| MatchHistoyTable | unmounted(' + (this.userProfile?.id) + ')')
 	},
 }
 </script>
@@ -139,26 +146,6 @@ export default {
 			hover
 			class="text-caption"
 		>
-
-			<!-- <template v-slot:headers="{ columns, isSorted, getSortIcon, toggleSort }">
-				<tr>
-					<template v-for="column in columns" :key="column.key">
-						<td
-							style="background-color: transparent;"
-
-						>
-							<span
-								class="mr-2 cursor-pointer"
-								@click="() => toggleSort(column)"
-								style="	font-weight: bold;"
-							>
-								{{ column.title }}
-							</span>
-						</td>
-					</template>
-				</tr>
-			</template> -->
-
 			<template v-slot:item="{ item }">
 				<tr
 					style="background-color: transparent;"
@@ -168,7 +155,7 @@ export default {
 					<td style="background-color: transparent;">
 						<v-chip
 							:color="getColor(item.host, item.host_score, item.guest_score)"
-							:variant="item.host != userProfile.username ? 'text' : 'tonal'"
+							:variant="item.host != userProfile?.username ? 'text' : 'tonal'"
 						>
 							{{ item.host_score }}
 						</v-chip>
@@ -176,7 +163,7 @@ export default {
 					<td style="background-color: transparent;">
 						<v-chip
 							:color="getColor(item.guest, item.guest_score, item.host_score)"
-							:variant="item.guest != userProfile.username ? 'text' : 'tonal'"
+							:variant="item.guest != userProfile?.username ? 'text' : 'tonal'"
 						>
 							{{ item.guest_score }}
 						</v-chip>
@@ -195,7 +182,7 @@ export default {
 						density="compact"
 					>
 					<template v-slot:label>
-						<v-label style="font-size: small; font-style: italic;">search username</v-label>
+						<v-label style="font-size: small; font-style: italic;" text="search username"></v-label>
 					</template>
 					</v-text-field>
 				</div>

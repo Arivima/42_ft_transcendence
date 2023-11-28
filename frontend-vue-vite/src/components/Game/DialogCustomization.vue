@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { usePlayerStore } from '@/stores/PlayerStore'
+import { usePlayerStore, CustomizationOptions } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
@@ -17,11 +17,11 @@ export default defineComponent({
 		}
 	},
 	computed : {
-		dialogBox(){
+		dialogBox() : boolean {
 			if (debug) console.log('| DialogCustomization | computed | dialogBox : ' + (currentGame.value.status == 'building' && currentGame.value.waiting == ''))
 			return (currentGame.value.status == 'building' && currentGame.value.waiting == 'undefined' && currentGame.value.gameInfo.watcher == false)
 		},
-		opponentName() {
+		opponentName() : string {
 			if (debug) console.log('| DialogCustomization | computed | opponentName : ' + (user.value.id == currentGame.value.gameInfo.hostID ? currentGame.value.guest.username : user.value.id == currentGame.value.gameInfo.guestID ? currentGame.value.host.username :'N/A'))
 			return user.value.id == currentGame.value.gameInfo.hostID ?
 				currentGame.value.guest.username :
@@ -46,16 +46,16 @@ export default defineComponent({
 			if (debug) console.log('| DialogCustomization | watcher | dialogBox : ' + isActive)
 			if (isActive == false){
 				this.customization = false
-				this.paddle_color = currentGame.value.customizations.paddle_color;
-				this.ball_color = currentGame.value.customizations.ball_color;
-				this.pitch_color = currentGame.value.customizations.pitch_color;				
+				this.paddle_color = '#800080';
+				this.ball_color = '#800080';
+				this.pitch_color = '#FFFFFF';	
 			}
 		},
 		customization(isActive: boolean){
 			if (isActive == false){
-				this.paddle_color = currentGame.value.customizations.paddle_color;
-				this.ball_color = currentGame.value.customizations.ball_color;
-				this.pitch_color = currentGame.value.customizations.pitch_color;				
+				this.paddle_color = '#800080';
+				this.ball_color = '#800080';
+				this.pitch_color = '#FFFFFF';				
 			}
 		},
 	},

@@ -28,6 +28,8 @@ import { PlayersService } from 'src/players/players.service';
 import { Public } from './decorators/auth.public.decorator';
 import { Protected } from './decorators/auth.protected.decorator';
 
+const debug = true
+
 @Controller('auth')
 export class AuthController {
 	constructor(
@@ -48,7 +50,7 @@ export class AuthController {
 		const userID = Number(req.user.id);
 
 		try {
-            console.log('DEBUG | Auth.controller | login42() : called');
+            if (debug) console.log('DEBUG | Auth.controller | login42() : called');
 
 			// after validate(), user is stored in req.user
 			// now let's sign in the app (find/register user, create a token)
@@ -100,7 +102,7 @@ export class AuthController {
 	@Protected()
 	@Post('2fa/login')
 	async login2fa(@Body('otp') otp: string, @Request() req) {
-        console.log('DEBUG | Auth.controller | login2fa() | otp : ' + otp);
+        if (debug) console.log('DEBUG | Auth.controller | login2fa() | otp : ' + otp);
 		if (false == (await this.authService.verifyOTP(Number(req.user.sub), otp)))
 			return false;
 		this.pservice.addConnection(Number(req.user.sub));
@@ -114,7 +116,7 @@ export class AuthController {
 	 */
 	@Post('2fa')
 	async verify2fa(@Body('otp') otp: string, @Request() req) {
-        console.log('DEBUG | Auth.controller | verify2fa() | otp : ' + otp);
+        if (debug) console.log('DEBUG | Auth.controller | verify2fa() | otp : ' + otp);
 		return (await this.authService.verifyOTP(Number(req.user.sub), otp))
 	}
 
@@ -126,7 +128,7 @@ export class AuthController {
 	@Protected()//TODO REMOVE DECOAATOR
 	@Post('2fa/remove')
 	async remove2fa(@Body('otp') otp: string, @Request() req) {
-        console.log('DEBUG | Auth.controller | remove2fa() | otp : ' + otp);
+        if (debug) console.log('DEBUG | Auth.controller | remove2fa() | otp : ' + otp);
 		return (await this.authService.removeOTP(Number(req.user.sub), otp))
 	}
 }

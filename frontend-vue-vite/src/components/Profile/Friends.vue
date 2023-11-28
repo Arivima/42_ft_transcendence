@@ -61,6 +61,7 @@ export default {
 			<v-card-title class="text-overline">My friends</v-card-title>
 		</v-card-item>
 		<v-divider></v-divider>
+		<v-card-text v-if="items.length === 0">You have no friends for now!</v-card-text>
 		<v-virtual-scroll
 			:items="items"
 			height="95%"

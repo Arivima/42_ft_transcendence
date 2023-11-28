@@ -1,7 +1,7 @@
 <script lang="ts">
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
+import { usePlayerStore, type Player, type ActiveGameDto } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import { VDataTableServer } from 'vuetify/labs/components'
+// import { VDataTableServer } from 'vuetify/labs/components'
 import { VCardText } from 'vuetify/components'
 import axios from 'axios'
 
@@ -13,7 +13,7 @@ const debug = false
 
 export default {
 	components:	{
-		VDataTableServer,
+		// VDataTableServer,
 		VCardText
 	},
 

@@ -188,13 +188,13 @@ export default {
 		// COLLISIONS
 		ballDirX(newVal : number){
 			if (newVal == 1){
-				console.log('Host lost a point')
+				if (debug) console.log('Host lost a point')
 				// send point request to server
 				this.score.guest++				
 			}
 
 			if (newVal == -1){
-				console.log('Guest lost a point')
+				if (debug) console.log('Guest lost a point')
 				// send point request to server
 				this.score.host++				
 			}
@@ -202,9 +202,9 @@ export default {
 		// use for bonus ? additional animation ?
 		// ballDirY(newVal : number){
 		// 	if (newVal == 1)
-		// 		console.log('Bouncing off ceiling')
+		// 		if (debug) console.log('Bouncing off ceiling')
 		// 	if (newVal == -1)
-		// 		console.log('Bouncing off floor')
+		// 		if (debug) console.log('Bouncing off floor')
 		// },
 	},
 	computed : {
@@ -389,9 +389,9 @@ export default {
 					if (this.AbsPaddleGuest.y - step > 0)
 						this.guestPaddleDis -= step;
 				}
-				console.log('ArrowUp')
-				console.log('paddle step : ' + step)
-				console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
+				if (debug) console.log('ArrowUp')
+				if (debug) console.log('paddle step : ' + step)
+				if (debug) console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
 
 			}
 			if (this.keyState.get('ArrowDown') === true) {
@@ -402,9 +402,9 @@ export default {
 					if (this.AbsPaddleGuest.y + this.gameConf.host.paddleHeight + step < (this.canvas?.height || 0))
 						this.guestPaddleDis += step;
 				}
-				console.log('ArrowDown')
-				console.log('paddle step : ' + step)
-				console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
+				if (debug) console.log('ArrowDown')
+				if (debug) console.log('paddle step : ' + step)
+				if (debug) console.log('AbsPaddleHost : ' + this.AbsPaddleHost.y)
 			}
 		},
 
@@ -464,7 +464,7 @@ export default {
 					this.ccontext.beginPath();
 					this.ccontext.fillText(i.toString(), (this.canvas?.width || 0) / 2, (this.canvas?.height || 0) / 2);
 					this.ccontext?.stroke();
-					console.log(i)
+					if (debug) console.log(i)
 					setTimeout(() => {
 					}, 100000);					
 				}

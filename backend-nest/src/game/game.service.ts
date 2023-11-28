@@ -380,7 +380,34 @@ export class GameService {
 		return undefined;
 	}
 
-	
+	/**
+	 * 
+	 * @param userID 
+	 * @returns true if the user is already in the queue or an active game, else false
+	 */
+		isUserBusy(
+			userID: number,
+		) : boolean {
+			// Checking user is not already in queue
+			for (let [hostID] of this.getQueue())
+				if (userID == hostID)
+					return true
+
+			// Checking user is not already playing
+			const game = this.gameInstances.get(userID);
+			if (game)
+				return true
+
+			// Checking user is not already playing
+			this.calculateActiveGames();
+			const activeGames : ActiveGameDto[] = this.getActiveGames();
+			if (true === activeGames.some((activeGame) => {return activeGame.hostID === userID || activeGame.guestID === userID}))
+				return true
+
+			return false
+		}
+
+
 	/**
 	 * @brief this function updates db MatchHistory info AND PlayerStats info.
 	 * @param finalFrame 
@@ -494,23 +521,5 @@ export class GameService {
 	// 	// 	});
 	// }
 
-	create(createGameDto: CreateGameDto) {
-		return 'This action adds a new game';
-	}
 
-	findAll() {
-		return `This action returns all game`;
-	}
-
-	findOne(id: number) {
-		return `This action returns a #${id} game`;
-	}
-
-	update(id: number, updateGameDto: UpdateGameDto) {
-		return `This action updates a #${id} game`;
-	}
-
-	remove(id: number) {
-		return `This action removes a #${id} game`;
-	}
 }

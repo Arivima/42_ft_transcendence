@@ -43,7 +43,7 @@ export default {
 						this.stats.loading = false
 					})
 					.catch((err : Error) => {
-						console.log(err)
+						console.error(err)
 						this.stats.loading = false
 					})
 		}

@@ -1,32 +1,40 @@
 TODO ARIELLE
 	MUST-DO
 		MODIFY
-
 		- AVM | improve chat UI so notifications can be on top
-		- AVM | npm update to latest stable library version (on clean status)
+
 		DO
 		- AVM | browser compatibility : chrome, firefox, safari
 		- AVM | error handling / warning : 500, crash, does not work
-		- AVM | SQL injections protected
-		- AVM | server-side sanitization (any user input)
-		- AVM | clean console.log
-	console
-
 		- when all is done, test with 5+ players, 10+ games
 
-		- 1v1 games should not count for ladder_lvl
-		- difference between matchmaking (ladder mode) games and invite (1v1) games should be made
+		- find a solution for env files
 
 		RESOLVE
-		- AVM | recheck at the start of customization when there has been another game before
-		- MM | add WS to have reactive status
-		- AVM | prevent players to watch their own games (host game or guest game)
-		- AVM | check reactivity front + do we need to take out .value when using store
 		- AVM | streaming : customize bug, last frame ? rainbow 
 
-		wait matteo
+		- AVM | SQL injections protected
+		- AVM | server-side sanitization (any user input)
+
+		- AVM | check reactivity front + do we need to take out .value when using store
+
+
+		with matteo
+
 		- DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
+		(fixed profile complete - achievement conflict)
 		- Dialog2FA : same problem
+
+		- 1v1 games should not count for ladder_lvl
+		- difference between matchmaking (ladder mode) games and invite (1v1) games should be made		
+
+		- full test from build version - evaluation mode, check against subject/correction sheet
+
+		- AVM | npm update to latest stable library version (on clean status) - node is too old?
+
+		- MM | add WS to have reactive status
+
+		- MM | add WS to have reactive achievements
 
 		- Game : ball bug
 
@@ -41,18 +49,38 @@ TODO ARIELLE
 	PROBABLY WON'T HAVE TIME
 		- convert chat code to typescript
 		- check that whole front is typescript compliant
-		- Gme : slow paddle
+		- Game : slow paddle
+
+	TODO CHECKLIST BEFORE PUSHING
+		- clean console.log
+
 
 
 
 DONE
+TUESDAY
+- AVM | npm update to latest stable library version => cannot because node too old ?
+
+- AVM | clean console.log & comments
+- AVM | compliance with Vuetify@latest
+- AVM | removed visibility of status from public and blocked profile
+
+- AVM | added status in the navside bar
+- AVM | prepared reactivity for status (avatar, friends, navsidebar) => now need to add emit ws functions backend + playerstore
+
+- AVM | prevent players to watch their own games (host game or guest game)
+- AVM | added : back : active players and queuers cannot join, invite, or start a new game
+- AVM | added : front : users who are in the process of invite, stream, play cannot join, invite, or start a new game !if a different window then it does not protect against conflict
+
+- AVM | recheck at the start of customization when there has been another game before
+- AVM | 
+
+MONDAY
 - AVM | status : maybe two instanciations of the map
 - MM | Match History : double entry : Game.gateway:382:this.gameService.setGameasFinished(frame);
 - AVM | invitation : risolved cancelling invite bug + enforced receiver and sender availability
 - AVM | fixed UI DialogEdit to make it more intuitive
 - AVM | visibility match history and achievement set to public
-
-
 risolved by itself
 - AVM | bug when game has been played : weirdly, looks ok
 

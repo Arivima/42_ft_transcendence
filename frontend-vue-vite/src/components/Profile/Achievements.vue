@@ -12,6 +12,7 @@ export default {
 	props: {
 		userProfile: {
 			type: Object as () => Player,
+			default: undefined,
 			required: true
 		},
 	},
@@ -40,7 +41,7 @@ export default {
 						this.loading = false
 					})
 					.catch((err : Error) => {
-						console.log(err)
+						console.error(err)
 						this.loading = false
 					})
 		},
@@ -49,26 +50,27 @@ export default {
 	if (debug) console.log('| Achievements | beforeCreate()')
 	},
 	created() {
-		if (debug) console.log('| Achievements | created(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Achievements | created(' + (this.userProfile?.id) + ')')
 	},
 	beforeMount() {
-		if (debug) console.log('| Achievements | beforeMount(' + (this.userProfile.id) + ')')
-		this.fetchAchievements(this.userProfile.id)
+		if (debug) console.log('| Achievements | beforeMount(' + (this.userProfile?.id) + ')')
+		if (this.userProfile != undefined)
+			this.fetchAchievements(this.userProfile.id)
 	},
 	mounted() {
-		if (debug) console.log('| Achievements | mounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Achievements | mounted(' + (this.userProfile?.id) + ')')
 	},
 	beforeUpdate() {
-		if (debug) console.log('| Achievements | beforeUpdate(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Achievements | beforeUpdate(' + (this.userProfile?.id) + ')')
 	},
 	updated() {
-		if (debug) console.log('| Achievements | updated(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Achievements | updated(' + (this.userProfile?.id) + ')')
 	},
 	beforeUnmount() {
-		if (debug) console.log('| Achievements | beforeUnmount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Achievements | beforeUnmount(' + (this.userProfile?.id) + ')')
 	},
 	unmounted() {
-		if (debug) console.log('| Achievements | unmounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Achievements | unmounted(' + (this.userProfile?.id) + ')')
 	},
 	}
 </script>
@@ -111,7 +113,7 @@ export default {
 					height="50"
 					class="componentDescription d-flex flex-column fill-height justify-center align-center pa-3"
 				>
-						<v-chip class="text-overline" color="blue">{{ achievements[model].name }}</v-chip>
+						<v-chip class="text-overline" color="primary">{{ achievements[model].name }}</v-chip>
 						<div class="d-flex w-100 align-left px-6 py-2">
 							<p class="font-weight-light">{{ achievements[model].description }}</p>
 						</div>

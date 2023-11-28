@@ -487,8 +487,8 @@ export class PlayersService {
 	// 		avatar: string;
 	// 	}[]
 	// > {
-	// 	console.log(id);
-	// 	console.log(limit);
+	// 	if (debug) console.log(id);
+	// 	if (debug) console.log(limit);
 
 	// 	// this.prisma.
 

@@ -22,6 +22,7 @@ import { CustomizationOptions } from './dto/customization.dto';
 import { endGameDto } from './dto/endGame.dto';
 import { InviteDto } from './dto/invite.dto';
 import { PlayersService } from 'src/players/players.service';
+import { ActiveGameDto } from './dto/activeGame.dto';
 
 // TODO
 // TODO		1.1 move maps in service
@@ -109,6 +110,13 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		if (!invite?.hostID || !invite?.guestID)
 			return
+
+		if (true === this.gameService.isUserBusy(invite.hostID)){
+			let senderSocket = this.clients.get(invite?.hostID);
+			if (senderSocket)
+				this.server.to(senderSocket.id).emit('alert', {message : 'You are already busy'});
+			return		
+		}
 
 		let recipientSocket = this.clients.get(invite?.guestID);
 
@@ -205,13 +213,19 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		if (debug) console.log(`| GATEWAY GAME | 'matchMaking' |`);
 		if (!userID || !userSocket)
 			return
+			
+		if (true === this.gameService.isUserBusy(userID)){
+			this.server.to(userSocket.id).emit('alert', {message : 'You are already busy'});
+			return
+		}
 
-		if (debug) console.log(`| GATEWAY GAME | 'matchMaking' |`);
 		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
 		if (debug) console.log(`| GATEWAY GAME | current live games : ${this.gameService.getGameInstances().size} `);
 		let matched: boolean = false;
 		let roomId: string;
-		
+
+
+
 		for (let [hostID, hostSocket] of this.gameService.getQueue()) {
 			if (await this.gameService.playerMatch(hostID, userID))
 			{
@@ -317,9 +331,15 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		@MessageBody('playerID') playerID: number,
 		@ConnectedSocket() client: Socket
 	) {
+		if (debug) console.log(`| GATEWAY GAME | 'joinGame'`);
 		if (!userID || !playerID || !client)
 			return
-		if (debug) console.log(`| GATEWAY GAME | 'joinGame'`);
+
+		if (true === this.gameService.isUserBusy(userID)){
+			this.server.to(client.id).emit('alert', {message : 'You are already busy'});
+			return
+		}
+
 
 		// fetching the room where playerID is playing
 		const game = this.gameService.joinGame(userID, playerID, client);

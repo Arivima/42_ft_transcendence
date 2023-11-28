@@ -1,7 +1,7 @@
 <script lang="ts">
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import { VDataTableServer } from 'vuetify/labs/components'
+// import { VDataTableServer } from 'vuetify/labs/components'
 import { VCardText } from 'vuetify/components'
 import axios from 'axios'
 
@@ -22,7 +22,7 @@ export interface Entry {
 
 export default {
 	components:	{
-		VDataTableServer,
+		// VDataTableServer,
 		VCardText
 
 },
@@ -68,7 +68,7 @@ export default {
 				this.board = []
 				this.totalItems = 0
 				this.loading = false
-				console.log(err)
+				console.error(err)
 			}
 		},
 	},

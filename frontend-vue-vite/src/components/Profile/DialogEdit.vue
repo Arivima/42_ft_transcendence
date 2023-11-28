@@ -54,7 +54,7 @@ export default defineComponent({
 				this.dialogBox = false;
 			}
 			catch(err) {
-				console.log(`could not send profile confirmation because of: ${err}`)
+				console.error(`could not send profile confirmation because of: ${err}`)
 			}
 		},
 		async validate () {
@@ -97,7 +97,7 @@ export default defineComponent({
 				})
 				.catch((error : any) => {
 					this.displayErrorUsername('Error: Server internal error.')
-					console.log(error)
+					console.error(error)
 				})
 				.finally(() => (this.loadingUsername = false))
 		},
@@ -121,7 +121,7 @@ export default defineComponent({
 				})
 				.catch((error) => {
 					this.displayErrorAvatar('Error: Server internal error.')
-					console.log(error)
+					console.error(error)
 				})
 				.finally(() => (this.loadingAvatar = false))
 		},
