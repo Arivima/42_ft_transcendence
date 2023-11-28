@@ -1,18 +1,17 @@
 <template>
-	<div id="chat" class="d-flex flex-column backgroundChat">
-		<v-app  style="background-color: transparent;">
-			<v-container class="fill-height pa-0"  >
-				<v-row class="no-gutters" style="background-color: white;">
-					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style="border-right: 1px solid #0000001f;">
-						<v-responsive class="overflow-y-auto fill-height" height="500">
+	<!-- <div id="chat" class="flex-content"> -->
+	<div id="chat">
+		<v-app>
+			<v-container class="fill-height pa-0" >
+				<v-row class="no-gutters elevation-4" style="max-height: 50rem;">
+					<v-col cols="12" sm="3" class="flex-grow-1 flex-shrink-0" style=" max-height: inherit;">
+						<v-responsive class="" height="500">
 							<v-list subheader >
 								<v-btn @click="openGroupCreationPopup" style="margin-right: 5px;margin-bottom: 10px;">Create Group Chat</v-btn>
 								<v-btn @click="openSearchGroupPopup" style="margin-bottom: 10px;">
 									<v-icon>mdi-magnify</v-icon>
 								</v-btn>
-								<div class="">
-									
-								<v-item-group v-model="this.activeChat">
+								<v-item-group v-model="this.activeChat" style="max-height: 27rem;" class="overflow-y-auto ">
 									<template v-for="(item, index) in parents" :key="`parent${index}`">
 										<v-list-item :value="index" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
 										>
@@ -30,7 +29,6 @@
 										<v-divider class="my-0" />
 									</template>
 								</v-item-group>
-							</div>
 							</v-list>
 						</v-responsive>
 					</v-col>
@@ -57,7 +55,7 @@
 									</v-btn>
 								</div>
 								<!-- <v-card-title v-if="activeChat && parents[activeChat - 1].isGroup" @click="openGroupInfoPopup()">{{ parents[activeChat - 1].name }}</v-card-title> -->
-								<v-card-text class="flex-grow-1 overflow-y-auto">
+								<v-card-text class="flex-grow-1 overflow-y-auto" style="max-height: 20rem;"> 	
 									<template v-for="(msg, i) in messages" :key="`message${i}`">
 										<div :class="{ 'd-flex flex-row-reverse': msg.me }">
 											<v-menu offset-y>
@@ -343,14 +341,20 @@ export default {
 					alert("You can't send message to this Chat")
 				}
 				this.socket.emit("getparents", { userId: user.value.id }, (response) => {
-					response.sortedData.forEach((parentResponse, index) => {
-						if (this.activeChat && this.parents[this.activeChat - 1].id == parentResponse.id)
+					// response.sortedData.forEach((parentResponse, index) => {
+					// 	parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString();
+					// });
+					response.sortedData.every((parentResponse, index) => {
+						if (this.activeChat && this.parents[this.activeChat - 1].id == parentResponse.id) {
 							this.activeChat = index + 1;
-
-						parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString();
-						// parentResponse.lastMessage = newMessage.content;
-						
+							return false;
+						}
+						return true;
 					});
+					response.sortedData.forEach((parentResponse, index) => {
+						parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString();
+					});
+
 					friends.value.forEach((friend) => {
 						response.sortedData.forEach((parentResponse) => {
 							if (friend.id == parentResponse.id)
@@ -366,7 +370,7 @@ export default {
 					this.friendsChat = response.friends;
 					this.groups = response.rooms;
 					console.log("this.activeChat", r.success);
-					this.activeChat = r.success == true ? 1 : 0;
+					// this.activeChat = r.success == true ? 1 : 0;
 					console.log("this.activeChat", this.activeChat);
 				});
 				newMessage.createdAt = showTime(newMessage.createdAt);
@@ -576,14 +580,26 @@ export default {
 
     top: 0;
     left: 0;
-    transform: scale(1.1);
+    /* transform: scale(1.1); */
     /* background: url(../../catwar.png) no-repeat center center; */
     /* background: url(../../nyancat_bg.jpeg) no-repeat center center; */
     /* background: url(../../blackcat.jpeg) no-repeat center center; */
-    background: url(../../blackcatspace.jpg) no-repeat center center;
-    background-size: cover;
-    position:absolute;
-	background-position: 100% 100%;
+    /* background: url(../../blackcatspace.jpg) no-repeat center center; */
+    /* background-size: cover; */
+    /* position:absolute; */
+	/* background-position: 100% 100%; */
+}
+
+.flex-content {
+	flex-grow: 1;
+	position: relative;
+	width: 100%;
+	height: 100%;
+}
+
+.scrollable{
+
+	overflow: auto;
 }
 
 </style>
