@@ -12,9 +12,9 @@
 									<v-icon>mdi-magnify</v-icon>
 								</v-btn>
 								<v-item-group v-model="this.activeChat" style="max-height: 27rem;" class="overflow-y-auto ">
-									<template v-for="(item, index) in parents" :key="`parent${index}`">
-										<v-list-item :value="index" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2"
-										>
+									<template v-for="(item, index) in parents">
+										<!-- {{ item.chatId }} -->
+										<v-list-item :value="item.id" @click="activateChat(item.id, index, item.isGroup)" class="pa-4 pointer elevation-1 mb-2" >
 											<v-avatar color="grey lighten-1 white--text" size="36" v-if="!item.isGroup && item.avatar" :image="item.avatar">
 											</v-avatar>
 											<v-avatar color="grey lighten-1 white--text" size="36" v-if="!item.isGroup && !item.avatar">
@@ -588,18 +588,6 @@ export default {
     /* background-size: cover; */
     /* position:absolute; */
 	/* background-position: 100% 100%; */
-}
-
-.flex-content {
-	flex-grow: 1;
-	position: relative;
-	width: 100%;
-	height: 100%;
-}
-
-.scrollable{
-
-	overflow: auto;
 }
 
 </style>

@@ -12,7 +12,7 @@ INSERT INTO "Player" (
 VALUES (
 	CURRENT_TIMESTAMP,
 	CURRENT_TIMESTAMP,
-	1,
+	1111,
 	'pippo',
 	'public/upload/pippo.jpg',
 	'pippo',
@@ -34,7 +34,7 @@ INSERT INTO "Player" (
 VALUES (
 	CURRENT_TIMESTAMP,
 	CURRENT_TIMESTAMP,
-	2,
+	2222,
 	'pluto',
 	'public/upload/pluto.jpg',
 	'pluto',
@@ -56,7 +56,7 @@ INSERT INTO "Player" (
 VALUES (
 	CURRENT_TIMESTAMP,
 	CURRENT_TIMESTAMP,
-	3,
+	3333,
 	'paperino',
 	'public/upload/paperino.jpg',
 	'paperino',

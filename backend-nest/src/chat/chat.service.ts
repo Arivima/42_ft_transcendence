@@ -785,8 +785,6 @@ export class ChatService {
       isGroup: true,
     }));
 
-
-    // TODO: sort by last message check if is properly sorted
     const sortedData = [...friends, ...roomsWithLastMessage].sort((a, b) => {
       if (!('lastMessage' in a) && !('lastMessage' in b)) {
         return 0;
@@ -798,6 +796,11 @@ export class ChatService {
         return ((b.lastMessage as Date) || new Date(0)).getTime() - ((a.lastMessage as Date) || new Date(0)).getTime();
       }
     });
+    // add an incremental chatId to each element
+    // let res = sortedData.map((element, index) => ({
+    //   ...element,
+    //   chatId: index,
+    // }));
     return { friends: friends, rooms: roomsWithLastMessage, sortedData: sortedData };
   }
 
