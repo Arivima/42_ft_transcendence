@@ -11,5 +11,6 @@ export class UpdatePlayerDto {
 
 	@ApiProperty()
 	profileIntra?: string;
+	@ApiProperty()
 	twofaSecret?: string;
 }

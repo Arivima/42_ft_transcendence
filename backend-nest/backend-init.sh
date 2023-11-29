@@ -6,7 +6,7 @@
 #    By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/09/30 18:31:21 by avilla-m          #+#    #+#              #
-#    Updated: 2023/11/23 19:45:05 by mmarinel         ###   ########.fr        #
+#    Updated: 2023/11/29 22:36:10 by mmarinel         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,4 +14,4 @@
 
 make -C prisma/
 
-exec npm run start:dev
+npm run start:prod

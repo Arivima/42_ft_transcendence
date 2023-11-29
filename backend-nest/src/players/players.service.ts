@@ -98,8 +98,11 @@ export class PlayersService {
 		if (debug) console.log('DEBUG | Players.Service | create() : called');
 
 
-		return this.prisma.player.create({
-			data: {
+		return await this.prisma.player.upsert({
+			where: {
+				id: createPlayerDto.id
+			},
+			create: {
 				id: createPlayerDto.id,
 				username: createPlayerDto.username,
 				avatar: createPlayerDto.avatar,
@@ -107,6 +110,7 @@ export class PlayersService {
 				lastName: createPlayerDto.lastName,
 				profileIntra: createPlayerDto.profileIntra,
 			},
+			update: {}
 		});
 	}
 
