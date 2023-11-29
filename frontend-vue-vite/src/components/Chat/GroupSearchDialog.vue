@@ -61,7 +61,6 @@
 		this.dialog = false;
 		this.groupSearch = '';
 		this.groups = [];
-	  
 	  },
 
 	  searchGroups() {
@@ -77,11 +76,12 @@
 
 	  joinGroup(groupId, password) {
 		try {
-			console.log("groupId", groupId, "password", password);
 			this.socket.emit("joingroup", { groupId: groupId, password: password }, (response) => {
 				if (response.error) {
 					alert(response.error);
 				}
+				// reload data
+				// this.$emit('reload');
 			});
 			this.dialog = false;
 			this.groupSearch = '';

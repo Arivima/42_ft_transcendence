@@ -1,20 +1,25 @@
+import { Type } from 'class-transformer';
+import { IsEmail, IsNotEmpty, IsString, Length, Matches, MaxLength, MinLength, Validate, IsNumber, IsDate, IsOptional } from 'class-validator';
+
+
+
 export class Chat {
-
-// 	content				String
-// 	timestamp			DateTime
-// 	messageID			Int						@id @default(autoincrement())
-
-
-
-// 	sender				Player					@relation("Sent", fields: [senderID], references: [id])
-// 	senderID			Int
-// 	receiver			Player					@relation("Recipient", fields: [receiverID], references: [id])
-// 	receiverID			Int
-// 	receivers			ChatRoom				@relation("RecipientS", fields: [receiverSID], references: [groupID])
-// 	receiverSID			Int
+	@IsNotEmpty()
+	@IsString()
 	content: string;
+
+	@IsNotEmpty()
+	@Type(() => Date)
+	@IsDate()
 	createdAt: Date;
+
+	@IsNotEmpty()
+	@IsNumber()
 	senderID: number;
+
+	@IsOptional()
 	receiverID: number | null;
+
+	@IsOptional()
 	receiversID: number | null;
 }
