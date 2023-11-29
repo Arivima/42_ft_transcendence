@@ -1,25 +1,24 @@
 TODO-------------------------------------------------------------------------------------------------
 
 ----MUST-DO
-		<!-- - RIPA | chat : browser compatibility : chrome, firefox, safari (if time whole app + list what needs to be corrected) -->
-		- RIPA | chat : error handling / warning : 500, crash, does not work (if time whole app + list what needs to be corrected)
+
+		- RIPA | chat : error handling / warning : 500, crash, does not work
 		- RIPA | Game : ball bug (when close to edge or paddles, ball gets stuck)
-		<!-- - RIPA | tweak chat UI (don't allow overflow) => so notifications can be on top -->
-		<!-- - RIPA | chat : SQL injections protected (this we need to agree how to do it the 3 of us) -->
-		<!-- - RIPA | chat : server-side sanitization (any user input) (this we need to agree how to do it the 3 of us) -->
 		----------------
+		- ARI | perform full quality test + stress test
 		- ARI | streaming : customize bug, last frame ? rainbow 
 		- ARI | browser compatibility : chrome, firefox, safari
-		- ARI | error handling / warning : 500, crash, does not work
-		- ARI | check reactivity front + do we need to take out .value when using store
 		----------------
 		- MM | SQL injections protected
 		- MM | server-side sanitization (any user input)
+		
 		- MM | DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
 		(fixed profile complete - achievement conflict)
 		- MM | Dialog2FA : same problem
+
 		- MM | 1v1 games should not count for ladder_lvl
 		- MM | difference between matchmaking (ladder mode) games and invite (1v1) games should be made		
+
 		- MM | npm update to latest stable library version (on clean status) - node is too old?
 		- MM | handle //! //TODO
 
@@ -29,7 +28,15 @@ TODO----------------------------------------------------------------------------
 		- clean console.log + comments
 		- find a solution for env files
 
-----KEEP IN MIND
+----FULL TEST CHECKLIST
+		- check reactivity
+		- check responsivity
+		- check invites, streaming, matchmaking - try to make it crash on a single window
+		- check friendships - add, remove, block
+		- check chat - see options  on subject
+		- stress test - check 5/10 players on the game
+		- browser compatibility : chrome, firefox, safari
+		- error handling / warning : 500, crash, does not work
 		- jwt expired
 		- 2fa login redirect
 
@@ -43,11 +50,16 @@ TODO----------------------------------------------------------------------------
 DONE-------------------------------------------------------------------------------------------------
 
 WEDNESDAY
+- ARI | check reactivity front + do we need to take out .value when using store
+- ARI | error handling / warning : 500, crash, does not work - resolved warnings
 - ARI | checking overall flow and UI bugs
 - ARI | add WS to have reactive status (user and its friends) - not perfect but is working enough for our main uses
 - ARI | handled my  '//!' and '//TODO'
 - ARI | game : fix UI when full screen
-
+- RIPA | chat : browser compatibility : chrome, firefox, safari (if time whole app + list what needs to be corrected)
+- RIPA | tweak chat UI (don't allow overflow) => so notifications can be on top
+- RIPA | chat : SQL injections protected (this we need to agree how to do it the 3 of us)
+- RIPA | chat : server-side sanitization (any user input) (this we need to agree how to do it the 3 of us)
 TUESDAY
 - ARI | npm update to latest stable library version => cannot because node too old ?
 - ARI | clean console.log & comments
