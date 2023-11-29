@@ -9,7 +9,8 @@ const debug = false
 export default {
 	data() {
 		return {
-			user : user
+			user : user,
+			overlay : false,
 		}
 	},
 	methods : {
@@ -29,6 +30,9 @@ export default {
 			if (status == PlayerStatus.online) return 'green'
 			else if (status == PlayerStatus.playing) return 'blue'
 			else return 'grey'			
+		},
+		view42IntraProfile(username : string) {
+			window.open(`https://profile.intra.42.fr/users/${username}`, '_blank');
 		},
 	},
 
@@ -94,11 +98,38 @@ export default {
 						variant="tonal"
 					></v-list-item>
 					<v-list-item
-						disabled
 						prepend-icon="mdi-cat"
-						title="Cazzendence 2023"
-						variant="plain"
-					></v-list-item>
+						title="©Cazzendence 2023"
+						variant="flat"
+					>
+					<template v-slot:prepend><v-icon color="primary"></v-icon></template>
+					<v-overlay
+						v-model="overlay"
+						activator="parent"
+						class="align-center justify-center"
+					>
+						<v-card
+							class="pa-3 ma-3"
+							>
+							<v-card-item class="justify-center">
+								<v-card-title class="text-overline">©Cazzendence 2023</v-card-title>
+							</v-card-item>
+							<v-card-item class="justify-center">
+								<v-btn flat variant="tonal" color="primary" class="ma-2 pa-3" prepend-icon="mdi-cat" @click="view42IntraProfile('avilla-m')">avilla-m</v-btn>
+								<v-btn flat variant="tonal" color="primary" class="ma-2 pa-3" prepend-icon="mdi-cat" @click="view42IntraProfile('mmarinel')">mmarinel</v-btn>
+								<v-btn flat variant="tonal" color="primary" class="ma-2 pa-3" prepend-icon="mdi-cat" @click="view42IntraProfile('dripanuc')">dripanuc</v-btn>
+							</v-card-item>
+							<v-card-item class="align-center justify-center">
+								<v-btn
+									color="primary"
+									variant="elevated"
+									class="ma-2"
+									@click="overlay = false" 
+								>Close</v-btn>
+							</v-card-item>
+						</v-card>
+					</v-overlay>
+					</v-list-item>
 				</v-list>			
 			</v-card>
 		</v-card>

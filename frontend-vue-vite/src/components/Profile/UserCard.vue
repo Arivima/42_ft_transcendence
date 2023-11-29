@@ -26,15 +26,15 @@ export default {
 },
 	props: {
 		userProfile: {
-			type: Object as () => Player,
+			type: Object as () => Player || undefined,
 			required: true
 		},
 	},
 	data() {
 		return {
 			profileBackgroundUrl: `http://${location.hostname}:8080/cats.jpg`,
-			userVisitor: user.value as Player,
-			userVisitorFriends: friends.value as Player[],
+			userVisitor: user,
+			userVisitorFriends: friends,
 		}
 	},
 	computed: {

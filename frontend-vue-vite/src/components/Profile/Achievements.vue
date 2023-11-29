@@ -11,13 +11,13 @@ export default {
 	},
 	props: {
 		userProfile: {
-			type: Object as () => Player,
+			type: Object as () => Player || undefined,
 			default: undefined,
 			required: true
 		},
 	},
 	data: () => ({
-		userVisitor: user.value as Player,
+		userVisitor: user,
 		achievements: [] as Achievement[],
 		model: null,
 		loading: false,

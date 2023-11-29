@@ -24,7 +24,7 @@ export default defineComponent({
 <template>
 	<v-app-bar
 		floating
-		location="top"
+		location="bottom"
 		class="mx-2 my-2"
 		style="background-color: transparent;"
 		flat

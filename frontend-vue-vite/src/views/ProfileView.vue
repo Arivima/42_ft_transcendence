@@ -9,12 +9,10 @@ import MatchHistoryTable from '../components/Profile/MatchHistoryTable.vue'
 import AddFriend from '@/components/Profile/AddFriend.vue'
 import Friends from '../components/Profile/Friends.vue'
 import Achievements from '../components/Profile/Achievements.vue'
-// import BlockedUsers from '@/components/Profile/BlockedUsers.vue'
 import BlockedSent from '@/components/Profile/BlockedSent.vue'
 import DialogWaiting from '@/components/Game/DialogWaiting.vue'
 import DialogInvite from '@/components/Game/DialogInvite.vue'
 import Debug from '@/components/Debug.vue'
-
 
 const playerStore = usePlayerStore()
 const { user, friends, fetchPlayer } = storeToRefs(playerStore)
@@ -31,16 +29,17 @@ export default {
 },
 	data() {
 		return {
-			userVisitor: user.value,
+			userVisitor: user,
 			userVisitorFriends: friends,
 			userProfile: undefined as Player | undefined,
 		}
 	},
 	computed: {
-		visibility() : 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
+		visibility() : 'Loading' | 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
 			if (debug) console.log('| ProfileView | computed | visibility')
-			let profileType = playerStore.visibility(this.userProfile?.id);
-			return profileType
+			if (this.userProfile != undefined)
+				return playerStore.visibility(this.userProfile.id);
+			return 'Loading'
 		},
 	},
 	methods: {
@@ -80,43 +79,19 @@ export default {
 			if (debug) console.log('| ProfileView | watch | userProfile : new value : ' + newValue.username)
 		},
 	},
-	
-	beforeCreate() {
-		if (debug) console.log('| ProfileView | beforeCreate()')
-	},
 	async created() {
 		if (debug) console.log('| ProfileView | created(' + (this.userProfile?.id) + ')')
-		// try {
-			await this.fetchUserProfile()
-		// }
-		// catch (_) {
-		// 	this.$router.push({name: 'profile'});
-		// }
+		await this.fetchUserProfile()
+
 	},
-	beforeMount() {
-		if (debug) console.log('| ProfileView | beforeMount(' + (this.userProfile?.id) + ')')
-	},
-	mounted() {
-		if (debug) console.log('| ProfileView | mounted(' + (this.userProfile?.id) + ')')
-		// this.fetchUserProfile();
-	},
-	beforeUpdate() {
+	async beforeUpdate() {
 		if (debug) console.log('| ProfileView | beforeUpdate(' + (this.userProfile?.id) + ')')
 		try {
-			this.fetchUserProfile()
+			await this.fetchUserProfile()
 		}
 		catch (_) {
 			this.$router.push({name: 'profile'});
 		}
-	},
-	updated() {
-		if (debug) console.log('| ProfileView | updated(' + (this.userProfile?.id) + ')')
-	},
-	beforeUnmount() {
-		if (debug) console.log('| ProfileView | beforeUnmount(' + (this.userProfile?.id) + ')')
-	},
-	unmounted() {
-		if (debug) console.log('| ProfileView | unmounted(' + (this.userProfile?.id) + ')')
 	},
 }
 </script>
@@ -125,30 +100,27 @@ export default {
 <div class="profile">
 	<NavSideBar />
 	<Notifications />
-	<!-- <Debug></Debug> -->
 	<DialogWaiting></DialogWaiting>
 	<DialogInvite></DialogInvite>
-	<!-- <v-main> -->
 		<v-card class="parent">
 			<v-card class="child1">
 				<v-card class="child2">
-					<UserCard v-if="userProfile"
+					<UserCard v-if="userProfile != undefined"
 						:userProfile="(userProfile as Player)"
 					></UserCard>
 				</v-card>
 			</v-card>
 			<v-card class="child1">
-				<v-card
-					class="child2"
-					v-if="visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile'"
+				<v-card class="child2"
+					v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile')"
 				>
 					<Achievements
-						:userProfile="userProfile as Player || undefined"
-						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
+						:userProfile="(userProfile as Player) || undefined"
+						v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile')"
 					></Achievements>
 					<MatchHistoryTable
-						:userProfile="userProfile as Player || undefined"
-						v-if="visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile'"
+						:userProfile="(userProfile as Player) || undefined"
+						v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile')"
 					></MatchHistoryTable>
 				</v-card>
 				<v-card class="child2"
@@ -160,7 +132,6 @@ export default {
 				</v-card>
 			</v-card>
 		</v-card>
-	<!-- </v-main> -->
 </div>
 </template>
 
