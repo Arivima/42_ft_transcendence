@@ -1,12 +1,12 @@
 TODO-------------------------------------------------------------------------------------------------
 
 ----MUST-DO
-		- RIPA | chat : browser compatibility : chrome, firefox, safari (if time whole app + list what needs to be corrected)
+		<!-- - RIPA | chat : browser compatibility : chrome, firefox, safari (if time whole app + list what needs to be corrected) -->
 		- RIPA | chat : error handling / warning : 500, crash, does not work (if time whole app + list what needs to be corrected)
 		- RIPA | Game : ball bug (when close to edge or paddles, ball gets stuck)
-		- RIPA | tweak chat UI (don't allow overflow) => so notifications can be on top
-		- RIPA | chat : SQL injections protected (this we need to agree how to do it the 3 of us)
-		- RIPA | chat : server-side sanitization (any user input) (this we need to agree how to do it the 3 of us)
+		<!-- - RIPA | tweak chat UI (don't allow overflow) => so notifications can be on top -->
+		<!-- - RIPA | chat : SQL injections protected (this we need to agree how to do it the 3 of us) -->
+		<!-- - RIPA | chat : server-side sanitization (any user input) (this we need to agree how to do it the 3 of us) -->
 		----------------
 		- ARI | streaming : customize bug, last frame ? rainbow 
 		- ARI | add WS to have reactive status

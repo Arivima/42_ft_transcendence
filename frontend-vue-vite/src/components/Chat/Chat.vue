@@ -329,12 +329,14 @@ export default {
 			const newMessage = { ...this.messageForm };
 			if (this.isGroupActive && this.$refs.groupInfoDialog.user.isMuted)
 				return;
-			if (newMessage.content.trim() === "") return;
+			newMessage.content = newMessage.content.trim();
+			if (newMessage.content === "") return;
 			if (newMessage.receiverID)
 				newMessage.receiverID = this.parents[this.activeChat - 1].id;
 			else if (newMessage.groupID)
 				newMessage.receiversID = this.parents[this.activeChat - 1].id;
 			newMessage.createdAt = new Date();
+			// newMessage.content = 21;
 			this.socket.emit("message", newMessage, (r) => {
 				if (r.success == false) {
 					this.messages = []

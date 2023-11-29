@@ -8,9 +8,30 @@ import { JwtService } from '@nestjs/jwt';
 import { async } from 'rxjs';
 import { response } from 'express';
 import { group } from 'console';
+import { UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
 
 const debug = false;
 
+import { ArgumentsHost, Catch, HttpException } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
+
+@Catch(WsException, HttpException)
+export class WsExceptionFilter {
+  public catch(exception: HttpException, host: ArgumentsHost) {
+    const client = host.switchToWs().getClient();
+    this.handleError(client, exception);
+  }
+
+  public handleError(client: Socket, exception: HttpException | WsException) {
+    if (exception instanceof HttpException) {
+      console.log(`DEBUG | chat.gateway | handleError | HttpException: ${exception}`);
+    } else {
+      console.log(`DEBUG | chat.gateway | handleError | WsException: ${exception}`);
+    }
+  }
+}
+
+@UseFilters(WsExceptionFilter)
 @WebSocketGateway({
   cors: {
     origin: '*',
@@ -38,15 +59,8 @@ export class ChatGateway {
       this.clients.set(Number(user.sub), client);
     } catch (error) {
       console.log(`DEBUG | chat.gateway | handleConnection | error: ${error}`);
-      // redirect to login page
       client.emit('redirect', '/login');
-      
     }
-    // const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
-    //   secret: process.env.JWT_SECRET
-    // });
-    // console.log(`DEBUG | chat.gateway | handleConnection | user: ${user.sub}`);
-    // this.clients.set(Number(user.sub), client);
   }
 
   handleDisconnect(client: any) {
@@ -128,10 +142,8 @@ export class ChatGateway {
         let newUsers = otherMembers.filter((otherMember) => {
           return userIdsList.includes(otherMember.player.id);
         });
-        if (debug) console.log(`DEBUG | chat.controller | addUserToGroup | memberId: ${recClientId}`);
         if (recClientId)
           this.server.to(`${recClientId.id}`).emit('addusertogroup', { groupId, newUsers });
-        
         return { response: true };
       });
       for (let userId of userIdsList) {
@@ -197,6 +209,7 @@ export class ChatGateway {
   }
 
   @SubscribeMessage("creategroupchat")
+  @UsePipes(new ValidationPipe())
   createGroupChat(@MessageBody("group") group: CreateGroupDto) {
     if (debug) console.log(`DEBUG | chat.controller | createGroupChat | group: ${group}`);
     this.chatService.createGroupChat(group).then((newparent) => {
@@ -214,8 +227,9 @@ export class ChatGateway {
   }
 
   @SubscribeMessage('message')
+  @UsePipes(new ValidationPipe())
   async handleMessage(@MessageBody() createChatDto: CreateChatDto, @ConnectedSocket() client: Socket) {
-    if (debug) console.log(`DEBUG | chat.gateway | handleMessage | data: ${createChatDto.content}, ${createChatDto.receiverID}, ${createChatDto.senderID}, ${createChatDto.receiversID}`);
+    console.log(`DEBUG | chat.gateway | handleMessage | data: ${createChatDto.content}, ${createChatDto.receiverID}, ${createChatDto.senderID}, ${createChatDto.receiversID}`);
     // createChatDto = JSON.parse(JSON.parse(createChatDto).data);
     let recClientId: Socket;
 
@@ -260,7 +274,9 @@ export class ChatGateway {
     if (recClientId)
       this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0]?.createdAt, isGroup: true });
   }
+
   @SubscribeMessage("editGroup")
+  @UsePipes(new ValidationPipe())
   async editGroup(@MessageBody("group") group: UpdateGroupDto, @ConnectedSocket() client: Socket) {
     // console.log(`DEBUG | chat.controller | editGroup | group: ${group}`);
     let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
