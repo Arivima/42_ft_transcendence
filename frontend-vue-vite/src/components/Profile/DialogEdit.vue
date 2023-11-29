@@ -83,7 +83,7 @@ export default defineComponent({
 		async sendUsername(){
 			if (debug) console.log('| DialogEdit | methods | sendUsername()')
 			this.loadingUsername = true
-			console.log(`username : ${this.username}`)
+			if (debug) console.log(`username : ${this.username}`)
 			axios
 				.patch(`players/me`, 
 					{

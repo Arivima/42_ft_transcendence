@@ -8,7 +8,7 @@ export class Connection {
 	playing: boolean;
 }
 
-const debug = true;
+const debug = false;
 
 @Injectable()
 export class PlayersService {
@@ -42,7 +42,7 @@ export class PlayersService {
 					${this.connections.has(userID) === false ? 'offline'
 					: this.connections.get(userID).playing === true ? 'playing' : 'online'}`);
 
-					if (debug) console.log('Printing connections:');
+		if (debug) console.log('Printing connections:');
 		for (const [playerId, connection] of this.connections.entries()) {
 			if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
 			}
@@ -68,21 +68,25 @@ export class PlayersService {
 			}
 	}
 
-	// getConnection(userID: number) : 'offline' | 'online' | 'playing'
-	// {
+	getConnection(userID: number) : 'offline' | 'online' | 'playing'
+	{
 	// 	const status : 'offline' | 'online' | 'playing' = 	this.connections.has(userID) ? 
 	// 														(this.connections.get(userID).playing === true ? 'playing' : 'online')
 	// 														:'offline'
 
-	// 	if (debug) console.log('\x1b[36m%s\x1b[0m', `| getConnection : ${status}`);
-	// 	if (debug) console.log('Printing connections:');
-	// 	for (const [playerId, connection] of this.connections.entries()) {
-	// 		if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
-	// 	  }
+		// if (debug) console.log('\x1b[36m%s\x1b[0m', `| getConnection : ${status}`);
+		// if (debug) console.log('Printing connections:');
+		// for (const [playerId, connection] of this.connections.entries()) {
+		// 	if (debug) console.log(`Player ID: ${playerId}, Playing: ${connection.playing}`);
+		//   }
+		// return status
+		return (
+				this.connections.has(userID) ? 
+				(this.connections.get(userID).playing === true ? 'playing' : 'online')
+				:'offline'
+			)
+	}
 
-
-	// 	return status
-	// }	
 
 	isLoggedIn(userID: number): boolean {
 		return this.connections.has(userID);

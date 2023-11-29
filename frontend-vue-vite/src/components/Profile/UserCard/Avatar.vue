@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 const playerStore = usePlayerStore()
 const { user, friends } = storeToRefs(playerStore)
 
-const debug = true
+const debug = false
 
 export default {
 	props: {

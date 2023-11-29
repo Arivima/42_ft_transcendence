@@ -501,11 +501,11 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			// game socket actions
 			isUserAvailable() : boolean {
 				this.sendGetActiveGames()
-				//! wait for liveStreams to be updated
 				return (
 					(this.currentGame.invite.sent == false && this.currentGame.invite.received == false)
 					&& (this.currentGame.status == 'undefined')
 					&& (this.currentGame.waiting == 'undefined')
+					/* this is unuseful because is not waiting for activeGames to be updated - is checked server-side anyway */
 					&& (false === this.liveStreams.some(
 							(activeGame) => {
 								return activeGame.hostID === this.user.id || activeGame.guestID === this.user.id
@@ -525,7 +525,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.gameSocket?.emit('matchMaking', {
 						userID: this.user.id
 					});
-					console.log('%c emit("matchMaking")', 'background: blue; color: white')
+					if (debug) console.log('%c emit("matchMaking")', 'background: blue; color: white')
 					this.currentGame.waiting = 'matchmaking'
 				} else
 					alert("You cannot join a new game, you are already busy")
@@ -537,7 +537,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit('cancelMatchMaking', {
 					userID: this.user.id
 				});
-				console.log('%c emit("cancelMatchMaking")', 'background: blue; color: white')
+				if (debug) console.log('%c emit("cancelMatchMaking")', 'background: blue; color: white')
 				this.currentGame.waiting = 'undefined'
 			},
 
@@ -553,7 +553,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 							guestID: guestID,					
 						}
 					});
-					console.log('%c emit("sendInvite")', 'background: blue; color: white')
+					if (debug) console.log('%c emit("sendInvite")', 'background: blue; color: white')
 					this.currentGame.waiting = 'invite'
 					this.currentGame.invite.sent = true
 					this.currentGame.invite.recipientID = guestID					
@@ -568,7 +568,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						guestID: this.currentGame.invite.recipientID,					
 					}
 				});
-				console.log('%c emit("cancelInvite")', 'background: blue; color: white')
+				if (debug) console.log('%c emit("cancelInvite")', 'background: blue; color: white')
 				this.currentGame.waiting = 'undefined'
 				this.currentGame.invite.reset()
 			},
@@ -582,7 +582,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						guestID: this.user.id,					
 					}
 				});
-				console.log('%c emit("acceptInvite")', 'background: blue; color: white')
+				if (debug) console.log('%c emit("acceptInvite")', 'background: blue; color: white')
 				this.currentGame.invite.reset()
 
 			},
@@ -595,7 +595,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				};
 
 				this.user.gameSocket?.emit('rejectInvite', { invite });
-				console.log('%c emit("rejectInvite")', 'background: blue; color: white')
+				if (debug) console.log('%c emit("rejectInvite")', 'background: blue; color: white')
 				
 				// when no arg : no modification has been performed so we don't update the state
 				if (rejectedInvite === undefined)
@@ -617,7 +617,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 						userID: this.user.id,
 						playerID,
 					});
-					console.log('%c emit("joinGame")', 'background: blue; color: white')					
+					if (debug) console.log('%c emit("joinGame")', 'background: blue; color: white')					
 				} else
 					alert("You cannot join a new streaming session, you are already busy")
 			},
@@ -633,7 +633,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					gameInfo: this.currentGame.gameInfo,
 					userID: this.user.id
 				});
-				console.log('%c emit("sendCustomizationOptions")', 'background: blue; color: white')
+				if (debug) console.log('%c emit("sendCustomizationOptions")', 'background: blue; color: white')
 				this.currentGame.waiting = 'customization'
 
 			},
@@ -653,7 +653,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.gameSocket?.emit("leaveGame", {
 					userID: this.user.id
 				})
-				console.log('%c emit("leaveGame")', 'background: red; color: black')
+				if (debug) console.log('%c emit("leaveGame")', 'background: red; color: black')
 				this.currentGame.waiting = 'undefined'
 				if (this.currentGame.status == 'building' || this.currentGame.status == 'playing' ) {
 					this.currentGame.status = 'end'
@@ -674,7 +674,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.currentGame.reset()
 			},
 
-			//! to delete
+			// ONLY FOR DEBUG COMPONENT
 			updateWaitingTesting(value : 'undefined'  | 'matchmaking' | 'invite' | 'streaming' | 'customization' | 'playing',){
 				this.currentGame.waiting = value;
 			},
@@ -776,6 +776,8 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
+					this.user.gameSocket?.on('friendStatusUpdate', handleFriendStatusUpdate.bind(this));
+					this.user.gameSocket?.on('statusUpdate', handleStatusUpdate.bind(this));
 					this.user.gameSocket?.on('alert', handleAlerts.bind(this));
 					this.user.gameSocket?.on('getActiveGames', handleNewActiveGames.bind(this));
 					// this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
@@ -1255,16 +1257,55 @@ async function handleNotificationsError(this: any, data: FriendRequestError) {
 }
 
 // Received events : Game Sockets
+
+async function handleFriendStatusUpdate(this: any, payload: {userID : number, status : PlayerStatus} ){
+	// if (debug) console.log("/Store/ handleFriendStatusUpdate");
+	if (debug) console.log(`%c received("friendStatusUpdate") from friend ${payload.userID} status ${payload.status}`, 'background: black; color: white')
+
+	// if (debug) console.log(`friends ${this.friends.length}`);
+	for (const friend of this.friends) {
+		// if (debug) console.log(`friend : ${friend.id}`);
+		if (friend.id == payload.userID) {
+			// if (debug) console.log(`updated friend : ${friend.id} status : ${ payload.status}`);
+			friend.status = payload.status
+			return ;
+		}
+	}
+}
+
+async function handleStatusUpdate(this: any, payload: { status: PlayerStatus }){
+	// if (debug) console.log("/Store/ handleStatusUpdate");
+	if (debug) console.log(`%c received("statusUpdate") for user ${this.user.id} status ${payload.status}`, 'background: black; color: white')
+
+	// update this user status
+	this.user.status = payload.status
+
+	// ask his friends to update his status
+	const friendsArray: number[] = [];
+	for (const friend of this.friends)
+		friendsArray.push(friend.id);
+
+	// if (debug) console.log(`has ${this.friends.length} friends `);
+	// if (debug) console.log(friendsArray);
+
+	this.user.gameSocket?.emit("friendStatusUpdate", {
+		userID : this.user.id,
+		friends : friendsArray,
+		status : payload.status
+	} as {userID : number, friends : number[], status : PlayerStatus})
+	// if (debug) console.log('%c emit("friendStatusUpdate")', 'background: black; color: white')
+	// if (debug) console.log(`emit data : userID : ${this.user.id}, friends : ${friendsArray.length}, status : ${payload.status}`);
+}
+
 async function handleAlerts(this: any, payload: { message: string }){
-	if (debug) console.log("/Store/ handleAlerts()");
-	console.log('%c received("alert")', 'background: red; color: white')
+	if (debug) console.log("/Store/ handleAlerts");
+	if (debug) console.log('%c received("alert")', 'background: red; color: white')
 	alert(payload.message)
 }
 // Invites
-	//! in this part we should have snackbar to better handle UE
 async function handleNewInvite(this: any, invite : InviteDto) : Promise<boolean> {
-	if (debug) console.log("/Store/ handleNewInvite()");
-	console.log('%c received("newInvite")', 'background: purple; color: white')
+	if (debug) console.log("/Store/ handleNewInvite");
+	if (debug) console.log('%c received("newInvite")', 'background: purple; color: white')
 	// can receive new invites only if has not sent any AND is not already handling invites
 
 	if (this.isUserAvailable())
@@ -1282,7 +1323,7 @@ async function handleNewInvite(this: any, invite : InviteDto) : Promise<boolean>
 
 async function handleDeleteInvite(this: any, invite : InviteDto) {
 	if (debug) console.log("/Store/ handleDeleteInvite()");
-	console.log('%c received("deletedInvite")', 'background: purple; color: white')
+	if (debug) console.log('%c received("deletedInvite")', 'background: purple; color: white')
 	if (invite.hostID == this.currentGame.invite.senderID){
 		alert(`${this.currentGame.invite.senderUsername} cancelled the invitation`)
 		this.currentGame.invite.reset()	
@@ -1290,8 +1331,7 @@ async function handleDeleteInvite(this: any, invite : InviteDto) {
 }
 async function handleRejectedInvite(this: any) {
 	if (debug) console.log("/Store/ handleRejectedInvite()");
-	console.log('%c received("rejectedInvite")', 'background: purple; color: white')
-	//! in this part we should have some sort of snackbar on host session : guest rejected offer
+	if (debug) console.log('%c received("rejectedInvite")', 'background: purple; color: white')
 	alert(`your invitation to ${this.currentGame.invite.recipientUsername} was rejected`)
 	this.currentGame.waiting = 'undefined'
 	this.currentGame.invite.reset()
@@ -1300,7 +1340,7 @@ async function handleRejectedInvite(this: any) {
 // Game
 async function handleNewGame(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
 	if (debug) console.log("/Store/ handleNewGame()");
-	console.log('%c received("newGame")', 'background: purple; color: white')
+	if (debug) console.log('%c received("newGame")', 'background: purple; color: white')
 
 	if(this.currentGame.invite.sent || this.currentGame.invite.received){
 		this.currentGame.invite.reset()
@@ -1323,7 +1363,7 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 
 async function handleStart(this: any, customization: CustomizationOptions) {
 	if (debug) console.log("/Store/ handleStart()");
-	console.log('%c received("startGame")', 'background: purple; color: white')
+	if (debug) console.log('%c received("startGame")', 'background: purple; color: white')
 
 	Object.assign(this.currentGame.customizations, customization);
 
@@ -1340,11 +1380,11 @@ async function handlenewFrame(this: any, frame: FrameDto) {
 
 async function handleEnd(this: any, endGame : endGameDto) {
 	if (debug) console.log("/Store/ handleEnd() current status : " + this.currentGame.status);
-	console.log('%c received("endGame")', 'background: purple; color: white')
+	if (debug) console.log('%c received("endGame")', 'background: purple; color: white')
 	this.user.gameSocket?.emit("leaveGame", {
 		userID: this.user.id
 	})
-	console.log('%c emit("leaveGame")', 'background: red; color: black')
+	if (debug) console.log('%c emit("leaveGame")', 'background: red; color: black')
 
 	this.currentGame.waiting = 'undefined'
 
@@ -1388,7 +1428,7 @@ async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
 
 // async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
 // 	if (debug) console.log("/Store/ handleNewStream()");
-// 	console.log('%c received("newStream")', 'background: yellow; color: black')
+// 	if (debug) console.log('%c received("newStream")', 'background: yellow; color: black')
 
 // 	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
 // 	{
@@ -1399,7 +1439,7 @@ async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
 
 // async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
 // 	if (debug) console.log("/Store/ handleEndStream()");
-// 	console.log('%c received("endStream")', 'background: yellow; color: black')
+// 	if (debug) console.log('%c received("endStream")', 'background: yellow; color: black')
 
 // 	if (debug) console.log('number of live games')
 // 	if (debug) console.log(this.liveStreams.size)

@@ -51,7 +51,7 @@ import { storeToRefs } from 'pinia'
 const playerStore = usePlayerStore()
 const { user, currentGame } = storeToRefs(playerStore)
 
-const debug = true
+const debug = false
 
 export interface PlayerConf {
 	id: number,
@@ -97,7 +97,7 @@ const initialGameConf : GameConf = {
 		dir: {x: 0, y: 0},
 		radius: 0,
 		color: 'purple',
-		speedFactor: 500/1000, // px/sec (1000 milliseconds) //TODO pb when screen resize, different speed
+		speedFactor: 500/1000, // px/sec (1000 milliseconds) pb when screen resize, different speed
 	},
 	pitchLineWidth: 0,
 	pitchCirclePos: {x: 0, y: 0},

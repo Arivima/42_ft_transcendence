@@ -57,7 +57,7 @@ export default defineComponent({
 			this.loading = true
 			switch (this.mode) {
 				case 'enable': {
-					console.log(`front : enable otp : ${this.otp}`)
+					if (debug) console.log(`front : enable otp : ${this.otp}`)
 					axios
 						.post(`auth/2fa`, {
 							otp : this.otp
@@ -76,7 +76,7 @@ export default defineComponent({
 					break
 				}
 				case 'login': {
-					console.log(`front : login otp : ${this.otp}`)
+					if (debug) console.log(`front : login otp : ${this.otp}`)
 					axios
 						.post(`auth/2fa/login`, {
 							otp : this.otp
@@ -97,7 +97,7 @@ export default defineComponent({
 					break
 				}
 				case 'disable': {
-					console.log(`front : disable otp : ${this.otp}`)
+					if (debug) console.log(`front : disable otp : ${this.otp}`)
 					axios
 						.post(`auth/2fa/remove`, {
 								otp : this.otp

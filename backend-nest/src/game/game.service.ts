@@ -12,18 +12,21 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateGameDto } from './dto/create-game.dto';
-import { UpdateGameDto } from './dto/update-game.dto';
-import { FrameDto } from './dto/frame.dto';
-import { PlayerDto } from './dto/player.dto';
 import { Socket, Server } from 'socket.io';
-import { JwtService } from '@nestjs/jwt';
+import { PlayersService } from 'src/players/players.service';
+import { Connection } from 'src/players/players.service';
+
+import { CreateGameDto } from './dto/create-game.dto';
+import { FrameDto } from './dto/frame.dto';
 import { CustomizationOptions } from './dto/customization.dto';
 import { endGameDto } from './dto/endGame.dto';
-import { InviteDto } from './dto/invite.dto';
 import { FrameData } from './dto/frame.dto';
-import { PlayersService } from 'src/players/players.service';
 import { ActiveGameDto } from './dto/activeGame.dto';
+
+import { InviteDto } from './dto/invite.dto';
+import { JwtService } from '@nestjs/jwt';
+import { UpdateGameDto } from './dto/update-game.dto';
+import { PlayerDto } from './dto/player.dto';
 
 const debug = false
 
@@ -161,9 +164,12 @@ export class GameService {
 			let game = this.gameInstances.get(id);
 			const roomId = game.roomId;
 			
+
 			this.pservice.changeConnection(id, {
 				playing: false
 			});
+			this.updateStatus(id, client, server)
+
 			// leave the room
 			game.user_socket.leave(roomId);
 			if (debug) console.log(`| GATEWAY GAME | user ${id} socket left ${roomId} `);
@@ -192,13 +198,25 @@ export class GameService {
 			this.frames.delete(roomId);
 			if (debug) console.log(`| GATEWAY GAME | room ${roomId} removed from frames`);
 
-			console.log(`currently ${this.queue.size} users in queue`);
-			console.log(`currently ${this.gameInstances.size / 2} active games`);
+			if (debug) console.log(`currently ${this.queue.size} users in queue`);
+			if (debug) console.log(`currently ${this.gameInstances.size / 2} active games`);
 			for (let [userID, gameSock] of this.gameInstances) {
-				console.log(`Found Active Game`);
-				console.log(`userID: ${userID}; roomId: ${roomId}`);
+				if (debug) console.log(`Found Active Game`);
+				if (debug) console.log(`userID: ${userID}; roomId: ${roomId}`);
 			}
 		}
+	}
+
+	updateStatus(userID : number, client: Socket, server: Server){
+		if (debug) console.log('\x1b[36m%s\x1b[0m', `| GATEWAY GAME | updateStatus`)
+		if (debug) console.log(`userID : ${userID}, client: ${client?.id}`);
+		if (!userID || !client || !server)
+			return
+
+		const newStatus : 'offline' | 'online' | 'playing' = this.pservice.getConnection(userID)
+		server.to(client.id).emit("statusUpdate", { status : newStatus })
+		if (debug) console.log(`| GATEWAY GAME | 'updateStatus' | emit : 'statusUpdate'`);
+		if (debug) console.log(`userID ${userID} client.id ${client.id} status ${newStatus}`)
 	}
 
 	matchPlayers(

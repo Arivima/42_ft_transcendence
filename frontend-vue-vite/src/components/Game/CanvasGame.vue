@@ -613,17 +613,26 @@ export default defineComponent({
 
 <template>
 	<v-card
-		class="component justify-center align-center"
-		style="display: flex; flex-direction: column;" 
+		class=" "
+		flat
+		style="
+		display: flex; flex-direction: column; 
+		justify-content: space-evenly;
+		align-content: center;
+		height:inherit; 
+		padding: 2%;
+		margin: 2%;
+		background-color: transparent;
+		" 
 	>
-		<v-card class="w-100" flat style="display: flex; flex-direction: row;">
-			<v-card flat class="w-50 justify-center text-overline ma-0">
-				<v-card-item class="py-0 justify-center " style="font-weight: bolder; font-size: larger; background-color: lavender;">
-					Host
-				</v-card-item>
-				<v-card class="w-100" flat style="display: flex; flex-direction: row;">
-					<v-card-item class="justify-center" style="flex-grow: 2;" :prepend-avatar="host.avatar">
+		<!-- header -->
+		<v-card class="w-100" flat style="display: flex; flex-direction: row; height: fit-content; background-color: transparent;">
+			<!-- host -->
+			<v-card flat class="w-50 justify-center text-overline ma-1" style="background-color: transparent;">
+				<v-card class="w-100" flat style="display: flex; flex-direction: row; background-color: transparent;">
+					<v-card-item class="justify-center" style="font-weight: bolder; font-size: larger; flex-grow: 2;" :prepend-avatar="host.avatar">
 						{{ host.username }}
+						<template v-slot:prepend><v-avatar size="large"></v-avatar></template>
 					</v-card-item>
 					<v-card-item class="justify-center">
 						<v-chip
@@ -631,14 +640,15 @@ export default defineComponent({
 							:color="colorScore('host')"
 						>
 						{{ newFrame.data.host.score }}</v-chip>
-					</v-card-item>				
-				</v-card>				
-			</v-card>
-			<v-card flat class="w-50 justify-center text-overline ma-0">
-				<v-card-item class="py-0 justify-center" style="font-weight: bolder; font-size: larger;background-color: lightgoldenrodyellow;">
-					Guest
+					</v-card-item>	
+				</v-card>	
+				<v-card-item class="py-0 justify-center" style=" background-color: rgba(222, 170, 232, 0.434);">
+					Host
 				</v-card-item>
-				<v-card class="w-100" flat style="display: flex; flex-direction: row;">
+			</v-card>
+			<!-- guest -->
+			<v-card flat class="w-50 justify-center text-overline ma-1" style="background-color: transparent;">
+				<v-card class="w-100" flat style="display: flex; flex-direction: row; background-color: transparent">
 					<v-card-item class="justify-center">
 						<v-chip
 						:color="colorScore('guest')"
@@ -646,31 +656,35 @@ export default defineComponent({
 					>
 						{{ newFrame.data.guest.score }}</v-chip>
 					</v-card-item>				
-					<v-card-item class=" justify-center" style="flex-grow: 2;" :append-avatar="guest.avatar">
+					<v-card-item class="justify-center" style="font-weight: bolder; font-size: larger; flex-grow: 2;" :append-avatar="guest.avatar">
 						{{ guest.username }}
+						<template v-slot:append><v-avatar size="large"></v-avatar></template>
 					</v-card-item>
-				</v-card>				
+				</v-card>		
+				<v-card-item class="py-0 justify-center" style=" background-color: rgba(222, 170, 232, 0.434)">
+					Guest
+				</v-card-item>						
 			</v-card>
 		</v-card>
 
-		<canvas id="CanvasGame" ref="canvas" :width="16*100/2" :height="9*100/2" style="border:1px solid black;"></canvas>
+		<canvas class="" id="CanvasGame" ref="canvas" :width="16*100/2" :height="9*100/2"></canvas>
 
+		<!-- exit button -->
 		<v-card
-			style="display: flex; flex-direction: row;"
-			class="w-100 -5 justify-center"
+			style="display: flex; flex-direction: row; background-color: transparent;"
+			class="w-100 justify-center "
 			flat
 		>
-
 			<v-btn
 				color="primary"
-				variant="tonal"
+				variant="elevated"
 				size="x-large"
 				class="ma-2"
 				@click="exitGame" 
-			> Exit Game
-			</v-btn>
+			> Exit Game</v-btn>
 		</v-card>
 
+		<!-- lag overlay -->
 		<v-overlay
 			:model-value="lag"
 			class="align-center justify-center"
@@ -698,8 +712,8 @@ export default defineComponent({
 
 
 
-		<v-card 
-		:width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat>
+		<!-- <v-card  -->
+		<!-- :width="canvas?.width" style="display: flex; flex-direction: row;" class="ma-0 pa-0" flat> -->
 			<!-- <v-card class="pa-1 ma-1 w-50"> -->
 				<!-- <h2>BALL</h2>
 				<p>| {{ Math.round(newFrame.data.ball.x) }}, {{ Math.round(newFrame.data.ball.y) }}</p>
@@ -719,7 +733,7 @@ export default defineComponent({
 					| y {{ Math.round(newFrame.data.guest.paddle.y) }}</p> -->
 			<!-- </v-card>	 -->
 
-			<v-card class="pa-1 ma-1 w-50">
+			<!-- <v-card class="pa-1 ma-1 w-50">
 				<h2>CONF</h2>
 				<p>| host {{ host.id }} | guest {{ guest.id }}</p>
 				<p>| host {{ gameInfo.hostID }} | guest {{ gameInfo.guestID}}</p>
@@ -727,8 +741,8 @@ export default defineComponent({
 				<p>| canvas | w{{ canvas?.width }} h{{ canvas?.height }}</p>
 				<p>| deltaTime |  {{ Math.round(gameTime.deltaTime) }} | </p>
 				<p>| lastTimeStamp |  {{ Math.round(gameTime.lastTimeStamp) }} | </p>
-			</v-card>
-		</v-card>
+			</v-card> -->
+		<!-- </v-card> -->
 </v-card>
 </template>
 

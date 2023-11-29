@@ -125,7 +125,7 @@ export default {
 <div class="profile">
 	<NavSideBar />
 	<Notifications />
-	<Debug></Debug>
+	<!-- <Debug></Debug> -->
 	<DialogWaiting></DialogWaiting>
 	<DialogInvite></DialogInvite>
 	<!-- <v-main> -->
