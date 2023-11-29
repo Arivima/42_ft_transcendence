@@ -62,6 +62,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		// setting user socket
 		this.clients.set(Number(user.sub), client);
+		this.pservice.addConnection(Number(user.sub));
 		this.gameService.updateStatus(Number(user.sub), client, this.server)
 		
 		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
@@ -83,6 +84,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		
 		if (-1 != key) {
 			if (debug) console.log(`GAME GATEWAY | disconnecting user ${key}`);
+			this.pservice.removeConnection(key);
 			this.gameService.updateStatus(key, client, this.server)
 			this.clients.delete(key);
 		}

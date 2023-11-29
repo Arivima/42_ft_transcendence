@@ -5,7 +5,7 @@ import { storeToRefs } from 'pinia'
 // import axios from 'axios'
 
 const playerStore = usePlayerStore()
-const { user, notifications } = storeToRefs(playerStore)
+const { notifications } = storeToRefs(playerStore)
 const debug = false
 
 export default defineComponent({
@@ -13,7 +13,6 @@ export default defineComponent({
 	},
 	data() {
 		return {
-			user: user.value,
 			notificationList: notifications
 		}
 	},
@@ -31,53 +30,20 @@ export default defineComponent({
 
 			playerStore.sendFriendshipRejection(request.requestorID);
 		},
-		// deleteRequest(request : FriendRequest){
-		// 	setTimeout(() => {
-		// 		const id = this.notificationList.findIndex((el: any) => el == request);
-		// 		// const id = this.notificationList.findIndex(el => el === request);
-		// 		this.notificationList.splice(id, 1);
-		// 		// this.notificationList.splice(id, 1);	
-		// 		//DELETED this.setNotificationsCount()
-		// 	}, 20000);
-		// },
-	},
-	watch: {
-    },
-
-	beforeCreate() {
-		if (debug) console.log('| Notifications | beforeCreate()')
-	},
-	created() {
-		if (debug) console.log('| Notifications | created(' + (this.user.id) + ')')
-	},
-	beforeMount() {
-		if (debug) console.log('| Notifications | beforeMount(' + (this.user.id) + ')')
 	},
 	mounted() {
-		if (debug) console.log('| Notifications | mounted(' + (this.user.id) + ')')
+		if (debug) console.log('| Notifications | mounted')
 		// this.notificationList = this.notificationList
 		this.notificationList = notifications;
 		// this.setNotificationsCount()
     },
-	beforeUpdate() {
-		if (debug) console.log('| Notifications | beforeUpdate(' + (this.user.id) + ')')
-	},
-	updated() {
-		if (debug) console.log('| Notifications | updated(' + (this.user.id) + ')')
-	},
-	beforeUnmount() {
-		if (debug) console.log('| Notifications | beforeUnmount(' + (this.user.id) + ')')
-	},
-	unmounted() {
-		if (debug) console.log('| Notifications | unmounted(' + (this.user.id) + ')')
-	},
 })
 </script>
 
 <template>
 	<v-app-bar
 		floating
-		location="bottom"
+		location="top"
 		class="mx-2 my-2"
 		style="background-color: transparent;"
 		flat

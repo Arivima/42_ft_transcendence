@@ -1,8 +1,6 @@
 <script lang="ts">
 import { usePlayerStore, type Game, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-import { VCardText } from 'vuetify/components'
-// import { VDataTableServer } from 'vuetify/labs/components'
 
 const playerStore = usePlayerStore()
 const { fetchGames } = storeToRefs(playerStore)
@@ -17,20 +15,21 @@ const debug = false
 //TODO FIX and avoid using STORE
 export default {
 	components: {
-    // VDataTableServer,
-    VCardText
 },
 	props: {
 		userProfile: {
-			type: Object as () => Player,
+			type: undefined || Object as () => Player,
 			default: undefined,
 			required: true
 		},
 	},
 	data: () => ({
+		loading: true,
 		games: [] as Game[],
 		itemsPerPage: _items_per_page,
+		totalItems: 0,
 		search: '',
+		searchedBoth: '',
 		headers: [
 			{ title: 'Date', key: 'dateString', align: 'start' },
 			{ title: 'Host', key: 'host', align: 'start' },
@@ -38,9 +37,6 @@ export default {
 			{ title: 'Score', key: 'guest_score', align: 'start' },
 			{ title: 'Guest', key: 'guest', align: 'start' }
 		] as {title: string, key: string, align: 'start' | 'end' | 'center'}[],
-		totalItems: 0,
-		loading: true,
-		searchedBoth: '',
 	}),
 	methods: {
 		async fetchData(options: { page: number; itemsPerPage: number }) {
@@ -50,7 +46,6 @@ export default {
 			const end = start + options.itemsPerPage
 			if (this.userProfile != undefined){
 				try {
-					// await this.getUserProfile()
 					this.games = await fetchGames.value(this.userProfile.id)
 					this.games = this.games.filter((game) => {
 						if (
@@ -68,14 +63,12 @@ export default {
 					this.games = this.games.slice(start, end)
 					this.loading = false
 				} catch (err) {
-					//TODO show toast
 					this.games = []
 					this.totalItems = 0
 					this.loading = false
 					console.error(err)
 				}				
 			}
-
 		},
 		getColor(hostA : String, a : Number, b : Number){
 			if (this.userProfile != undefined)
@@ -98,30 +91,6 @@ export default {
 			},
 			immediate: true
 		},
-	},
-	beforeCreate() {
-		if (debug) console.log('| MatchHistoyTable | beforeCreate()')
-	},
-	created() {
-		if (debug) console.log('| MatchHistoyTable | created(' + (this.userProfile?.id) + ')')
-	},
-	beforeMount() {
-		if (debug) console.log('| MatchHistoyTable | beforeMount(' + (this.userProfile?.id) + ')')
-	},
-	mounted() {
-		if (debug) console.log('| MatchHistoyTable | mounted(' + (this.userProfile?.id) + ')')
-	},
-	beforeUpdate() {
-		if (debug) console.log('| MatchHistoyTable | beforeUpdate(' + (this.userProfile?.id) + ')')
-	},
-	updated() {
-		if (debug) console.log('| MatchHistoyTable | updated(' + (this.userProfile?.id) + ')')
-	},
-	beforeUnmount() {
-		if (debug) console.log('| MatchHistoyTable | beforeUnmount(' + (this.userProfile?.id) + ')')
-	},
-	unmounted() {
-		if (debug) console.log('| MatchHistoyTable | unmounted(' + (this.userProfile?.id) + ')')
 	},
 }
 </script>
