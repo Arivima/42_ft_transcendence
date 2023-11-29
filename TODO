@@ -9,25 +9,24 @@ TODO----------------------------------------------------------------------------
 		<!-- - RIPA | chat : server-side sanitization (any user input) (this we need to agree how to do it the 3 of us) -->
 		----------------
 		- ARI | streaming : customize bug, last frame ? rainbow 
-		- ARI | add WS to have reactive status
-		- ARI | add WS to have reactive achievements
-		- ARI | SQL injections protected
-		- ARI | server-side sanitization (any user input)
 		- ARI | browser compatibility : chrome, firefox, safari
 		- ARI | error handling / warning : 500, crash, does not work
 		- ARI | check reactivity front + do we need to take out .value when using store
 		----------------
+		- MM | SQL injections protected
+		- MM | server-side sanitization (any user input)
 		- MM | DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
 		(fixed profile complete - achievement conflict)
 		- MM | Dialog2FA : same problem
 		- MM | 1v1 games should not count for ladder_lvl
 		- MM | difference between matchmaking (ladder mode) games and invite (1v1) games should be made		
 		- MM | npm update to latest stable library version (on clean status) - node is too old?
+		- MM | handle //! //TODO
 
 ----TODO CHECKLIST BEFORE PUSHING
 		- when all is done, test with 5+ players, 10+ games
 		- full test from build version - evaluation mode, check against subject/correction sheet
-		- clean console.log
+		- clean console.log + comments
 		- find a solution for env files
 
 ----KEEP IN MIND
@@ -35,6 +34,7 @@ TODO----------------------------------------------------------------------------
 		- 2fa login redirect
 
 ----PROBABLY WON'T HAVE TIME
+		- add WS to have reactive achievements
 		- convert chat code to typescript (currently in js)
 		- check that whole front is typescript compliant
 		- Game : slow paddle - make it smoother and more reactive
@@ -43,7 +43,10 @@ TODO----------------------------------------------------------------------------
 DONE-------------------------------------------------------------------------------------------------
 
 WEDNESDAY
-- ARI | 
+- ARI | checking overall flow and UI bugs
+- ARI | add WS to have reactive status (user and its friends) - not perfect but is working enough for our main uses
+- ARI | handled my  '//!' and '//TODO'
+- ARI | game : fix UI when full screen
 
 TUESDAY
 - ARI | npm update to latest stable library version => cannot because node too old ?
