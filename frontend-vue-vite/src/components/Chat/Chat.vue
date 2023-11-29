@@ -43,7 +43,8 @@
 									<v-btn @click="openInvitePopup(parents[activeChat - 1].id)" icon class="mr-2">
 										<v-icon>mdi-controller</v-icon>
 									</v-btn>
-									<v-btn icon @click="viewUserProfile(parents[activeChat - 1].id)">
+									<!-- <v-btn icon @click="viewUserProfile(parents[activeChat - 1].id)"> -->
+									<v-btn icon :to="{ name: 'profile', params: { id: (parents[activeChat - 1].id) } }">
 										...
 									</v-btn>
 								</div>
@@ -418,9 +419,9 @@ export default {
 			this.fetchMessagesForChat(chatId, isGroup);
 		},
 
-		viewUserProfile(userId) {
-			window.open(`http://${location.hostname}:8080/profile/${userId}`, '_blank');
-		},
+		// viewUserProfile(userId) {
+		// 	window.open(`http://${location.hostname}:8080/profile/${userId}`, '_blank');
+		// },
 
 		async fetchAvatarAsync(avatar) {
 			try {
