@@ -5,13 +5,17 @@ TODO----------------------------------------------------------------------------
 		- RIPA | chat : error handling / warning : 500, crash, does not work
 		- RIPA | Game : ball bug (when close to edge or paddles, ball gets stuck)
 		----------------
-		- ARI | perform full quality test + stress test
+		THURSDAY
 		- ARI | streaming : customize bug, last frame ? rainbow 
-		- ARI | browser compatibility : chrome, firefox, safari
+		- ARI | resolve Safari
+		- ARI | test remove from friends, username/otp update
+		- ARI | re-read subject / correction / todo and refix stuff if needed
+		- ARI | perform full quality test + stress test with 5 students
+		- ARI | correct and repeat
 		----------------
 		- MM | SQL injections protected
 		- MM | server-side sanitization (any user input)
-		
+
 		- MM | DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
 		(fixed profile complete - achievement conflict)
 		- MM | Dialog2FA : same problem
@@ -21,12 +25,6 @@ TODO----------------------------------------------------------------------------
 
 		- MM | npm update to latest stable library version (on clean status) - node is too old?
 		- MM | handle //! //TODO
-
-----TODO CHECKLIST BEFORE PUSHING
-		- when all is done, test with 5+ players, 10+ games
-		- full test from build version - evaluation mode, check against subject/correction sheet
-		- clean console.log + comments
-		- find a solution for env files
 
 ----FULL TEST CHECKLIST
 		- check reactivity
@@ -40,6 +38,13 @@ TODO----------------------------------------------------------------------------
 		- jwt expired
 		- 2fa login redirect
 
+----TODO CHECKLIST BEFORE PUSHING
+		- delete prisma populate
+		- when all is done, test with 5+ players, 10+ games
+		- full test from build version - evaluation mode, check against subject/correction sheet
+		- clean console.log + comments
+		- find a solution for env files
+
 ----PROBABLY WON'T HAVE TIME
 		- add WS to have reactive achievements
 		- convert chat code to typescript (currently in js)
@@ -50,6 +55,8 @@ TODO----------------------------------------------------------------------------
 DONE-------------------------------------------------------------------------------------------------
 
 WEDNESDAY
+- ARI | browser compatibility : chrome ok, firefox 'scroll anchoring disabled', safari NOK
+- ARI | npm update save dev + tested profile game chat
 - ARI | check reactivity front + do we need to take out .value when using store
 - ARI | error handling / warning : 500, crash, does not work - resolved warnings
 - ARI | checking overall flow and UI bugs
@@ -71,7 +78,6 @@ TUESDAY
 - ARI | added : back : active players and queuers cannot join, invite, or start a new game
 - ARI | added : front : users who are in the process of invite, stream, play cannot join, invite, or start a new game !if a different window then it does not protect against conflict
 - ARI | resolved : at the start of customization clear when there has been another game before
-
 MONDAY
 - ARI | status : maybe two instanciations of the map
 - MM | Match History : double entry : Game.gateway:382:this.gameService.setGameasFinished(frame);
