@@ -1,30 +1,15 @@
 TODO-------------------------------------------------------------------------------------------------
 
 ----MUST-DO
-
-		- RIPA | chat : error handling / warning : 500, crash, does not work
-		- RIPA | Game : ball bug (when close to edge or paddles, ball gets stuck)
+		- RIPA | build test +  Safari
+		- RIPA | resolve ball
 		----------------
-		THURSDAY
-		- ARI | streaming : customize bug, last frame ? rainbow 
-		- ARI | resolve Safari
-		- ARI | test remove from friends, username/otp update
-		- ARI | re-read subject / correction / todo and refix stuff if needed
-		- ARI | perform full quality test + stress test with 5 students
-		- ARI | correct and repeat
+		- ARI | reactivity offline online
+		- ARI | resolve exit crash cutsomization screen
+		- ARI | resolve remove friends
+		- ARI | resolve ball
 		----------------
-		- MM | SQL injections protected
-		- MM | server-side sanitization (any user input)
-
-		- MM | DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
-		(fixed profile complete - achievement conflict)
-		- MM | Dialog2FA : same problem
-
-		- MM | 1v1 games should not count for ladder_lvl
-		- MM | difference between matchmaking (ladder mode) games and invite (1v1) games should be made		
-
-		- MM | npm update to latest stable library version (on clean status) - node is too old?
-		- MM | handle //! //TODO
+		- MM | resolve 2fa
 
 ----FULL TEST CHECKLIST
 		- check reactivity
@@ -46,6 +31,10 @@ TODO----------------------------------------------------------------------------
 		- find a solution for env files
 
 ----PROBABLY WON'T HAVE TIME
+		- MM | handle //! //TODO
+		- MM | npm update to latest stable library version (on clean status) - node is too old?
+		- MM | 1v1 games should not count for ladder_lvl
+		- MM | difference between matchmaking (ladder mode) games and invite (1v1) games should be made	
 		- add WS to have reactive achievements
 		- convert chat code to typescript (currently in js)
 		- check that whole front is typescript compliant
@@ -53,7 +42,20 @@ TODO----------------------------------------------------------------------------
 		- beautify, consistent UI
 
 DONE-------------------------------------------------------------------------------------------------
+THURSDAY
+- ARI | fixed : streaming : customize bug : rainbow on default and no pitch color on customized 
+- ARI | re-read subject / correction / todo and refix stuff if needed
+- ARI | test remove from friends, username/otp update
+- ARI | perform full quality test + stress test with 5 students
+- ARI | correct and repeat
 
+- RIPA | chat : error handling / warning : 500, crash, does not work
+
+- MM | SQL injections protected
+- MM | server-side sanitization (any user input)
+- MM | DialogEdit : bug, does not update username, avatar ok (issue with string validation ?) - probably why it does not close (first debug this), added debug logs, cannot find the issue
+(fixed profile complete - achievement conflict)
+- MM | Dialog2FA : same problem
 WEDNESDAY
 - ARI | browser compatibility : chrome ok, firefox 'scroll anchoring disabled', safari NOK
 - ARI | npm update save dev + tested profile game chat

@@ -137,13 +137,6 @@
 				 }, (success) => {
 					console.log("success", success);
 					this.toggle();
-					// this.$emit('messageToParent', 'Hello from child!');
-
-					// console.log("this.$parent.groupInfo.members", this.$parent.groupInfo);
-					// this.$parent.groupInfo.members = this.$parent.groupInfo.members.filter((member) => {
-					// 	return member.id != id;
-					// });
-					console.log("this.$parent.groupInfo.members", this.$parent.groupInfo.members);
 				});
 			},
 	  },

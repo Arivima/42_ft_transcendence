@@ -60,6 +60,7 @@ export default defineComponent({
 	methods: {
 		exit(){
 			if (debug) console.log('| DialogEnd | methods | exit')
+			console.log("Exiting aaaaaaaaaaa")
 			playerStore.forceCanvasUnmount()
 		},
 	},

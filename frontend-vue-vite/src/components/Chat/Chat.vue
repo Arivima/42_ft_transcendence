@@ -324,6 +324,15 @@ export default {
 			this.groups = response.rooms;
 		});
 	},
+
+	beforeUnmount() {
+		this.activeChat = 0;
+		this.messages = []
+	},
+	beforeRouteLeave() {
+		this.activeChat = 0;
+		this.messages = []
+	},
 	methods: {
 		
 		sendMessage() {
