@@ -13,7 +13,8 @@ RUN npm install
 
 COPY . .
 
-ENTRYPOINT ["npm", "run", "dev"]
+# ENTRYPOINT ["npm", "run", "dev"]
+ENTRYPOINT ["npm", "run", "build"]
 
 # # production stage
 # FROM nginx:stable-alpine as production-stage
