@@ -70,7 +70,7 @@
 		this.group.members = [];
 		this.groupChatDialog = false;
 		this.group.name = '';
-		this.group.visibility = '';
+		this.group.visibility = 'private';
 
 	  },
 	  createGroupChatWithSelectedFriends() {

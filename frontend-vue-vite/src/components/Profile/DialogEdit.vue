@@ -24,8 +24,10 @@ export default defineComponent({
 			errorUsername: false,
 			errorMessageUsername: '',
 			usernameRules: [
-				(value : string) => (value && value.length <= 15) || 'Name must be less than 15 characters',
-				(value : string) => (value && value.length >= 5) || 'Name must be at least 5 characters',
+				(value: string) => (value && value.length >= 5) || 'Name must be at least 5 characters',
+				(value: string) => (value && value.length <= 15) || 'Name must be less than 15 characters',
+				(value: string) => !/\s/.test(value) || 'Name must not contain whitespace',
+				(value: string) => /^[a-zA-Z0-9]+$/.test(value) || 'Name must only contain letters and numbers',
 			],
 			// AVATAR
 			file: [] as File[],
@@ -96,8 +98,23 @@ export default defineComponent({
 					this.loadingUsername = false
 				})
 				.catch((error : any) => {
-					this.displayErrorUsername('Error: Server internal error.')
-					console.error(error)
+					// Handle errors
+					if (error.response) {
+						// The request was made and the server responded with a status code
+						// that falls out of the range of 2xx
+						console.error('Logging response error:', error.response.data);
+						this.displayErrorUsername(
+							`${error.response.data.message} (status code ${error.response.data.statusCode})`
+							)
+					} else if (error.request) {
+						// The request was made but no response was received
+						console.error('Logging request error:', error.request);
+						this.displayErrorUsername('Error: No response from server.')
+					} else {
+						// Something happened in setting up the request that triggered an Error
+						console.error('Logging general error:', error.message);
+						this.displayErrorUsername('Error: Bad request.')
+					}
 				})
 				.finally(() => (this.loadingUsername = false))
 		},

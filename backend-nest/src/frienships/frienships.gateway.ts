@@ -265,6 +265,10 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 		@ConnectedSocket() client: Socket
 	)
 	{
+		console.log('|||||||||||||||||||Freindship gateway  | rejectFrienship')
+		console.log(userID)
+		console.log(friendID)
+		
 		let [requestorID, recipientID] = await this.frienshipsService.getFriendship(userID, friendID);
 
 		try {

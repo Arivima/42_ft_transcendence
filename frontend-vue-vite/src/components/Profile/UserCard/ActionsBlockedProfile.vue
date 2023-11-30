@@ -35,11 +35,10 @@ export default {
 		density="compact"
 		variant="flat"
 	>
-		<!-- add v-if user is blocked -->
 		<v-btn 
 			value="unblock"
 			@click="unblockUser"
-			:text="'Unblock ' + `${userProfile.firstName}`"
+			:text="'Unblock ' + `${userProfile.username}`"
 			prepend-icon="mdi-account-plus"
 			:color="state == 'pending'? 'purple-lighten-4' : 'white'"
 			block

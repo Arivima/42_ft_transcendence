@@ -1,6 +1,6 @@
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { usePlayerStore, CustomizationOptions } from '@/stores/PlayerStore'
+import { usePlayerStore, CustomizationOptions, type Player } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
 
 const playerStore = usePlayerStore()
@@ -28,6 +28,14 @@ export default defineComponent({
 			user.value.id == currentGame.value.gameInfo.guestID ?
 				currentGame.value.host.username :
 			'N/A';
+		},
+		opponent() : Player {
+			if (debug) console.log('| DialogCustomization | computed | opponent : ' + (user.value.id == currentGame.value.gameInfo.hostID ? currentGame.value.guest.username : user.value.id == currentGame.value.gameInfo.guestID ? currentGame.value.host.username :'N/A'))
+			return user.value.id == currentGame.value.gameInfo.hostID ?
+				currentGame.value.guest :
+			user.value.id == currentGame.value.gameInfo.guestID ?
+				currentGame.value.host :
+			undefined;
 		},
 	},
 	methods: {
@@ -72,9 +80,12 @@ export default defineComponent({
 		<v-card rounded class="dialog bg-white ma-auto pa-4" flat>
 
 			<v-card flat>
-				<v-card-item class="justify-center ma-5 text-center">
+				<v-card-item class="justify-center  ma-5 text-center" style="font-weight: bolder; font-size: xx-large; flex-grow: 2;">
 					<h1 class="text-h5 text-button">You are playing against</h1>
-					<h5 class="text-h5 text-button" style="font-weight: bolder;">{{  opponentName }}</h5>
+				</v-card-item>
+				<v-card-item class="justify-center  ma-5 text-center" style="font-weight: bolder; font-size: x-large; flex-grow: 2;" :prepend-avatar="opponent?.avatar">
+					<template v-slot:prepend><v-avatar size="x-large"></v-avatar></template>
+					<h5 class="text-h5 text-button" style="font-weight: bolder;">{{  opponent?.username }}</h5>
 				</v-card-item>
 			</v-card>
 

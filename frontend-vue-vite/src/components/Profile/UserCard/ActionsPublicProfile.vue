@@ -50,10 +50,11 @@ export default {
 		density="compact"
 		variant="flat"
 	>
+			<!-- v-if="!pending" -->
 		<v-btn
 			value="add"
 			@click="toggleFriendshipRequest"
-			:text="pending? 'Cancel Friendship Request' : 'Ask ' + `${userProfile.firstName}` + ' as a friend'"
+			:text="pending? 'Cancel Friendship Request' : 'Ask ' + `${userProfile.username}` + ' as a friend'"
 			prepend-icon="mdi-account-plus"
 			:color="pending? 'purple-lighten-4' : 'white'"
 			block
@@ -61,7 +62,7 @@ export default {
 		</v-btn>
 
 		<v-btn
-			:text="'Block ' + `${userProfile.firstName}`"
+			:text="'Block ' + `${userProfile.username}`"
 			@click="blockUser"
 			prepend-icon="mdi-account-cancel"
 			block

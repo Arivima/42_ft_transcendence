@@ -29,7 +29,7 @@ export default defineComponent({
 	},
     methods: {
 		removeFromFriends(){
-			if (debug) console.log('| ActionsFRiendProfile | methods | removeFromFriends()')
+			console.log('| ActionsFRiendProfile | methods | removeFromFriends()')
 			playerStore.sendFriendshipRejection(this.userProfile.id);
 		},
 		blockUser(){
@@ -58,14 +58,14 @@ export default defineComponent({
 	>
 		<v-btn
 			v-if="`${userProfile.status}` === 'online'"
-			:text="'Play with ' + `${userProfile.firstName}`"
+			:text="'Play with ' + `${userProfile.username}`"
 			@click="sendInviteToPlay"
 			prepend-icon="mdi-controller"
 			:disabled="inviteSent"
 			block
 		></v-btn>
 		<v-btn
-			:text="'Chat with ' + `${userProfile.firstName}`"
+			:text="'Chat with ' + `${userProfile.username}`"
 			to="/chat"
 			prepend-icon="mdi-chat"
 			block
@@ -73,7 +73,7 @@ export default defineComponent({
 		</v-btn>
 		<v-btn
 			v-if="`${userProfile.status}` === 'playing'"
-			:text="'Watch ' + `${userProfile.firstName}` + '\'s game'"
+			:text="'Watch ' + `${userProfile.username}` + '\'s game'"
 			@click="streamUser"
 			prepend-icon="mdi-play"
 			block
@@ -81,14 +81,14 @@ export default defineComponent({
 		</v-btn>
 
 		<v-btn
-			:text="'Remove ' + `${userProfile.firstName}`"
+			:text="'Remove ' + `${userProfile.username}`"
 			@click="removeFromFriends"
 			prepend-icon="mdi-account-remove"
 			block
 		>
 		</v-btn>
 		<v-btn
-			:text="'Block ' + `${userProfile.firstName}`"
+			:text="'Block ' + `${userProfile.username}`"
 			@click="blockUser"
 			prepend-icon="mdi-account-cancel"
 			block

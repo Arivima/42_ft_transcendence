@@ -482,6 +482,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendFriendshipRejection(friendID: number) {
+				console.log(`/Store/ sendFriendshipRejection: ${friendID}`);
 				this.user.notificationsSocket?.emit('rejectFrienship', {
 					userID: this.user.id,
 					friendID
@@ -1372,10 +1373,10 @@ async function handleStart(this: any, final_customization: CustomizationOptions)
 
 async function handleNewStream(this: any, game: GameInfo, final_customization: CustomizationOptions ) {
 	if (debug) console.log("/Store/ handleNewStream()");
-	console.log('%c received("newStream")', 'background: purple; color: white')
-	console.log('payload')
-	console.log(game)
-	console.log(final_customization)
+	// console.log('%c received("newStream")', 'background: purple; color: white')
+	// console.log('payload')
+	// console.log(game)
+	// console.log(final_customization)
 	if (!game || !final_customization)
 		return
 
@@ -1398,8 +1399,8 @@ async function handleNewStream(this: any, game: GameInfo, final_customization: C
 
 	this.currentGame.status = 'playing'
 	this.currentGame.waiting = 'undefined'
-	console.log('this.currentGame')
-	console.log(this.currentGame)
+	// console.log('this.currentGame')
+	// console.log(this.currentGame)
 
 }
 
