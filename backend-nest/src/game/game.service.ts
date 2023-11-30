@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/26 16:49:33 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/30 21:27:32 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -214,6 +214,10 @@ export class GameService {
 			return
 
 		const newStatus : 'offline' | 'online' | 'playing' = this.pservice.getConnection(userID)
+		//! mandare un update direttamente qua a tutti gli amici
+		//! player.service.ts getAllFriends
+		// evitare di farsi un emit a se stessi e poi gestirla facendo un altra emit dal frontend verso il back
+		// che rimanda a tutti gli amici l'update.
 		server.to(client.id).emit("statusUpdate", { status : newStatus })
 		if (debug) console.log(`| GATEWAY GAME | 'updateStatus' | emit : 'statusUpdate'`);
 		if (debug) console.log(`userID ${userID} client.id ${client.id} status ${newStatus}`)

@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/26 16:49:58 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/30 21:32:52 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,12 +84,22 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		
 		if (-1 != key) {
 			if (debug) console.log(`GAME GATEWAY | disconnecting user ${key}`);
-			this.pservice.removeConnection(key);
 			this.gameService.updateStatus(key, client, this.server)
 			this.clients.delete(key);
 		}
 		
 		this.gameService.leaveGame(client, this.server);
+	}
+
+	@SubscribeMessage('logPlayerOut')
+	logPlayerOut(
+		@MessageBody('userID') userID: number,
+		@ConnectedSocket() client: Socket
+	)
+	{
+		this.pservice.removeConnection(userID);
+		//! Cambiare il modo in cui facciamo sta roba
+		this.gameService.updateStatus(userID, client, this.server);
 	}
 
 	@SubscribeMessage('getActiveGames')

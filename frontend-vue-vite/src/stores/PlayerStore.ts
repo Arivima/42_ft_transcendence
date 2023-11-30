@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/26 13:01:21 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/11/30 21:35:15 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -855,6 +855,9 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			async logout(): Promise<void> {
 				if (debug) console.log("/Store/ usePlayerStore.logout()");
 				await axios.delete('auth/42')
+				this.user.notificationsSocket?.emit('logPlayerOut', {
+					userID: this.user.id
+				});
 				localStorage.removeItem(import.meta.env.JWT_KEY);
 				Object.assign(this.user, emptyUser);
 			}

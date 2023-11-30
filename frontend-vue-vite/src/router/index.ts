@@ -4,7 +4,7 @@ import axios from 'axios'
 import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 
 axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT
-const debug = false
+const debug = false;
 
 function lazyload(view: any) {
 	return () => import(`@/views/${view}.vue`)
@@ -53,7 +53,7 @@ const checkLogIn = () => new Promise((resolve, reject) => {
 	if (!token) reject('token not found')
 	else
 		axios					//necessario perché se faccio reload perdo il vecchio axios con i defaults
-			.get('players/me', {headers: {Authorization: 'Bearer ' + token.toString()}})
+			.get('players/me', {headers: {Authorization: 'Bearer ' + token}})
 			.then((res) => {
 				usePlayerStore()
 					.fetchData(token as string)
@@ -73,7 +73,7 @@ router.beforeEach((to, from, next) => {
 		.then((_) => {
 			// console.log(localStorage.getItem(import.meta.env.JWT_KEY));
 
-			if ('login' == to.name || 'login-2fa' == to.name || 'home' == to.name)
+			if ('login' === to.name || 'login-2fa' === to.name || 'home' === to.name)
 				next({ name: `profile`})
 			else next()
 		})
@@ -81,14 +81,14 @@ router.beforeEach((to, from, next) => {
 			// if token is set redirect to OTP VIEW
 			// important! Token is always loaded from localStorage into PlayerStore
 			// inside the checkLogIn function executed before this step.
-			if (null == usePlayerStore().getToken()) {
-				if ('login' == to.name)
+			if (null === localStorage.getItem(import.meta.env.JWT_KEY)) {
+				if ('login' === to.name)
 					next();
 				else
 					next({ name: 'login' })
 			}
 			else {
-				if ('login-2fa' == to.name)
+				if ('login-2fa' === to.name)
 					next();
 				else
 					next({ name: 'login-2fa' })
