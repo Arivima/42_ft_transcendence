@@ -199,14 +199,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			watcher: false
 		} as CreateGameDto);
 		if (debug) console.log(`| GATEWAY GAME | 'acceptInvite' | emit : 'newGame'`);
-
-		// add to streaming list
-		this.server.emit("newStream", {
-			hostID: invite?.hostID,
-			guestID: invite?.guestID,
-			watcher: false
-		} as CreateGameDto);
-		if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newStream'`);
 	}
 
 	// joining game through matchmaking
@@ -245,15 +237,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					watcher: false
 				} as CreateGameDto);
 				if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newGame'`);
-
-				// add to streaming list
-				this.server.emit("newStream", {
-					hostID,
-					guestID: userID,
-					watcher: false
-				} as CreateGameDto);
-				if (debug) console.log(`| GATEWAY GAME | 'matchMaking' | emit : 'newStream'`);
-
 
 				// exit loop
 				matched = true;
@@ -353,28 +336,31 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			return
 		}
 
-
 		// fetching the room where playerID is playing
 		const game = this.gameService.joinGame(userID, playerID, client);
 
 		if (game)
 		{
-			// joining the room
-			client.join(game.roomId);
-
-			// setting up game
-			this.server.to(`${client.id}`).emit("newGame", {
+			// handleNewStream
+			const gameInfo = {
 				hostID: game.hostID,
 				guestID: game.guestID,
 				watcher: true
-			} as CreateGameDto);
-			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newGame'`);
+			} as CreateGameDto
 
-			// share customization
-			this.server.to(`${client.id}`).emit('startGame', {
-				customization: game.customization
-			})
-			if (debug) console.log(`| GATEWAY GAME | 'joinGame' | emit : 'startGame'`);
+			const final_customizations = {
+				customization : game.customization.customization,
+				pitch_color: game.customization.pitch_color,
+				paddle_color: game.customization.paddle_color,
+				ball_color: game.customization.ball_color,
+			} as CustomizationOptions
+
+			this.server.to(`${client.id}`).emit("newStream", gameInfo, final_customizations);
+			console.log(`| GATEWAY GAME | 'joinGame' | emit : 'newStream'`);
+			console.log(gameInfo, final_customizations)
+
+			// joining the room (which start sending 'newFrame' events)
+			client.join(game.roomId);			
 		}
 	}
 
@@ -422,15 +408,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 					await this.gameService.setGameasFinished(frame);
 				}
 				// await this.gameService.updateAchievements(frame, userID);
-
-				// remove from streaming list
-				this.server.emit("endStream", {
-					hostID: currentFrame.hostID,
-					guestID: currentFrame.guestID,
-					watcher : false,
-				} as CreateGameDto);
 			}
-			if (debug) console.log(`| GATEWAY GAME | 'getNewFrame' | emit : 'endStream'`);
 
 			// send next frame
 			else

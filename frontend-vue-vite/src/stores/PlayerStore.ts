@@ -780,13 +780,12 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.gameSocket?.on('statusUpdate', handleStatusUpdate.bind(this));
 					this.user.gameSocket?.on('alert', handleAlerts.bind(this));
 					this.user.gameSocket?.on('getActiveGames', handleNewActiveGames.bind(this));
-					// this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
-					// this.user.gameSocket?.on('endStream', handleEndStream.bind(this));
 					this.user.gameSocket?.on('newInvite', handleNewInvite.bind(this));
 					this.user.gameSocket?.on('deleteInvite', handleDeleteInvite.bind(this));
 					this.user.gameSocket?.on('rejectedInvite', handleRejectedInvite.bind(this));
 					this.user.gameSocket?.on('newGame', handleNewGame.bind(this));
 					this.user.gameSocket?.on('startGame', handleStart.bind(this));
+					this.user.gameSocket?.on('newStream', handleNewStream.bind(this));
 					this.user.gameSocket?.on('endGame', handleEnd.bind(this));
 					this.user.gameSocket?.on('newFrame', handlenewFrame.bind(this));
 					this.user.gameSocket?.on('connect_error', (err) => {
@@ -1338,13 +1337,12 @@ async function handleRejectedInvite(this: any) {
 }
 
 // Game
-async function handleNewGame(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
+async function handleNewGame(this: any, game: GameInfo) {
 	if (debug) console.log("/Store/ handleNewGame()");
 	if (debug) console.log('%c received("newGame")', 'background: purple; color: white')
 
-	if(this.currentGame.invite.sent || this.currentGame.invite.received){
+	if(this.currentGame.invite.sent || this.currentGame.invite.received)
 		this.currentGame.invite.reset()
-	}
 
 	this.currentGame.frame.hostID = game.hostID;
 	this.currentGame.frame.guestID = game.guestID;
@@ -1359,16 +1357,50 @@ async function handleNewGame(this: any, game: {hostID : number, guestID : number
 	router.push('/game')
 	this.currentGame.status = 'building'
 	this.currentGame.waiting = 'undefined'
+
 }
 
-async function handleStart(this: any, customization: CustomizationOptions) {
+async function handleStart(this: any, final_customization: CustomizationOptions) {
 	if (debug) console.log("/Store/ handleStart()");
 	if (debug) console.log('%c received("startGame")', 'background: purple; color: white')
 
-	Object.assign(this.currentGame.customizations, customization);
+	Object.assign(this.currentGame.customizations, final_customization);
 
 	this.currentGame.status = 'playing'
 	this.currentGame.waiting = 'undefined'
+}
+
+async function handleNewStream(this: any, game: GameInfo, final_customization: CustomizationOptions ) {
+	if (debug) console.log("/Store/ handleNewStream()");
+	console.log('%c received("newStream")', 'background: purple; color: white')
+	console.log('payload')
+	console.log(game)
+	console.log(final_customization)
+	if (!game || !final_customization)
+		return
+
+
+	if(this.currentGame.invite.sent || this.currentGame.invite.received)
+		this.currentGame.invite.reset()
+
+	this.currentGame.frame.hostID = game.hostID;
+	this.currentGame.frame.guestID = game.guestID;
+
+	this.currentGame.gameInfo.hostID = game.hostID;
+	this.currentGame.gameInfo.guestID = game.guestID;
+	this.currentGame.gameInfo.watcher = game.watcher;
+
+	Object.assign(this.currentGame.host, (this.user.id == game.hostID)? this.user : (await fetchPlayer(game.hostID)));
+	Object.assign(this.currentGame.guest, (this.user.id == game.guestID)? this.user : (await fetchPlayer(game.guestID)));
+	Object.assign(this.currentGame.customizations, final_customization);
+
+	router.push('/game')
+
+	this.currentGame.status = 'playing'
+	this.currentGame.waiting = 'undefined'
+	console.log('this.currentGame')
+	console.log(this.currentGame)
+
 }
 
 async function handlenewFrame(this: any, frame: FrameDto) {
@@ -1426,23 +1458,3 @@ async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
 	this.liveStreams = activeGames;
 }
 
-// async function handleNewStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-// 	if (debug) console.log("/Store/ handleNewStream()");
-// 	if (debug) console.log('%c received("newStream")', 'background: yellow; color: black')
-
-// 	if (!this.liveStreams.has(game.hostID) || this.liveStreams.get(game.hostID) !== game.guestID)
-// 	{
-// 		if (debug) console.log(`adding game instance to streaming list`);
-// 		this.liveStreams.set(game.hostID, game.guestID);
-// 	}
-// }
-
-// async function handleEndStream(this: any, game: {hostID : number, guestID : number, watcher : boolean}) {
-// 	if (debug) console.log("/Store/ handleEndStream()");
-// 	if (debug) console.log('%c received("endStream")', 'background: yellow; color: black')
-
-// 	if (debug) console.log('number of live games')
-// 	if (debug) console.log(this.liveStreams.size)
-
-// 	this.liveStreams.delete(game.hostID);
-// }
