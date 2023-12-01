@@ -7,21 +7,18 @@ COPY package*.json ./
 
 RUN npm i vite && \
 	npm i vite-plugin-node-polyfills && \
-	npm install socket.io-client
+	npm install socket.io-client && \
+	npm install -g http-server
 
 RUN npm install
 
 COPY . .
 
 # ENTRYPOINT ["npm", "run", "dev"]
-ENTRYPOINT ["npm", "run", "build"]
+RUN npm run build
 
-# # production stage
-# FROM nginx:stable-alpine as production-stage
-
-# COPY --from=build-stage /app/dist /usr/share/nginx/html
-
-# #! useless if we export port in docker file
-# # EXPOSE 80
-
-# CMD ["nginx", "-g", "daemon off;"]
+# production stage
+FROM nginx:stable-alpine as production-stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+# EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
