@@ -1,13 +1,11 @@
 TODO-------------------------------------------------------------------------------------------------
 
 ----MUST-DO
-		- ARI | build test +  Safari
-		- ARI | reactivity offline online
-		- ARI | resolve exit crash cutsomization screen
-		- ARI | resolve remove friends
-		- ARI | resolve ball
-		----------------
-		- MM | resolve 2fa
+		-  build test +  Safari
+		-  reactivity offline online
+		-  resolve exit crash cutsomization screen
+		-  resolve remove friends
+		-  resolve 2fa
 
 ----FULL TEST CHECKLIST
 		- check reactivity
