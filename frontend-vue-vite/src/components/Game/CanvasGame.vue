@@ -82,35 +82,7 @@ export class TimeState {
 }
 
 
-// TODO
-
-// implement and test, in this order
-
-	// send loop
-	// receive loop
-
-	// move paddle ok
-	// move ball - bug on edge
-		// check extreme values (start on edge, get stuck etc)
-	// step, time, smooth animation - NOK
-
-	// bounce off paddle - ok
-
-	// handle if !canvas
-	// test score
-
-// Should include
-	// OK | responsivity
-	//    | customization, maps (collision Y can change ball color)
-	//    | power-ups
-	//    | streaming
-	//    | network issues, like unexpected disconnection or lag ==> pause + exit button
-	//    | browser compatibility
-	//    | wins and losses, ladder level, achievement
-	//    | NO CRASH
-
-
- // Check if needed for browser compatibility
+// Check if needed for browser compatibility
 //  const requestAnimationFrame =
 //   window.requestAnimationFrame ||
 //   window.mozRequestAnimationFrame ||
@@ -187,7 +159,7 @@ export default defineComponent({
 			return (currentGame.value.status == 'playing' && currentGame.value.gameInfo.watcher == false)
 		},
 
-		endReason() : 'undefined' | 'hostWin' | 'guestWin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft' {
+		endReason() : 'undefined' | 'hostWidthin' | 'guestWidthin' | 'userLeft' | 'aPlayerLeft' | 'opponentLeft' {
 			if (debug) console.log('| CanvasGame | computed | endReason : ' + currentGame.value.endReason)
 			return currentGame.value.endReason
 		},
@@ -250,6 +222,7 @@ export default defineComponent({
 		onNewFrame() {
 			if (debug) console.log('| CanvasGame | methods | onNewFrame()')
 			this.frame = this.newFrame
+			// console.log(this.gameTime)
 			this.gameTime.clockLatestFrame()
 			this.lag = false
 			this.drawOnCanvas();
@@ -494,8 +467,8 @@ export default defineComponent({
 			return '#' + result;
 		},
 
-		collisionX(){
-			if (debug) console.log(`| CanvasGame | methods | collisionX() 
+		collisionWallLeftRight(){
+			if (debug) console.log(`| CanvasGame | methods | collisionWallLeftRight() 
 				guest ${this.frame.data.guest.score} 
 				host ${this.frame.data.host.score} `)
 			if (this.frame.data.ball.dx == 1){
@@ -510,7 +483,8 @@ export default defineComponent({
 			if (this.isCustomized)
 				this.step *= 1.12
 		},
-		collisionY(){
+		collisionWallTopBottom(){
+			if (debug) console.log(`| CanvasGame | methods | collisionWallTopBottom()`)
 			if (this.isCustomized){
 				if (this.frame.data.ball.dy == 1)
 					this.frame.data.ball.color = this.invertColor(this.customizations.ball_color)
@@ -521,48 +495,88 @@ export default defineComponent({
 		},
 
 		moveBall() {
-			const step =  this.step /* 0.5 seconds from x = 0 to x = width */
-			// const step : number = this.gameTime.deltaTime * this.ballSpeedFactor
+			const step =  this.step /* this.step = 1 / 150 */
 
-			// collision of X axis
-			/* check collision paddle guest */
-			if ((this.frame.data.ball.x + step + this.frame.data.ball.radius + this.frame.data.guest.paddle.w > 1)
-				&& ((this.frame.data.ball.y + step < (this.frame.data.guest.paddle.y + this.frame.data.guest.paddle.h))
-				&& (this.frame.data.ball.y + step > this.frame.data.guest.paddle.y))){
+			const x = this.frame.data.ball.x
+			const y = this.frame.data.ball.y
+			const r = this.frame.data.ball.radius
+			const guestY = this.frame.data.guest.paddle.y 
+			const guestWidth = this.frame.data.guest.paddle.w 
+			const guestHeight = this.frame.data.guest.paddle.h
+			const hostY = this.frame.data.host.paddle.y
+			const hostWidth = this.frame.data.host.paddle.w 
+			const hostHeight = this.frame.data.host.paddle.h
+
+			// COLLISIONS
+			/* if current position if between the two paddles */
+			if ((x - r - hostWidth > 0) && (x + r + guestWidth < 1))
+			{
+				/* if the next position is beyond the guest or before the host paddle */
+				if    (((x + r + step + guestWidth > 1) && (y + r + step > guestY) && (y + r + step < guestY + guestHeight))
+					|| ((x - r - step - hostWidth < 0) && (y + r + step > hostY) && (y + r + step < hostY + hostHeight)))
+				{
+					/* bounce on the paddle front */
+					if ((x > 0.5 && this.frame.data.ball.dx == 1) || (x < 0.5 && this.frame.data.ball.dx == -1))
 					this.frame.data.ball.dx *= -1;
+				}
 			}
-			/* check collision paddle host */
-			else if ((this.frame.data.ball.x - this.frame.data.ball.radius - step - this.frame.data.host.paddle.w < 0)
-				&& ((this.frame.data.ball.y + step < (this.frame.data.host.paddle.y + this.frame.data.host.paddle.h))
-				&& (this.frame.data.ball.y + step > this.frame.data.host.paddle.y))){
+			/* else if current position if beyond the guest paddle */
+			else if (x + r + guestWidth > 1)
+			{
+				/* if the next position is within the guest paddle */
+				if ((y + r + step >= guestY ) && (y + r + step <= guestY + guestHeight))
+				{
+					/* bounce on the guest paddle sides */
+					this.frame.data.ball.dy *= -1;
+				}
+				/* else if the next position is beyond the wall */
+				if (x + r + step >= 1)
+				{
+					/* bounce on the wall y axis */
 					this.frame.data.ball.dx *= -1;
+					this.collisionWallLeftRight()
+				}
 			}
-			/* check collision wall */
-			else if (this.frame.data.ball.x + step + this.frame.data.ball.radius > 1 || this.frame.data.ball.x + step - this.frame.data.ball.radius < 0) {
-				this.frame.data.ball.dx *= -1;
-				this.collisionX()
+			/* else if current position if before the host paddle */
+			else if (x - r - hostWidth < 0)
+			{
+				/* if the next position is within the host paddle */
+				if ((y + r + step >= hostY) && (y + r + step <= hostY + hostHeight))
+				{
+					/* bounce on the host paddle sides */
+					this.frame.data.ball.dy *= -1;
+				}
+				/* else if the next position is before the wall */
+				if (x - r - step <= 0)
+				{
+					/* bounce on the wall y axis */
+					this.frame.data.ball.dx *= -1;
+					this.collisionWallLeftRight()
+				}
 			}
 
 			// collision of Y axis
-			if (this.frame.data.ball.y + step + this.frame.data.ball.radius > 1 || this.frame.data.ball.y + step - this.frame.data.ball.radius < 0){
+			if (y + r + step > 1 || y - step - r < 0)
+			{
 				this.frame.data.ball.dy *= -1;
-				this.collisionY()
-			}
+				this.collisionWallTopBottom()
+			}			
 
 			/*update position of ball*/
-			if (this.frame.data.ball.dx == 1){
-				this.frame.data.ball.x += step;
-			} else {
-				this.frame.data.ball.x -= step;
-			}
+			this.frame.data.ball.x = Math.max(0, Math.min((this.frame.data.ball.x + this.frame.data.ball.dx * step), 1)) ;
+			this.frame.data.ball.y = Math.max(0, Math.min((this.frame.data.ball.y + this.frame.data.ball.dy * step), 1)) ;
 
-			if (this.frame.data.ball.dy == 1) {
-				this.frame.data.ball.y += step;
-			} else {
-				this.frame.data.ball.y -= step;
+			// CRASH PTEVENTION : checks if the center of the ball is out of frame, in this case it resets the ball position
+			if (this.frame.data.ball.y < 0 || this.frame.data.ball.y > 1 || this.frame.data.ball.x < 0 || this.frame.data.ball.x > 1)
+			{
+				this.frame.data.ball.x = Math.max(0.1, Math.min(Math.random(), 0.9));
+				this.frame.data.ball.y = Math.max(0.1, Math.min(Math.random(), 0.9));
+				this.frame.data.ball.dx = ((Math.random() * 100 ) % 2) ? 1 : -1;
+				this.frame.data.ball.dy = ((Math.random() * 100 ) % 2) ? 1 : -1;
 			}
 		},
 	},
+	// const step : number = this.gameTime.deltaTime * this.ballSpeedFactor
 
 	// LIFECYCLE HOOKS
 	beforeCreate() {
