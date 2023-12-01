@@ -8,15 +8,16 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 export default defineConfig(({command, mode}) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
+    // base:  '/usr/share/nginx',
     server: {
       host: "0.0.0.0",
       fs: {
         strict: true,
-        allow: ['src', 'public', 'index.html', 'README.md', 'node_modules']
+        // allow: ['src', 'public', 'index.html', 'README.md', 'node_modules']
       },
-      hmr: {
-        clientPort: 8080,
-      },
+      // hmr: {
+      //   clientPort: 8080,
+      // },
       port: Number(env.VITE_PORT_FRONT),
       watch: {
         usePolling: true,
