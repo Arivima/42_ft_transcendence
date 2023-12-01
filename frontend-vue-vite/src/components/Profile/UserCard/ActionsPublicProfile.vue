@@ -20,23 +20,28 @@ export default {
     },
 	watch: {},
 	computed: {
-		pending() {
-			return -1 == publicUsers.value.findIndex(
-				(usr: Player) => this.userProfile.id == usr.id
-			);
+		pending() : boolean {
+			if (this.userProfile != undefined) 
+				return -1 == publicUsers.value.findIndex(
+					(usr: Player) => this.userProfile?.id == usr.id
+				);
+			return false
 		}
 	},
     methods: {
 		toggleFriendshipRequest(){
-			if (debug) console.log(`addAsFriend: userProfile.id = ${this.userProfile.id}, typeof is: ${typeof this.userProfile.id}`)
+			if (this.userProfile !=  undefined){
+				if (debug) console.log(`addAsFriend: userProfile.id = ${this.userProfile?.id}, typeof is: ${typeof this.userProfile?.id}`)
 
-			if (this.pending)
-				playerStore.sendFriendshipRejection(Number(this.userProfile.id));
-			else
-				playerStore.sendFriendshipRequest(Number(this.userProfile.id));
+				if (this.pending)
+					playerStore.sendFriendshipRejection(Number(this.userProfile?.id));
+				else
+					playerStore.sendFriendshipRequest(Number(this.userProfile?.id));				
+			}
 		},
 		blockUser(){
-			playerStore.toggleBlockUser(this.userProfile.id, true)
+			if (this.userProfile !=  undefined)
+				playerStore.toggleBlockUser(this.userProfile?.id, true)
 		},
 	},
     mounted (){
@@ -46,28 +51,35 @@ export default {
 
 <template>
 	<v-card
+		v-if="userProfile != undefined"
 		class="itemActions itemActionsPublicProfile"
 		density="compact"
 		variant="flat"
 	>
-			<!-- v-if="!pending" -->
 		<v-btn
-			value="add"
+			v-if="!pending"
 			@click="toggleFriendshipRequest"
-			:text="pending? 'Cancel Friendship Request' : 'Ask ' + `${userProfile.username}` + ' as a friend'"
+			text="Send Friendship Request"
 			prepend-icon="mdi-account-plus"
-			:color="pending? 'purple-lighten-4' : 'white'"
+			color="white"
 			block
-		>
-		</v-btn>
+		></v-btn>
 
 		<v-btn
-			:text="'Block ' + `${userProfile.username}`"
+			v-if="pending"
+			@click="toggleFriendshipRequest"
+			text="Cancel Friendship Request"
+			prepend-icon="mdi-account-remove"
+			color="purple-lighten-4'"
+			block
+		></v-btn>		
+
+		<v-btn
+			:text="'Block ' + `${userProfile?.username}`"
 			@click="blockUser"
 			prepend-icon="mdi-account-cancel"
 			block
-		>
-		</v-btn>
+		></v-btn>
 	</v-card>
 </template>
 
@@ -77,7 +89,6 @@ export default {
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	/* outline: solid; */
 	/* background-color: rgb(13, 114, 78); */
 	background-color: transparent;
 }
@@ -87,8 +98,6 @@ export default {
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 </style>

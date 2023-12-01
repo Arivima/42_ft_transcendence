@@ -202,13 +202,6 @@ export class CustomizationOptions {
 		this.paddle_color = '#800080'; /*purple*/ /*'#000000'; black*/
 		this.ball_color = '#800080'; /*purple*/ /*'#000000'; black*/
 	}
-	reset(){
-		if (debug) console.log('/Store/ class CustomizationOptions | reset()')
-		this.customization = false;
-		this.pitch_color = '#FFFFFF'; /*white*/
-		this.paddle_color = '#800080'; /*purple*/ /*'#000000'; black*/
-		this.ball_color = '#800080'; /*purple*/ /*'#000000'; black*/
-	}
 };
 
 
@@ -237,8 +230,8 @@ export class BallDto {
 	constructor() {
 		this.radius = 1/64;
 		this.color = '#800080';
-		this.x = Math.random();
-		this.y = Math.random();
+		this.x = Math.max(0.1, Math.min(Math.random(), 0.9));
+		this.y = Math.max(0.1, Math.min(Math.random(), 0.9));
 		this.dx = ((Math.random() * 100 ) % 2) ? 1 : -1;
 		this.dy = ((Math.random() * 100 ) % 2) ? 1 : -1;
 	}
@@ -276,13 +269,6 @@ export class FrameDto {
 
 	constructor(){
 		if (debug) console.log('/Store/ class FrameDto | constructor()')
-		this.hostID = 0;
-		this.guestID = 0;
-		this.seq = 0;
-		this.data = new FrameData();
-	}
-	reset(){
-		if (debug) console.log('/Store/ class FrameDto | reset()')
 		this.hostID = 0;
 		this.guestID = 0;
 		this.seq = 0;

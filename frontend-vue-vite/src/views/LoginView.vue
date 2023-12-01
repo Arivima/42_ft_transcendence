@@ -34,7 +34,6 @@ export default {
 	background-color: aqua;
 	height: 100%;
 	width: 100%;
-	outline: solid;
 	display: flex;
 	justify-content: center;
 	justify-items: center;

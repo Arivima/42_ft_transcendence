@@ -25,7 +25,8 @@ export default {
 	watch : {
 		userProfile(newValue : Player){
 			if (debug) console.log('| Achievements | watch | userProfile : new value : ' + newValue.username)
-			this.fetchAchievements(newValue.id)
+			if (this.userProfile != undefined)
+				this.fetchAchievements(newValue.id)
 		},
 	},
 	methods : {

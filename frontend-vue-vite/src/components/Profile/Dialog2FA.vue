@@ -198,35 +198,3 @@ export default defineComponent({
 		</v-card>
 	</v-dialog>
 </template>
-
-
-
-			<!-- <v-snackbar
-				v-model="success"
-				color="purple"
-				elevation="24"
-				multi-line
-				location="bottom"
-
-				:timeout="10000"
-			>
-				{{ successMessage }}
-				<template v-slot:actions>
-					<v-btn text="Close" @click="success = false" color="white" variant="tonal"></v-btn>
-				</template>
-			</v-snackbar> -->
-
-
-			<!-- <v-snackbar
-				v-model="error"
-				color="error"
-				elevation="24"
-				multi-line
-				location="center"
-				:timeout="10000"
-			>
-				{{ errorMessage }}
-				<template v-slot:actions>
-					<v-btn text="Close" @click="error = false" color="white" variant="tonal"></v-btn>
-				</template>
-			</v-snackbar> -->

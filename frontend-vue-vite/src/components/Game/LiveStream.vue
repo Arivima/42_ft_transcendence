@@ -1,9 +1,7 @@
 <script lang="ts">
 import { usePlayerStore, type Player, type ActiveGameDto } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-// import { VDataTableServer } from 'vuetify/labs/components'
 import { VCardText } from 'vuetify/components'
-import axios from 'axios'
 
 const playerStore = usePlayerStore()
 const { liveStreams } = storeToRefs(playerStore)
@@ -13,7 +11,6 @@ const debug = false
 
 export default {
 	components:	{
-		// VDataTableServer,
 		VCardText
 	},
 

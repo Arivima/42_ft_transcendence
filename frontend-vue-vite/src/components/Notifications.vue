@@ -2,7 +2,6 @@
 import { defineComponent } from 'vue'
 import { usePlayerStore, type FriendRequest, type FriendRequestStatus } from '@/stores/PlayerStore'
 import { storeToRefs } from 'pinia'
-// import axios from 'axios'
 
 const playerStore = usePlayerStore()
 const { notifications } = storeToRefs(playerStore)

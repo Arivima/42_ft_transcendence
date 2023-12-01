@@ -96,7 +96,10 @@ export default {
 </script>
 
 <template>
-	<v-card class="component">
+	<v-card
+		v-if="userProfile != undefined"
+		class="component"
+	>
 		<v-card-item>
 			<v-card-title class="text-overline">Match history</v-card-title>
 		</v-card-item>

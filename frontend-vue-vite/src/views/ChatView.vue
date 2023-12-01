@@ -20,7 +20,6 @@ import Notifications from '@/components/Notifications.vue';
 <style scoped>
 .chat {
 	background-color: aqua;
-	/* outline: solid; */
     width: 100%;
     height: 100%;
 }

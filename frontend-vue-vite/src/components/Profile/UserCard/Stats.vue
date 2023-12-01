@@ -25,9 +25,10 @@ export default {
     },
     methods: {
 		fetchStats() {
-		if (debug) console.log('| Stats | methods | fetchStats()')
-			this.stats.loading = true
-			fetchGames.value(this.userProfile.id)
+			if (debug) console.log('| Stats | methods | fetchStats()')
+			if (this.userProfile != undefined) {
+				this.stats.loading = true
+				fetchGames.value(this.userProfile.id)
 					.then((games : Game[]) => {
 						this.stats.victories = this.stats.losses = this.stats.ladder = 0
 						for (const game of games) {
@@ -45,39 +46,41 @@ export default {
 					.catch((err : Error) => {
 						console.error(err)
 						this.stats.loading = false
-					})
+					})			
+			}
 		}
 	},
 	watch: {
 		userProfile(newValue : Player){
 			if (debug) console.log('| Stats | watch | userProfile : new value : ' + newValue.username)
-			this.fetchStats()
+			if (this.userProfile != undefined)
+				this.fetchStats()
 		},
 	},
 	beforeCreate() {
 		if (debug) console.log('| Stats | beforeCreate()')
 	},
 	created() {
-		if (debug) console.log('| Stats | created(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | created(' + (this.userProfile?.id) + ')')
 	},
 	beforeMount() {
-		if (debug) console.log('| Stats | beforeMount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | beforeMount(' + (this.userProfile?.id) + ')')
 	},
 	mounted() {
-		if (debug) console.log('| Stats | mounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | mounted(' + (this.userProfile?.id) + ')')
 		this.fetchStats();
     },
 	beforeUpdate() {
-		if (debug) console.log('| Stats | beforeUpdate(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | beforeUpdate(' + (this.userProfile?.id) + ')')
 	},
 	updated() {
-		if (debug) console.log('| Stats | updated(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | updated(' + (this.userProfile?.id) + ')')
 	},
 	beforeUnmount() {
-		if (debug) console.log('| Stats | beforeUnmount(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | beforeUnmount(' + (this.userProfile?.id) + ')')
 	},
 	unmounted() {
-		if (debug) console.log('| Stats | unmounted(' + (this.userProfile.id) + ')')
+		if (debug) console.log('| Stats | unmounted(' + (this.userProfile?.id) + ')')
 	},
 }
 </script>
@@ -122,8 +125,6 @@ export default {
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	outline: solid;
-	outline-color: antiquewhite;
 	background-color: transparent;
 }
 
@@ -132,8 +133,6 @@ export default {
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 </style>

@@ -21,7 +21,8 @@ export default {
     },
     methods: {
 		unblockUser() {
-			playerStore.toggleBlockUser(this.userProfile.id, false)
+			if (this.userProfile != undefined)
+				playerStore.toggleBlockUser(this.userProfile?.id, false)
 		}
 	},
     mounted (){
@@ -31,6 +32,7 @@ export default {
 
 <template>
 	<v-card
+		v-if="userProfile != undefined"
 		class="itemActions itemActionsPublicProfile"
 		density="compact"
 		variant="flat"
@@ -38,7 +40,7 @@ export default {
 		<v-btn 
 			value="unblock"
 			@click="unblockUser"
-			:text="'Unblock ' + `${userProfile.username}`"
+			:text="'Unblock ' + `${userProfile?.username}`"
 			prepend-icon="mdi-account-plus"
 			:color="state == 'pending'? 'purple-lighten-4' : 'white'"
 			block
@@ -53,7 +55,6 @@ export default {
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	/* outline: solid; */
 	/* background-color: rgb(13, 114, 78); */
 	background-color: transparent;
 }
@@ -63,8 +64,6 @@ export default {
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 </style>

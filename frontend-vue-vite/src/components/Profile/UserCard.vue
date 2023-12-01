@@ -98,30 +98,32 @@ export default {
 	>
 
 		<Avatar
+			v-if="userProfile != undefined"
 			:userProfile="userProfile"
 		></Avatar>
 
 		<Stats
+			v-if="userProfile != undefined"
 			:userProfile="userProfile"
 		></Stats>
 
 		<ActionsPublicProfile
 			:userProfile="userProfile"
-			v-if="visibility == 'PublicProfile'"
+			v-if="(userProfile != undefined) && visibility == 'PublicProfile'"
 		></ActionsPublicProfile>
 
 		<ActionsFriendProfile
 			:userProfile="userProfile"
-			v-if="visibility == 'FriendProfile'"
+			v-if="(userProfile != undefined) && visibility == 'FriendProfile'"
 		></ActionsFriendProfile>
 
 		<ActionsMyProfile
-			v-if="visibility == 'MyProfile'"
+			v-if="(userProfile != undefined) && visibility == 'MyProfile'"
 		></ActionsMyProfile>
 
 		<ActionsBlockedProfile
 			:userProfile="userProfile"
-			v-if="visibility == 'BlockedProfile'"
+			v-if="(userProfile != undefined) && visibility == 'BlockedProfile'"
 		></ActionsBlockedProfile>
 
 		<!-- ADD BLOCKED PROFILE -->
@@ -145,8 +147,6 @@ export default {
 	justify-content: start;
 	min-height: fit-content;
 	max-height: 20%;
-	outline: solid;
-	outline-color: antiquewhite;
 	/* color: blue; */
 	/* background-color: white; */
 }
@@ -160,26 +160,5 @@ export default {
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 </style>
-
-
-<!-- <div class="d-flex flex-row justify-end align-start">
-	<v-card class="pa-2 mx-3">
-		<p class="text-overline">Profile : </p>
-		<p class="text-caption">
-			{{ userProfile.username }}
-			| {{ userProfile.id }}
-		</p>
-	</v-card>
-	<v-card class="pa-2 mx-3">
-		<p class="text-overline">Visitor : </p>
-		<p class="text-caption">
-			{{ userVisitor.username }}
-			| {{ userVisitor.id }}
-		</p>
-
-	</v-card>
-</div> -->

@@ -67,7 +67,6 @@ export default {
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	/* outline: solid; */
 	/* background-color: rgb(13, 114, 78); */
 	background-color: transparent;
 }
@@ -77,8 +76,6 @@ export default {
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 </style>

@@ -21,16 +21,20 @@ export default {
         }
     },
 	computed: {
-		visibility() : 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
-			return playerStore.visibility(this.userProfile?.id);
+		visibility() : 'Loading' | 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
+			if (this.userProfile != undefined)
+				return playerStore.visibility(this.userProfile?.id);
+			return 'Loading'
 		},
 		status() : string {
-			if (this.visibility === 'MyProfile')
-				return this.user.status
-			if (this.visibility === 'FriendProfile'){
-				for (const friend of this.friends) {
-					if (friend.id === this.userProfile.id)
-						return friend.status;
+			if (this.userProfile != undefined){
+				if (this.visibility === 'MyProfile')
+					return this.user.status
+				if (this.visibility === 'FriendProfile'){
+					for (const friend of this.friends) {
+						if (friend.id === this.userProfile?.id)
+							return friend.status;
+					}				
 				}				
 			}
 			return ''
@@ -62,7 +66,10 @@ export default {
 </script>
 
 <template>
-		<v-card class="itemAvatar" density="comfortable" variant="flat">
+		<v-card
+			v-if="userProfile != undefined"
+			class="itemAvatar" density="comfortable" variant="flat"
+		>
 
 			<v-badge
 				v-if="visibility === 'MyProfile' || visibility === 'FriendProfile'"
@@ -70,20 +77,20 @@ export default {
 				:color="badgeColor" 
 				:content="status">
 				<v-avatar size="130" rounded="1">
-					<v-img cover :src="userProfile.avatar"></v-img>
+					<v-img cover :src="userProfile?.avatar"></v-img>
 				</v-avatar>
 			</v-badge>
 
 			<v-avatar
 				v-if="visibility === 'PublicProfile' || visibility === 'BlockedProfile'"
 				size="130" rounded="1">
-				<v-img cover :src="userProfile.avatar"></v-img>
+				<v-img cover :src="userProfile?.avatar"></v-img>
 			</v-avatar>
 
 			<div class="backgroundItem ma-3">
 				<v-card-item
-					:title="userProfile.username"
-					:subtitle="userProfile.firstName + ' ' + userProfile.lastName"
+					:title="userProfile?.username"
+					:subtitle="userProfile?.firstName + ' ' + userProfile?.lastName"
 				></v-card-item>
 			</div>
 		</v-card>
@@ -96,7 +103,6 @@ export default {
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	/* outline: solid; */
 	/* background-color: aquamarine; */
 	background-color: transparent;
 }
@@ -106,13 +112,6 @@ export default {
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
-}
-
-.itemAvatar .v-avatar {
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 .itemAvatar .v-badge__badge {

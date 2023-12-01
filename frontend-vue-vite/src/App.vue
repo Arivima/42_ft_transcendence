@@ -67,57 +67,39 @@ export default {
 
 /* DEBUG STYLE */
 .v-main {
-	background-color: lightskyblue;
-	outline: solid;
-	margin: 0;
-	padding: 0;
-	outline-color: antiquewhite;
+	padding: 0.5%;
+	margin: 0.5%;
 }
 .v-app {
-	background-color: lightslategray;
-	outline: solid;
-	margin: 0;
-	padding: 0;
-	outline-color: antiquewhite;
+	padding: 0.5%;
+	margin: 0.5%;
 }
 .NavSideBar {
-	background-color: rgb(255, 255, 255);
-	outline: solid;
-	outline-color: antiquewhite;
+	background-color: rgba(255, 255, 255, 0.87);
 }
 .v-bottom-navigation {
 	background-color: lemonchiffon;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 .parent {
-	background-color: lightpink;
-	outline: solid;
-	padding: 1%;
-	margin: 1%;
-	outline-color: antiquewhite;
+	background-color: rgb(209, 185, 239);
+	padding: 0.5%;
+	margin: 0.5%;
 }
 .child1 {
-	padding: 1%;
-	margin: 1%;
-	background-color: lightcoral;
-	outline: solid;
-	outline-color: antiquewhite;
+	padding: 0.5%;
+	margin: 0.5%;
+	background-color: lavender;
 }
 .child2 {
-	padding: 1%;
-	margin: 1%;
+	padding: 0.5%;
+	margin: 0.5%;
 	background-color: lightgoldenrodyellow;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 .component {
-	padding: 2%;
-	margin: 2%;
+	padding: 1%;
+	margin: 1%;
 	background-color: white;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 </style>

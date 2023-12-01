@@ -30,19 +30,23 @@ export default defineComponent({
     methods: {
 		removeFromFriends(){
 			console.log('| ActionsFRiendProfile | methods | removeFromFriends()')
-			playerStore.sendFriendshipRejection(this.userProfile.id);
+			if (this.userProfile != undefined) 
+				playerStore.sendFriendshipRejection(this.userProfile?.id);
 		},
 		blockUser(){
 			if (debug) console.log('| ActionsFRiendProfile | methods | blockUser()')
-			playerStore.toggleBlockUser(this.userProfile.id, true)
+			if (this.userProfile != undefined) 
+				playerStore.toggleBlockUser(this.userProfile?.id, true)
 		},
 		sendInviteToPlay(){
 			if (debug) console.log('| ActionsFRiendProfile | methods | sendInviteToPlay()')
-			playerStore.sendInvitation(this.userProfile.id)
+			if (this.userProfile != undefined) 
+				playerStore.sendInvitation(this.userProfile?.id)
 		},
 		streamUser(){
 			if (debug) console.log('| ActionsFRiendProfile | methods | streamUser()')
-			playerStore.sendStreamingRequest(this.userProfile.id)
+			if (this.userProfile != undefined) 
+				playerStore.sendStreamingRequest(this.userProfile?.id)
 		},
 	},
     mounted (){
@@ -52,43 +56,44 @@ export default defineComponent({
 
 <template>
 	<v-card
+		v-if="userProfile != undefined"
 		class="itemActions itemActionsFriendProfile"
 		density="compact"
 		variant="flat"
 	>
 		<v-btn
-			v-if="`${userProfile.status}` === 'online'"
-			:text="'Play with ' + `${userProfile.username}`"
+			v-if="`${userProfile?.status}` === 'online'"
+			:text="'Play with ' + `${userProfile?.username}`"
 			@click="sendInviteToPlay"
 			prepend-icon="mdi-controller"
 			:disabled="inviteSent"
 			block
 		></v-btn>
 		<v-btn
-			:text="'Chat with ' + `${userProfile.username}`"
+			:text="'Chat with ' + `${userProfile?.username}`"
 			to="/chat"
 			prepend-icon="mdi-chat"
 			block
 		>
 		</v-btn>
 		<v-btn
-			v-if="`${userProfile.status}` === 'playing'"
-			:text="'Watch ' + `${userProfile.username}` + '\'s game'"
+			v-if="`${userProfile?.status}` === 'playing'"
+			:text="'Watch ' + `${userProfile?.username}` + '\'s game'"
 			@click="streamUser"
 			prepend-icon="mdi-play"
 			block
 		>
 		</v-btn>
 
-		<v-btn
-			:text="'Remove ' + `${userProfile.username}`"
+		<!-- <v-btn
+			:text="'Remove ' + `${userProfile?.username}`"
 			@click="removeFromFriends"
 			prepend-icon="mdi-account-remove"
 			block
-		>
-		</v-btn>
+		></v-btn> -->
+
 		<v-btn
-			:text="'Block ' + `${userProfile.username}`"
+			:text="'Block ' + `${userProfile?.username}`"
 			@click="blockUser"
 			prepend-icon="mdi-account-cancel"
 			block
@@ -103,7 +108,6 @@ export default defineComponent({
 	flex-direction: column;
 	margin: 1%;
 	padding: 1%;
-	/* outline: solid; */
 	/* background-color: rgb(13, 114, 78); */
 	background-color: transparent;
 }
@@ -113,8 +117,6 @@ export default defineComponent({
 	color: black;
 	border-radius: 30px; /*Increase or decrease the value for controlling the roundness*/
 	width: fit-content;
-	outline: solid;
-	outline-color: antiquewhite;
 }
 
 </style>
