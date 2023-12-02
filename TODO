@@ -1,12 +1,12 @@
 TODO-------------------------------------------------------------------------------------------------
 
 ----MUST-DO
-		-  build test +  Safari
-		-  reactivity offline online
-		-  resolve exit crash cutsomization screen
+		-  build test +  Safari 					DONE
+		-  reactivity offline online				DONE
+		-  resolve exit crash cutsomization screen	DONE
+		-  resolve 2fa								DONE
 		-  resolve remove friends
-		-  resolve 2fa
-		-	BLOCK and profile buttons NOT REACTIVE
+		-  BLOCK and profile buttons NOT REACTIVE
 
 ----FULL TEST CHECKLIST
 		- check reactivity
