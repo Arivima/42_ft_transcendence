@@ -146,6 +146,14 @@ export class ChatService {
     createChatDto.senderID = Number(createChatDto.senderID);
 
     if (createChatDto.receiversID) {
+      let isMember = await this.prisma.subscribed.findMany({
+        where: {
+          playerID: createChatDto.senderID,
+          chatroomID: createChatDto.receiversID,
+        },
+      });
+      if (isMember.length === 0)
+        return "isMuted"
       let isMuted = await this.prisma.subscribed.findMany({
         where: {
           playerID: isMutedId,

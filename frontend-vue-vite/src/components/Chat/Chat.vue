@@ -352,6 +352,7 @@ export default {
 			this.socket.emit("message", newMessage, (r) => {
 				if (r.success == false) {
 					this.messages = []
+					this.activeChat = 0;
 					alert("You can't send message to this Chat")
 				}
 				this.socket.emit("getparents", { userId: user.value.id }, (response) => {

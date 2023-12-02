@@ -230,13 +230,10 @@ export class ChatGateway {
   @UsePipes(new ValidationPipe())
   async handleMessage(@MessageBody() createChatDto: CreateChatDto, @ConnectedSocket() client: Socket) {
     if (debug) console.log(`DEBUG | chat.gateway | handleMessage | data: ${createChatDto.content}, ${createChatDto.receiverID}, ${createChatDto.senderID}, ${createChatDto.receiversID}`);
-    // createChatDto = JSON.parse(JSON.parse(createChatDto).data);
     let recClientId: Socket;
 
     let senderID = this.jwtService.decode(client.handshake.auth.token)['sub']
-
     let resIds = await this.chatService.create(createChatDto, Number(senderID));
-    // let blocked_users = await this.chatService.getBlockedUsers(Number(senderID));
     let blocked_users = await this.chatService.getBlockedUsers(Number(senderID));
 
     if (resIds == "isMuted")
