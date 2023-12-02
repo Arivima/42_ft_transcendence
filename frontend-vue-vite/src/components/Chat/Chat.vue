@@ -291,6 +291,8 @@ export default {
 
 		this.socket.on("newparent", (parent) => {
 			this.parents.unshift(parent);
+			if (this.activeChat)
+				this.activeChat += 1;
 		});
 
 		this.socket.on("removeparent", (parent) => {

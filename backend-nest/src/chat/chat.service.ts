@@ -3,14 +3,7 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { CreateGroupDto } from './dto/create-group.dto';
 import { UpdateGroupDto } from './dto/update-group.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
-// const bcrypt = require('bcrypt');
-// const saltRounds = 10;
-// const myPlaintextPassword = 's0/\/\P4$$w0rD';
-// const someOtherPlaintextPassword = 'not_bacon';
-
 import * as bcrypt from 'bcrypt';
-// import { PlayersService } from 'src/players/players.service';
-// import * as path from 'path';//REMOVE
 import * as dotenv from 'dotenv';
 import { of } from 'rxjs';
 
@@ -207,25 +200,6 @@ export class ChatService {
 
   async createGroupChat(group: CreateGroupDto) {
     const { name, members, founderId, visibility, password } = group;
-    // let visibility2 = null;
-    // // switch (visibility) {
-    // //   case "public":
-    // //     visibility2 = "public";
-    // //   case "private":
-    // //     visibility2 = "private";
-    // //   case "protected":
-    // //     visibility2 = "protected";
-    // //   default:
-    // //     visibility2 = "private";
-    // // }
-    // if (visibility === "public")
-    //   visibility2 = "public";
-    // else if (visibility === "private")
-    //   visibility2 = "private";
-    // else if (visibility === "protected")
-    //   visibility2 = "protected";
-    // else
-    //   visibility2 = "private";
     const chatGroup = await this.prisma.chatRoom.create({
       data: {
         name,
@@ -403,52 +377,10 @@ export class ChatService {
             isBanned: true,
           },
         });
-        // if (res2.length === 0) {
-        //   // await this.prisma.chatRoom.update({
-        //   //   where: {
-        //   //     groupID: groupId,
-        //   //   },
-        //   //   data: {
-        //   //     subscriptions: {
-        //   //       delete: {
-        //   //         playerID_chatroomID: {
-        //   //           playerID: userId,
-        //   //           chatroomID: groupId,
-        //   //         },
-        //   //       },
-        //   //     },
-        //   //     messages: {
-        //   //       deleteMany: {},
-        //   //     },
-        //   //     founderID: null,
-        //   //   },
-        //   // });
-        //   // await this.prisma.chatRoom.delete({
-        //   //   where: {
-        //   //     groupID: groupId,
-        //   //   },
-        //   // });
-        //   return ["delete group"]
-        //   return null;
-        // }
+        
         let users = res2.filter((user) => {
           return user.isBanned === false;
         });
-        // if (users.length === 0) {
-        //   await this.prisma.subscribed.deleteMany({
-        //     where: {
-        //       chatroomID: groupId,
-        //     },
-        //   });
-        //   await this.prisma.chatRoom.delete({
-        //     where: {
-        //       groupID: groupId,
-        //     },
-        //   });
-        //   return ["delete group"]
-        // }
-        // if (users.length === 0)
-        //   return ["delete group"]
         if (users.length !== 0) {
           let randomAdmin = users[Math.floor(Math.random() * users.length)];
           await this.prisma.subscribed.update({
@@ -489,27 +421,8 @@ export class ChatService {
         },
       });
       if (res2.length === 0) {
-        // await this.prisma.chatRoom.delete({
-        //   where: {
-        //     groupID: groupId,
-        //   },
-        // });
         return ["delete group"]
       }
-      // console.log(`DEBUG | chat.service | removeUserFromGroup | res2: ${res2}`);
-      // let user = await this.prisma.player.update({
-      //   where: {
-      //     id: userId,
-      //   },
-      //   data: {
-      //     founded_channels: {
-      //       delete: {
-      //         groupID: groupId,
-      //       },
-      //     },
-      //   },
-      // });
-      // console.log(`DEBUG | chat.service | removeUserFromGroup | user: ${user.founded_channels}`);
       return res2;
     } catch (error) {
       console.error(error);
@@ -536,33 +449,6 @@ export class ChatService {
     });
   }
 
-  // async getAvatar(id: number) {
-  //   // perform a intern call to get avatar players/avatar/:id
-  //   const filePath = path.join(
-	// 		process.cwd(), (await this.playersService.findOne(Number(id))).avatar
-	// 	);
-
-	// 	fs.open(filePath, 'r', (err, fd) => {
-	// 		let returnedFilePath: string;
-
-	// 		if (err) {
-	// 			returnedFilePath = path.join(
-	// 				process.cwd(),
-	// 				process.env.BACKEND_DEFAULT_ONERR_PFP
-	// 			);
-	// 		}
-	// 		else {
-	// 			fs.close(fd)
-	// 			returnedFilePath = filePath;
-	// 		}
-	// 		const file = fs.createReadStream(returnedFilePath)
-  //     conso
-  //     return file;
-	// 		// res.setHeader("Content-Type", `img/${filePath.split('.')[1]}`)
-	// 		// file.pipe(res)
-	// 	});
-  // }
-
   async getParents(userId: number) {
     const user = await this.prisma.player.findUnique({
       where: { id: userId },
@@ -575,22 +461,6 @@ export class ChatService {
                 id: true,
                 username: true,
                 avatar: true,
-                // sent_messages: {
-                //   // select: {
-                //   where: {
-                //     OR: [
-                //       {
-                //         senderID: userId,
-                //       },
-                //       {
-                //         receiverID: userId,
-                //       },
-                //     ],
-                //   },
-                //   take: 1,
-                //   orderBy: { timestamp: 'desc' },
-                //   // },
-                // },
               },
             },
             requestor: {
@@ -598,24 +468,6 @@ export class ChatService {
                 id: true,
                 username: true,
                 avatar: true,
-                //   sent_messages: {
-                //     // select: {
-                //     where: {
-                //           receiverID: userId,
-                //     },
-                //     take: 1,
-                //     orderBy: { timestamp: 'desc' },
-                //     // },
-                //   },
-                //   received_messages_dm: {
-                //     // select: {
-                //     where: {
-                //           senderID: userId,
-                //     },
-                //     take: 1,
-                //     orderBy: { timestamp: 'desc' },
-                //     // },
-                //   },
               },
 
             },
@@ -630,22 +482,6 @@ export class ChatService {
                 id: true,
                 username: true,
                 avatar: true,
-                // sent_messages: {
-                //   // select: {
-                //   where: {
-                //     OR: [
-                //       {
-                //         senderID: userId,
-                //       },
-                //       {
-                //         receiverID: userId,
-                //       },
-                //     ],
-                //   },
-                //   take: 1,
-                //   orderBy: { timestamp: 'desc' },
-                //   // },
-                // },
               },
             },
             requestor: {
@@ -653,28 +489,8 @@ export class ChatService {
                 id: true,
                 username: true,
                 avatar: true,
-                //   sent_messages: {
-                //     // select: {
-                //     where: {
-                //           receiverID: userId,
-                //     },
-                //     take: 1,
-                //     orderBy: { timestamp: 'desc' },
-                //     // },
-                //   },
-                //   received_messages_dm: {
-                //     // select: {
-                //     where: {
-                //           senderID: userId,
-                //     },
-                //     take: 1,
-                //     orderBy: { timestamp: 'desc' },
-                //     // },
-                //   },
               },
-
             },
-
           },
         },
         chatroomSubscriptions: {
@@ -687,62 +503,20 @@ export class ChatService {
                   select: {
                     username: true,
                   },
-                
                 },
                 messages: {
                   take: 1,
                   orderBy: { timestamp: 'desc' },
                 },
                 createdAt: true,
-
                 },
               }
-              
-              // include: {
-              //   messages: {
-              //     take: 1,
-              //     orderBy: { timestamp: 'desc' },
-              //   },
-              // },
-
             },
             where: {
               isBanned: false,
             },
-          
-          
-          
-          // include: {
-          //   chatroom: {
-          //     select: {
-          //       groupID: true,
-          //       name: true,
-          //       founder: {
-          //         select: {
-          //           username: true,
-          //         },
-                
-          //       },
-          //       messages: {
-          //         take: 1,
-          //         orderBy: { timestamp: 'desc' },
-          //       },
-          //       createdAt: true,
-
-          //       },
-          //     }
-              
-          //     // include: {
-          //     //   messages: {
-          //     //     take: 1,
-          //     //     orderBy: { timestamp: 'desc' },
-          //     //   },
-          //     // },
-
-          //   },
           },
-
-          },
+        },
     });
     
     let listoffriends = [];
@@ -796,11 +570,6 @@ export class ChatService {
         return ((b.lastMessage as Date) || new Date(0)).getTime() - ((a.lastMessage as Date) || new Date(0)).getTime();
       }
     });
-    // add an incremental chatId to each element
-    // let res = sortedData.map((element, index) => ({
-    //   ...element,
-    //   chatId: index,
-    // }));
     return { friends: friends, rooms: roomsWithLastMessage, sortedData: sortedData };
   }
 
@@ -846,15 +615,6 @@ export class ChatService {
           
         },
       },
-      // include: {
-        
-      //   founder: true,
-      //   subscriptions: {
-      //     include: {
-      //       player: true,
-      //     },
-      //   },
-      // },
     });
     return {
       id: group.groupID,
@@ -883,7 +643,6 @@ export class ChatService {
       },
     });
   
-    // console.log(`DEBUG | chat.service | getFriendsNotInGroup | group.subscriptions: ${group.subscriptions}, group.subscriptions.length: ${group.subscriptions.length}`);
     const friends = await this.prisma.player.findMany({
       where: { id: userId },
       include: {
@@ -1077,16 +836,7 @@ export class ChatService {
     }));
     return { messages: ret1, subscriptions: ret2 };
   }
-  // searchGroups() {
-	// 	try {
-	// 		this.socket.emit("searchgroups", { groupSearch: this.groupSearch }, (response) => {
-	// 			console.log("response", response);
-	// 			this.groups = response.groups;
-	// 		});
-	// 	} catch (error) {
-	// 		console.error("Error emitting 'searchgroups':", error);
-	// 	}
-	//   },
+
   async searchGroups(groupSearch: string, userId: number) {
     console.log(`DEBUG | chat.service | searchGroups | groupSearch: ${groupSearch}, userId: ${userId}`);
     // select where name contains groupSearch and is public or protected and user is not in group members
@@ -1126,39 +876,6 @@ export class ChatService {
         visibility: true,
       },
     });
-
-    // let res = await this.prisma.chatRoom.findMany({
-    //   where: {
-    //     name: {
-    //       contains: groupSearch,
-          
-    //     },
-    //     OR: [
-    //       {
-    //         visibility: "public",
-    //       },
-    //       {
-    //         visibility: "protected",
-    //       },
-    //     ],
-    //   },
-    //   select: {
-    //     groupID: true,
-    //     name: true,
-    //     founder: {
-    //       select: {
-    //         username: true,
-    //       },
-    //     },
-    //     subscriptions: {
-    //       select: {
-    //         playerID: true,
-    //       },
-    //     },
-    //     visibility: true,
-    //   },
-    // });
-    // console.log(`DEBUG | chat.service | searchGroups | res: ${res}`);
     
     let ret = res.map((group) => ({
       ...group,
@@ -1232,17 +949,6 @@ export class ChatService {
   }
 
   async editGroup(group: UpdateGroupDto, userId: number) {
-    // let visibility2 = null;
-    // if (group.visibility === "public")
-    //   visibility2 = "public";
-    // else if (group.visibility === "private")
-    //   visibility2 = "private";
-    // else if (group.visibility === "protected")
-    //   visibility2 = "protected";
-    // else
-    //   visibility2 = "private";
-    // if (visibility2 === "protected")
-    //   group.password = await bcrypt.hash(group.password, saltRounds);
     let isAdminId = await this.prisma.subscribed.findMany({
       where: {
         chatroomID: group.id,

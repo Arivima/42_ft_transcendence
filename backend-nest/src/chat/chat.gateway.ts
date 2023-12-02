@@ -24,9 +24,9 @@ export class WsExceptionFilter {
 
   public handleError(client: Socket, exception: HttpException | WsException) {
     if (exception instanceof HttpException) {
-      console.log(`DEBUG | chat.gateway | handleError | HttpException: ${exception}`);
+      if (debug) console.log(`DEBUG | chat.gateway | handleError | HttpException: ${exception}`);
     } else {
-      console.log(`DEBUG | chat.gateway | handleError | WsException: ${exception}`);
+      if (debug) console.log(`DEBUG | chat.gateway | handleError | WsException: ${exception}`);
     }
   }
 }
@@ -36,7 +36,7 @@ export class WsExceptionFilter {
   cors: {
     origin: '*',
   },
-	namespace: "chat"
+  namespace: "chat"
 })
 export class ChatGateway {
   @WebSocketServer()
@@ -58,7 +58,7 @@ export class ChatGateway {
       });
       this.clients.set(Number(user.sub), client);
     } catch (error) {
-      console.log(`DEBUG | chat.gateway | handleConnection | error: ${error}`);
+      if (debug) console.log(`DEBUG | chat.gateway | handleConnection | error: ${error}`);
       client.emit('redirect', '/login');
     }
   }
@@ -100,7 +100,7 @@ export class ChatGateway {
 
   @SubscribeMessage("getgroupinfo")
   getGroupInfo(@MessageBody("groupId") groupId: string, @ConnectedSocket() client: Socket) {
-    console.log(`DEBUG | chat.controller | getGroupInfo | groupId: ${groupId}`);
+    if (debug) console.log(`DEBUG | chat.controller | getGroupInfo | groupId: ${groupId}`);
     let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
     return this.chatService.getGroupInfo(Number(groupId), Number(userId));
   }
@@ -172,7 +172,7 @@ export class ChatGateway {
         return { success: false };
       otherMembers.forEach((memberId) => {
         recClientId = this.clients.get(Number(memberId.playerID));
-        console.log(`DEBUG | chat.controller | removeMeFromGroup | memberId: ${recClientId}`);
+        if (debug) console.log(`DEBUG | chat.controller | removeMeFromGroup | memberId: ${recClientId}`);
         if (recClientId)
           this.server.to(`${recClientId.id}`).emit('removeuserfromgroup', { userId: me, groupId });
         return { success: true };
@@ -183,7 +183,7 @@ export class ChatGateway {
       return { success: true };
     });
   }
-  
+
 
   @SubscribeMessage("removeuserfromgroup")
   removeUserFromGroup(@MessageBody("userId") userId: string, @MessageBody("groupId") groupId: string, @ConnectedSocket() client: Socket) {
@@ -229,7 +229,7 @@ export class ChatGateway {
   @SubscribeMessage('message')
   @UsePipes(new ValidationPipe())
   async handleMessage(@MessageBody() createChatDto: CreateChatDto, @ConnectedSocket() client: Socket) {
-    console.log(`DEBUG | chat.gateway | handleMessage | data: ${createChatDto.content}, ${createChatDto.receiverID}, ${createChatDto.senderID}, ${createChatDto.receiversID}`);
+    if (debug) console.log(`DEBUG | chat.gateway | handleMessage | data: ${createChatDto.content}, ${createChatDto.receiverID}, ${createChatDto.senderID}, ${createChatDto.receiversID}`);
     // createChatDto = JSON.parse(JSON.parse(createChatDto).data);
     let recClientId: Socket;
 
@@ -243,12 +243,12 @@ export class ChatGateway {
       return { success: false };
     if (!resIds)
       return
-    console.log(`DEBUG | chat.gateway | handleMessage | resIds: ${resIds}`);
+    if (debug) console.log(`DEBUG | chat.gateway | handleMessage | resIds: ${resIds}`);
     for (let resId of resIds) {
       if (blocked_users.includes(resId.playerID))
         createChatDto.content = "This message is blocked";
       recClientId = this.clients.get(Number(resId.playerID));
-      let data = JSON.stringify({ data: JSON.stringify({ ...createChatDto, "senderName": resId.senderName}) });
+      let data = JSON.stringify({ data: JSON.stringify({ ...createChatDto, "senderName": resId.senderName }) });
       if (recClientId)
         this.server.to(`${recClientId.id}`).emit('message', data);
     }
@@ -264,13 +264,13 @@ export class ChatGateway {
 
   @SubscribeMessage("joingroup")
   async joinGroup(@MessageBody("groupId") groupId: string, @MessageBody("password") password: string, @ConnectedSocket() client: Socket) {
-    console.log(`DEBUG | chat.controller | joinGroup | groupId: ${groupId}`);
+    if (debug) console.log(`DEBUG | chat.controller | joinGroup | groupId: ${groupId}`);
     let userId = this.jwtService.decode(client.handshake.auth.token)['sub'];
     let res = await this.chatService.joinGroup(Number(groupId), Number(userId), password);
     if (!res)
       return { error: "wrong password" };
     let recClientId = this.clients.get(Number(userId));
-    console.log(`DEBUG | chat.controller | joinGroup | memberId: ${recClientId}`);
+    if (debug) console.log(`DEBUG | chat.controller | joinGroup | memberId: ${recClientId}`);
     if (recClientId)
       this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0]?.createdAt, isGroup: true });
   }
