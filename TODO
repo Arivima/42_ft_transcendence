@@ -6,6 +6,7 @@ TODO----------------------------------------------------------------------------
 		-  resolve exit crash cutsomization screen
 		-  resolve remove friends
 		-  resolve 2fa
+		-	BLOCK and profile buttons NOT REACTIVE
 
 ----FULL TEST CHECKLIST
 		- check reactivity
@@ -25,6 +26,7 @@ TODO----------------------------------------------------------------------------
 		- full test from build version - evaluation mode, check against subject/correction sheet
 		- clean console.log + comments
 		- find a solution for env files
+		- delete node_modules
 
 ----PROBABLY WON'T HAVE TIME
 		- MM | handle //! //TODO
