@@ -49,10 +49,15 @@ export class AuthService {
 	}
 
 	async is2FAset(userID: number): Promise<boolean> {
-		if ((await this.playerService.findOne(userID)).twofaSecret?.length)
+		const player = await this.playerService.findOne(userID);
+		
+		if (
+			JSON.stringify({}) == JSON.stringify(player) ||
+			null == player.twofaSecret
+		)
+			return false;
+		else
 			return true;
-		return false;
-		// return !!(await this.playerService.findOne(userID))?.twofaSecret;
 	}
 
 	async registerPlayer(user: any): Promise<Player> {

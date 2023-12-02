@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/11/30 21:35:15 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/02 14:49:14 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -845,7 +845,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 				this.user.notificationsSocket?.emit('logPlayerOut', {
 					userID: this.user.id
 				});
-				localStorage.removeItem(import.meta.env.JWT_KEY);
+				localStorage.removeItem('ft_transcendence_token');
 				Object.assign(this.user, emptyUser);
 			}
 		}

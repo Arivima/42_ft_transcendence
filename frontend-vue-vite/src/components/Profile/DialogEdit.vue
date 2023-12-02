@@ -46,7 +46,7 @@ export default defineComponent({
 		}
 	},
 	created() {
-		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem(import.meta.env.JWT_KEY);
+		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + localStorage.getItem('ft_transcendence_token');
 		axios.defaults.baseURL = 'http://' + location.hostname + ':' + import.meta.env.VITE_BACKEND_PORT;
 	},
 	methods: {

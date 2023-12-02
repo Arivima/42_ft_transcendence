@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/08 20:49:41 by earendil          #+#    #+#             */
-/*   Updated: 2023/10/22 22:24:02 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/02 14:32:16 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ export class AuthController {
 
 			// let's share the session token with the user
 			const redirect_url = new URL(`${req.protocol}:${req.hostname}`);
+			redirect_url.pathname = await this.authService.is2FAset(userID) ? 'login-2fa' : '';
 			redirect_url.port = process.env.FRONTEND_PORT;
 			redirect_url.searchParams.append('token', `${token.toString()}`);
 			return { url: `${redirect_url.href}` };

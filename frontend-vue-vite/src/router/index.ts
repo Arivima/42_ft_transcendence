@@ -48,7 +48,7 @@ const router = createRouter({
 
 const checkLogIn = () => new Promise((resolve, reject) => {
 	if (debug) console.log('*Router* checkLogIn()')
-	const token = localStorage.getItem(import.meta.env.JWT_KEY);
+	const token = localStorage.getItem('ft_transcendence_token');
 
 	if (!token) reject('token not found')
 	else
@@ -66,33 +66,20 @@ const checkLogIn = () => new Promise((resolve, reject) => {
 router.beforeEach((to, from, next) => {
 	if (debug) console.log('*Router* beforeEach() | path :' + to.path)
 	if (to.query.token) {
-		localStorage.setItem(import.meta.env.JWT_KEY, to.query.token as string);
+		localStorage.setItem('ft_transcendence_token', to.query.token as string);
 		axios.defaults.headers.common['Authorization'] = 'Bearer' + ' ' + to.query.token as string
 	}
 	checkLogIn()
 		.then((_) => {
-			// console.log(localStorage.getItem(import.meta.env.JWT_KEY));
-
 			if ('login' === to.name || 'login-2fa' === to.name || 'home' === to.name)
 				next({ name: `profile`})
 			else next()
 		})
 		.catch((_) => {
-			// if token is set redirect to OTP VIEW
-			// important! Token is always loaded from localStorage into PlayerStore
-			// inside the checkLogIn function executed before this step.
-			if (null === localStorage.getItem(import.meta.env.JWT_KEY)) {
-				if ('login' === to.name)
-					next();
-				else
-					next({ name: 'login' })
-			}
-			else {
-				if ('login-2fa' === to.name)
-					next();
-				else
-					next({ name: 'login-2fa' })
-			}
+			if ('login-2fa' == to.name || 'login' == to.name)
+				next();
+			else
+				next({ name: 'login' });
 		})
 })
 
