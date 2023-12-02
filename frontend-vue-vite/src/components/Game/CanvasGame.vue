@@ -95,7 +95,8 @@ export default defineComponent({
 	data: () => ({
 			ready : false, /*clean start when component is mounted and gameStatus == playing*/
 
-			gameTime : {} as TimeState,
+			gameTime : new TimeState(),
+			// gameTime : {} as TimeState,
 			paused : false,
 			lag : false,
 
@@ -223,7 +224,8 @@ export default defineComponent({
 			if (debug) console.log('| CanvasGame | methods | onNewFrame()')
 			this.frame = this.newFrame
 			// console.log(this.gameTime)
-			this.gameTime.clockLatestFrame()
+			this.gameTime.getDeltaTime(); // Calculate deltaTime first
+  			this.gameTime.clockLatestFrame();
 			this.lag = false
 			this.drawOnCanvas();
 			if (this.isReadyAndPlaying)
