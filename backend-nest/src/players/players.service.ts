@@ -35,6 +35,9 @@ export class PlayersService {
 	}
 
 	removeConnection(userID: number) {
+
+		// removing the connections,
+		// effectively logging out the player
 		this.connections.delete(userID);
 
 		if (debug) console.log('\x1b[36m%s\x1b[0m', '| removeConnection');
@@ -314,6 +317,8 @@ export class PlayersService {
 
 	async getAllFriends(userID: number, includePending: boolean): Promise<(Player & Connection)[]> {
 		if (debug) console.log(`DEBUG | Players.Service | getAllFriends | userID: ${userID}`);
+
+		// taking all friends
 		const friendsAsRequestorIDs = await this.prisma.beFriends.findMany({
 			where: {
 				requestorID: userID,
@@ -339,6 +344,7 @@ export class PlayersService {
 			},
 		});
 
+		// taking just the IDs
 		const friendsIDs: number[] = [];
 		for (const friend of friendsAsRequestorIDs) {
 			friendsIDs.push(friend.recipientID);
@@ -346,7 +352,10 @@ export class PlayersService {
 		for (const friend of friendsAsRecipientIDs) {
 			friendsIDs.push(friend.requestorID);
 		}
+
 		if (debug) console.log(`DEBUG | Players.Service | getAllFriends | friendsIDs: ${friendsIDs}`);
+		
+		// taking the whole user info
 		const friends = [];
 		for (const friendID of friendsIDs) {
 			// friends.push(await this.findOne(friendID));

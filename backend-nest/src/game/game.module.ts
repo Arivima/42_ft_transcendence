@@ -10,5 +10,6 @@ import { PlayersModule } from 'src/players/players.module';
 	imports: [PlayersModule],
 	// providers: [GameGateway, GameService, PlayersService, JwtService ],
 	providers: [GameGateway, GameService, JwtService ],
+	exports: [GameGateway]
 })
 export class GameModule {}

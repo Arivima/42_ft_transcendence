@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/19 15:32:39 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/30 21:27:32 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/02 18:29:26 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -168,7 +168,7 @@ export class GameService {
 			this.pservice.changeConnection(id, {
 				playing: false
 			});
-			this.updateStatus(id, client, server)
+			//! HO MESSO L'UPDATE DELLO STATUS NEL GATEWAY, QUI SIAMO NEL SERVIZIO
 
 			// leave the room
 			game.user_socket.leave(roomId);
@@ -205,22 +205,6 @@ export class GameService {
 				if (debug) console.log(`userID: ${userID}; roomId: ${roomId}`);
 			}
 		}
-	}
-
-	updateStatus(userID : number, client: Socket, server: Server){
-		if (debug) console.log('\x1b[36m%s\x1b[0m', `| GATEWAY GAME | updateStatus`)
-		if (debug) console.log(`userID : ${userID}, client: ${client?.id}`);
-		if (!userID || !client || !server)
-			return
-
-		const newStatus : 'offline' | 'online' | 'playing' = this.pservice.getConnection(userID)
-		//! mandare un update direttamente qua a tutti gli amici
-		//! player.service.ts getAllFriends
-		// evitare di farsi un emit a se stessi e poi gestirla facendo un altra emit dal frontend verso il back
-		// che rimanda a tutti gli amici l'update.
-		server.to(client.id).emit("statusUpdate", { status : newStatus })
-		if (debug) console.log(`| GATEWAY GAME | 'updateStatus' | emit : 'statusUpdate'`);
-		if (debug) console.log(`userID ${userID} client.id ${client.id} status ${newStatus}`)
 	}
 
 	matchPlayers(

@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/11/18 10:15:07 by mmarinel          #+#    #+#             */
-/*   Updated: 2023/11/30 21:32:52 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/02 18:27:12 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,6 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		// setting user socket
 		this.clients.set(Number(user.sub), client);
-		this.pservice.addConnection(Number(user.sub));
-		this.gameService.updateStatus(Number(user.sub), client, this.server)
 		
 		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
 		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);
@@ -72,34 +70,52 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 	async handleDisconnect(client: any) {
 		if (debug) console.log(`| GATEWAY GAME | ${client.id} disconnected`);
 		
-		let key: number = -1;
+		let id: number = -1;
 		
 		// deleting among the list of clients
 		for (let [userID, csock] of this.clients) {
 			if (client.id == csock.id) {
-				key = userID;
+				id = userID;
 				break ;
 			}
 		}
 		
-		if (-1 != key) {
-			if (debug) console.log(`GAME GATEWAY | disconnecting user ${key}`);
-			this.gameService.updateStatus(key, client, this.server)
-			this.clients.delete(key);
+		if (-1 != id) {
+			if (debug) console.log(`GAME GATEWAY | disconnecting user ${id}`);
+			if (this.pservice.isLoggedIn(id)) {
+				this.pservice.changeConnection(id, {
+					playing: false
+				});
+				this.broadcastPlayerStatus(id);
+			}
+			this.clients.delete(id);
 		}
 		
 		this.gameService.leaveGame(client, this.server);
 	}
 
-	@SubscribeMessage('logPlayerOut')
-	logPlayerOut(
-		@MessageBody('userID') userID: number,
-		@ConnectedSocket() client: Socket
+	async broadcastPlayerStatus(
+		userID: number
 	)
 	{
-		this.pservice.removeConnection(userID);
-		//! Cambiare il modo in cui facciamo sta roba
-		this.gameService.updateStatus(userID, client, this.server);
+		console.log(`GAME GATEWAY | broadcastPlayerStatus`);
+		
+		const newStatus = this.pservice.getConnection(userID);
+		const friends = await this.pservice.getAllFriends(userID, false);
+		
+		console.log(`iterating over friends`);
+		for (const friend of friends)
+		{
+			console.log('found friend');
+			const friend_client = this.clients.get(friend.id);
+			if (undefined == friend_client)
+				continue ;
+			console.log('found friend active client');
+			this.server.to(friend_client.id).emit("friendStatusUpdate", {
+				userID,
+				status : newStatus
+			} as { userID : number, status : 'offline' | 'online' | 'playing' });
+		}
 	}
 
 	@SubscribeMessage('getActiveGames')
@@ -314,15 +330,12 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			this.pservice.changeConnection(gameInfo.hostID, {
 				playing: true
 			});
-			const host_socket = this.clients.get(gameInfo.hostID);
-			this.gameService.updateStatus(gameInfo.hostID, host_socket, this.server)
+			this.broadcastPlayerStatus(gameInfo.hostID);
 
 			this.pservice.changeConnection(gameInfo.guestID, {
 				playing: true
 			});
-			const guest_socket = this.clients.get(gameInfo.guestID);
-			this.gameService.updateStatus(gameInfo.guestID, guest_socket, this.server)
-
+			this.broadcastPlayerStatus(gameInfo.guestID);
 
 			
 			if (debug) console.log(`| GATEWAY GAME | 'sendCustOptions' | emit : 'startGame'`);
@@ -447,6 +460,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
 		// deleting game instance of player
 		this.gameService.leaveGame(socket, this.server);
+		this.broadcastPlayerStatus(userID);
 
 		//TODO maybe add the active games as a data of class so that a game is valid
 		//TODO only if it is there
@@ -464,41 +478,5 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 			if (debug) console.log(`userID: ${userID}; socket.id: ${uSock.id}`);
 		}
 	}
-
-	// this.clients = Map<number, Socket>();
-	// friends: number[],
-
-	@SubscribeMessage("friendStatusUpdate")
-	broadcastStatusUpdate(
-		@MessageBody('userID') userID: number,
-		@MessageBody('friends') friends: number[],
-		@MessageBody('status') status: 'offline' | 'online' | 'playing',
-		@ConnectedSocket() socket: Socket
-	) {
-		if (debug) console.log('\x1b[36m%s\x1b[0m', `| GATEWAY GAME | 'friendStatusUpdate'`);
-		if (!userID || !friends || !status || !socket)
-			return
-
-			if (debug) console.log(`userID ${userID} | status ${status} | friends ${friends.length}`);
-			if (debug) console.log(friends);
-
-
-		// broadcast user status update to all of his connected friends
-		for (let [activeID, activeSock] of this.clients) {
-			friends.forEach((friendID) => {
-				if (activeID == friendID){
-					if (debug) console.log(`found friendID: ${activeID}; socket.id: ${activeSock.id}`);
-					this.server.to(`${activeSock.id}`).emit('friendStatusUpdate', {
-						userID : userID,
-						status : status
-					} as { userID : number, status : 'offline' | 'online' | 'playing' })
-
-					if (debug) console.log(`| GATEWAY GAME | 'friendStatusUpdate' | emit : 'friendStatusUpdate'`);
-					if (debug) console.log(`emit data to friendID ${friendID} userID ${userID} status ${status}`)
-				}
-			});
-		}
-	}
-
 
 }

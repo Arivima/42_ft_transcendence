@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/12/02 14:49:14 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/02 18:30:26 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -764,7 +764,6 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
 					this.user.gameSocket?.on('friendStatusUpdate', handleFriendStatusUpdate.bind(this));
-					this.user.gameSocket?.on('statusUpdate', handleStatusUpdate.bind(this));
 					this.user.gameSocket?.on('alert', handleAlerts.bind(this));
 					this.user.gameSocket?.on('getActiveGames', handleNewActiveGames.bind(this));
 					this.user.gameSocket?.on('newInvite', handleNewInvite.bind(this));
@@ -1260,30 +1259,6 @@ async function handleFriendStatusUpdate(this: any, payload: {userID : number, st
 			return ;
 		}
 	}
-}
-
-async function handleStatusUpdate(this: any, payload: { status: PlayerStatus }){
-	// if (debug) console.log("/Store/ handleStatusUpdate");
-	if (debug) console.log(`%c received("statusUpdate") for user ${this.user.id} status ${payload.status}`, 'background: black; color: white')
-
-	// update this user status
-	this.user.status = payload.status
-
-	// ask his friends to update his status
-	const friendsArray: number[] = [];
-	for (const friend of this.friends)
-		friendsArray.push(friend.id);
-
-	// if (debug) console.log(`has ${this.friends.length} friends `);
-	// if (debug) console.log(friendsArray);
-
-	this.user.gameSocket?.emit("friendStatusUpdate", {
-		userID : this.user.id,
-		friends : friendsArray,
-		status : payload.status
-	} as {userID : number, friends : number[], status : PlayerStatus})
-	// if (debug) console.log('%c emit("friendStatusUpdate")', 'background: black; color: white')
-	// if (debug) console.log(`emit data : userID : ${this.user.id}, friends : ${friendsArray.length}, status : ${payload.status}`);
 }
 
 async function handleAlerts(this: any, payload: { message: string }){

@@ -6,12 +6,14 @@ import { FortyTwoStrategy } from './strategies/auth.strategy.passport.42'; // Im
 import { JwtModule } from '@nestjs/jwt';
 import * as dotenv from 'dotenv';
 import { TwoFaService } from './auth.2fa.service';
+import { GameModule } from 'src/game/game.module';
 
 dotenv.config();
 
 @Module({
 	imports: [
 		PlayersModule,
+		GameModule,
 		forwardRef(() => AuthModule), // Use forwardRef for circular dependencies
 		JwtModule.register({
 			secret: process.env.JWT_SECRET,

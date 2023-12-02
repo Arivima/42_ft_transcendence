@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/08 20:49:41 by earendil          #+#    #+#             */
-/*   Updated: 2023/12/02 14:32:16 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/02 17:08:11 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ import { FortyTwoAuthGuard } from './guards/auth.guard.42';
 import { PlayersService } from 'src/players/players.service';
 import { Public } from './decorators/auth.public.decorator';
 import { Protected } from './decorators/auth.protected.decorator';
+import { GameGateway } from 'src/game/game.gateway';
 
 const debug = true
 
@@ -35,6 +36,7 @@ export class AuthController {
 	constructor(
 		private readonly authService: AuthService,
 		private readonly pservice: PlayersService,
+		private readonly gGateway: GameGateway
 	) {}
 
 	/**
@@ -59,8 +61,10 @@ export class AuthController {
 			//to prevent old non-deleted session to activate
 			this.pservice.removeConnection(userID);
 			// log the user in
-			if (false == (await this.authService.is2FAset(userID)))
+			if (false == (await this.authService.is2FAset(userID))) {
 				this.pservice.addConnection(userID);
+				this.gGateway.broadcastPlayerStatus(userID);
+			}
 
 			// let's share the session token with the user
 			const redirect_url = new URL(`${req.protocol}:${req.hostname}`);
@@ -75,7 +79,10 @@ export class AuthController {
 
 	@Delete('42')
 	async logOut(@Request() req): Promise<void> {
-		this.pservice.removeConnection(Number(req.user.sub));
+		const userID = Number(req.user.sub);
+
+		this.pservice.removeConnection(userID);
+		this.gGateway.broadcastPlayerStatus(userID);
 	}
 
 	/**
@@ -103,10 +110,13 @@ export class AuthController {
 	@Protected()
 	@Post('2fa/login')
 	async login2fa(@Body('otp') otp: string, @Request() req) {
-        if (debug) console.log('DEBUG | Auth.controller | login2fa() | otp : ' + otp);
-		if (false == (await this.authService.verifyOTP(Number(req.user.sub), otp)))
+		const userID = Number(req.user.sub);
+
+		if (debug) console.log('DEBUG | Auth.controller | login2fa() | otp : ' + otp);
+		if (false == (await this.authService.verifyOTP(userID, otp)))
 			return false;
-		this.pservice.addConnection(Number(req.user.sub));
+		this.pservice.addConnection(userID);
+		this.gGateway.broadcastPlayerStatus(userID);
 		return true;
 	}
 
