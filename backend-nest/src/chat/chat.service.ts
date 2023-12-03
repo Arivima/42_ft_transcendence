@@ -196,10 +196,6 @@ export class ChatService {
         recipientID: true,
       },
     });
-    // let blockedUsers = res.map((user) => ({
-    //   playerID: user.requestorID === userId ? user.recipientID : user.requestorID,
-    // }));
-    // return a list of blocked users id
     let blockedUsers = res.map((user) => {
       return user.requestorID === userId ? user.recipientID : user.requestorID;
     });

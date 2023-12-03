@@ -61,7 +61,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		});
 
 		// setting user socket
-		this.clients.set(Number(user.sub), client);
+		if (!this.clients.has(Number(user.sub)))
+			this.clients.set(Number(user.sub), client);
 		
 		if (debug) console.log(`| GATEWAY GAME | socket: ${client.id}, userID: ${Number(user.sub)}, connected`);
 		if (debug) console.log(`| GATEWAY GAME | current queue : ${this.gameService.getQueue().size} `);

@@ -761,6 +761,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('accept-friendship', handleFriendshipAccept.bind(this));
 					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
+					this.user.notificationsSocket?.on('frienship-error', handleFriendStatusUpdate.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
 					this.user.gameSocket?.on('friendStatusUpdate', handleFriendStatusUpdate.bind(this));

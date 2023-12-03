@@ -56,7 +56,8 @@ export class ChatGateway {
       const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
         secret: process.env.JWT_SECRET
       });
-      this.clients.set(Number(user.sub), client);
+      if (!this.clients.has(Number(user.sub)))
+        this.clients.set(Number(user.sub), client);
     } catch (error) {
       if (debug) console.log(`DEBUG | chat.gateway | handleConnection | error: ${error}`);
       client.emit('redirect', '/login');
