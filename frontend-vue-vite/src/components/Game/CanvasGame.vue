@@ -256,7 +256,7 @@ export default defineComponent({
 						this.sendFrame();
 					}
 				}
-				requestAnimationFrame(this.gameLoop);				
+				requestAnimationFrame(this.gameLoop);
 		},
 
 		exitGame(){

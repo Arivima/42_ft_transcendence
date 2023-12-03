@@ -15,7 +15,7 @@
 				multiple
 			>
 				<template v-slot:selection="{ item, index }">
-				<v-chip v-if="index < 2">
+				<v-chip>
 					<span>{{ item.title }}</span>
 				</v-chip>
 				</template>
