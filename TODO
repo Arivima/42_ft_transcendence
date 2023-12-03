@@ -1,6 +1,6 @@
 TODO-------------------------------------------------------------------------------------------------
 
----BUF
+---BUGS
 	- Chat: crash when all friends are added to group
 	- Chat: crash when blocking user in view (that does not update) and user send messages
 		- maybe: do a socket to interface chat with profile
@@ -18,9 +18,11 @@ TODO----------------------------------------------------------------------------
 			backend   |     at l (/app/node_modules/@prisma/client/runtime/library.js:129:10023)
 			backend   |     at ChatService.editUserSubscription (/app/src/chat/chat.service.ts:310:15)
 
-	- LiveStream table: crash when a blacklisted user is playing
+	- LiveStream table: crash when a blacklisted user is playing DONE
 	- Game: not Playable
 	- Game: bug in score points
+
+	- server side validation
 	
 
 ----MUST-DO
