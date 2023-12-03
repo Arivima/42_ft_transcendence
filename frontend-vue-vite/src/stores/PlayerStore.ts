@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/12/03 13:47:01 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/03 16:32:53 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1436,19 +1436,27 @@ async function handleEnd(this: any, endGame : endGameDto) {
 async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
 	if (debug) console.log(`/ Store / handleNewActiveGames`);
 
+	this.liveStreams = [];
 	for (const game of activeGames)
 	{
 		if (debug) console.log(`next game: roomId: ${game.roomId}; hostID: ${game.hostID}; guestID: ${game.guestID}`);
 
-		const host = await fetchPlayer(game.hostID);
-		const guest = await fetchPlayer(game.guestID);
+		try {
+			const host = await fetchPlayer(game.hostID);
+			const guest = await fetchPlayer(game.guestID);
 
-		game.hostUsername = host.username;
-		game.hostAvatar = host.avatar;
-		game.guestUsername = guest.username;
-		game.guestAvatar = guest.avatar;
+			game.hostUsername = host.username;
+			game.hostAvatar = host.avatar;
+			game.guestUsername = guest.username;
+			game.guestAvatar = guest.avatar;
+
+			this.liveStreams.push(game);
+		}
+		catch {
+			continue ;
+		}
 	}
 
-	this.liveStreams = activeGames;
+	// this.liveStreams = activeGames;
 }
 
