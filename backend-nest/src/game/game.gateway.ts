@@ -408,7 +408,7 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		const	hostScore: number = (frame?.data?.host?.score);
 		const	guestScore: number = (frame?.data?.guest?.score);
 
-		if (frame.seq > currentFrame.seq)
+		if (frame.seq >= currentFrame.seq)
 		{
 			// check end of game
 			if (hostWin || guestWin)

@@ -330,6 +330,7 @@ export default {
 	beforeUnmount() {
 		this.activeChat = 0;
 		this.messages = []
+		// this.socket.disconn
 	},
 	beforeRouteLeave() {
 		this.activeChat = 0;
