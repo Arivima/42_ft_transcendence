@@ -106,7 +106,6 @@ export default defineComponent({
 				<v-card-item class="mb-3">
 					<p>Customized settings features include :</p>
 					<p>- points earned increase the size of your paddle</p>
-					<p>- points earned make the ball faster</p>
 					<p>- customized map colors</p>
 				</v-card-item>
 			</v-card>
