@@ -30,8 +30,8 @@ export default defineComponent({
     methods: {
 		removeFromFriends(){
 			console.log('| ActionsFRiendProfile | methods | removeFromFriends()')
-			if (this.userProfile != undefined) 
-				playerStore.sendFriendshipRejection(this.userProfile?.id);
+			if (this.userProfile != undefined)//! was MODIFIED acces with '?' operator
+				playerStore.sendFriendshipRejection(this.userProfile.id);
 		},
 		blockUser(){
 			if (debug) console.log('| ActionsFRiendProfile | methods | blockUser()')
@@ -85,12 +85,12 @@ export default defineComponent({
 		>
 		</v-btn>
 
-		<!-- <v-btn
+		<v-btn
 			:text="'Remove ' + `${userProfile?.username}`"
 			@click="removeFromFriends"
 			prepend-icon="mdi-account-remove"
 			block
-		></v-btn> -->
+		></v-btn>
 
 		<v-btn
 			:text="'Block ' + `${userProfile?.username}`"

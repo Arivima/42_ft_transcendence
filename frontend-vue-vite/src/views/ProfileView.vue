@@ -15,7 +15,7 @@ import DialogInvite from '@/components/Game/DialogInvite.vue'
 import Debug from '@/components/Debug.vue'
 
 const playerStore = usePlayerStore()
-const { user, friends, fetchPlayer } = storeToRefs(playerStore)
+const { user, friends, blockedUsers, fetchPlayer } = storeToRefs(playerStore)
 const debug = false
 
 export default {
@@ -38,8 +38,23 @@ export default {
 		visibility() : 'Loading' | 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
 			if (debug) console.log('| ProfileView | computed | visibility')
 			if (this.userProfile != undefined)
-				return playerStore.visibility(this.userProfile.id);
-			return 'Loading'
+			{
+				if (user.value.id == this.userProfile.id)
+					return 'MyProfile'
+				for (const friend of friends.value) {
+					if (friend.id == this.userProfile.id) {
+						return 'FriendProfile'
+					}
+				}
+				for (const blocked of blockedUsers.value) {
+					if (blocked.id == this.userProfile.id) {
+						return 'BlockedProfile';
+					}
+				}
+				return "PublicProfile";
+			}
+			else
+				return 'Loading'
 		},
 	},
 	methods: {
@@ -61,7 +76,7 @@ export default {
 					}`)
 				}
 				catch (err) {
-					console.error(`Cannot view selected user profile`);
+					console.log(`Cannot view selected user profile`);
 					this.$router.push({name: 'profile'});
 				}
 			}
