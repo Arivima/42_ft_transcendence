@@ -1,10 +1,10 @@
 TODO-------------------------------------------------------------------------------------------------
 
 ---BUF
-	- Chat: crash when all friends are added to group
+	<!-- - Chat: crash when all friends are added to group -->
 	- Chat: crash when blocking user in view (that does not update) and user send messages
 		- maybe: do a socket to interface chat with profile
-	- Chat: backend crash on user update (ban, mute)
+	<!-- - Chat: backend crash on user update (ban, mute)
 		- PrismaClientKnownRequestError: Invalid `this.prisma.subscribed.update()` invocation in
 			backend   | /app/src/chat/chat.service.ts:310:44
 			backend   |   307 });
@@ -16,7 +16,7 @@ TODO----------------------------------------------------------------------------
 			backend   |     at ni.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:124:6206)
 			backend   |     at ni.request (/app/node_modules/@prisma/client/runtime/library.js:124:5926)
 			backend   |     at l (/app/node_modules/@prisma/client/runtime/library.js:129:10023)
-			backend   |     at ChatService.editUserSubscription (/app/src/chat/chat.service.ts:310:15)
+			backend   |     at ChatService.editUserSubscription (/app/src/chat/chat.service.ts:310:15) -->
 
 	- LiveStream table: crash when a blacklisted user is playing
 	- Game: not Playable

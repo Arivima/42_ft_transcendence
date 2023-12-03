@@ -108,6 +108,53 @@ export class ChatService {
     createChatDto.receiversID = null;
     let senderName = null;
     try {
+      // let isBlocked = await this.prisma.beFriends.findMany({
+      //   where: {
+      //     OR: [
+      //       {
+      //         requestorID: userId,
+      //         requestor_blacklisted: true,
+      //       },
+      //       {
+      //         recipientID: userId,
+      //         recipient_blacklisted: true,
+      //       },
+      //     ],
+      //   },
+      //   select: {
+      //     requestorID: true,
+      //     recipientID: true,
+      //   },
+      // });
+      // let blockedUsers = res.map((user) => ({
+      //   playerID: user.requestorID === userId ? user.recipientID : user.requestorID,
+      // }));
+      // return a list of blocked users id
+      // let blockedUsers = res.map((user) => {
+      //   return user.requestorID === userId ? user.recipientID : user.requestorID;
+      // });
+      let isBlocked = await this.prisma.beFriends.findMany({
+          where: {
+            OR: [
+              {
+                requestorID: createChatDto.senderID,
+                recipientID: createChatDto.receiverID,
+                requestor_blacklisted: true,
+              },
+              {
+                recipientID: createChatDto.senderID,
+                requestorID: createChatDto.receiverID,
+                recipient_blacklisted: true,
+              },
+            ],
+          },
+          select: {
+            requestorID: true,
+            recipientID: true,
+          },
+        });
+      if (isBlocked.length > 0)
+        return null
       const res = await this.prisma.message.create({
         data: {
           content: createChatDto.content,
@@ -332,6 +379,7 @@ export class ChatService {
 
   async removeUserFromGroup(userId: number, groupId: number, adminId: number) {
     try {
+      console.log("User id0", userId, groupId, adminId);
       if (userId != adminId) {
         let isAdminId = await this.prisma.subscribed.findMany({
           where: {
