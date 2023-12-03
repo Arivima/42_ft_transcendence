@@ -150,7 +150,7 @@ export class ChatGateway {
       for (let userId of userIdsList) {
         let recClientId = this.clients.get(Number(userId));
         if (recClientId)
-          this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0].createdAt, isGroup: true });
+          this.server.to(`${recClientId.id}`).emit('newparent', { id: groupId, name: res.name, lastMessage: res.messages[0]?.createdAt, isGroup: true });
       }
       return { response: true };
     });
@@ -236,11 +236,16 @@ export class ChatGateway {
     let senderID = this.jwtService.decode(client.handshake.auth.token)['sub']
     let resIds = await this.chatService.create(createChatDto, Number(senderID));
     let blocked_users = await this.chatService.getBlockedUsers(Number(senderID));
-
+    console.log("resIds", resIds);
     if (resIds == "isMuted")
       return { success: false };
+    if (resIds.length == 0)
+      return { success: true };
     if (!resIds)
-      return
+      return { success: false };
+    if (resIds[0] == null)
+      return { success: false };
+
     if (debug) console.log(`DEBUG | chat.gateway | handleMessage | resIds: ${resIds}`);
     for (let resId of resIds) {
       if (blocked_users.includes(resId.playerID))

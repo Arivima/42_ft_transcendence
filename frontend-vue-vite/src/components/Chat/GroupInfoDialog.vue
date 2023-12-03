@@ -16,7 +16,7 @@
 				<h3>Members</h3>
 				<v-list dense>
 					<div class="flex-1 mt-4 mb-4 overflow-y-auto fill-height max-height-400 px-4">
-						<v-list-item v-for="(member, index) in groupInfo.members" :key="index">
+						<v-list-item v-for="(member, index) in groupInfo.members" :key="member.id">
 							<v-list-item-title>{{ member.name }}</v-list-item-title>
 							<div class="d-flex align-center">
 								<v-list-item-subtitle v-if="member.isAdmin && member.name !== groupInfo.founder">Administrator</v-list-item-subtitle>
@@ -72,11 +72,11 @@ export default {
 			if (data.success == false) {
 				alert("You are not allowed to remove this user");
 				this.$emit("reload");
-		}
-
-			console.log("removeuserfromgroup", data);
+			}
+			console.log("removeuserfromgroup", data)
 			if (data.groupId === this.groupInfo.id) {
 				this.groupInfo.members = this.groupInfo.members.filter((member) => member.id !== data.userId);
+				
 			}
 		});
 

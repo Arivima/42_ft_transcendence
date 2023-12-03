@@ -182,8 +182,8 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 					.emit('toggle-block-user', {
 						requestorID: requestorID,
 						recipientID: recipientID,
-						...(userID == recipientID && {requestor_blacklisted:  block}),
-						...(userID == requestorID && {recipient_blacklisted:  block}),
+						requestor_blacklisted: userID == recipientID ? block : undefined,
+						recipient_blacklisted: userID == requestorID ? block : undefined,
 					})
 			}
 			let recipientSocket = this.clients.get(recipientID);
@@ -194,8 +194,8 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 					.emit('toggle-block-user', {
 						requestorID: requestorID,
 						recipientID: recipientID,
-						...(userID == recipientID && {requestor_blacklisted:  block}),
-						...(userID == requestorID && {recipient_blacklisted:  block}),
+						requestor_blacklisted:  userID == recipientID ? block : undefined,
+						recipient_blacklisted:  userID == requestorID ? block : undefined,
 					})
 			}
 		}
@@ -282,8 +282,10 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 			// if (client.handshake.auth)
 			await this.frienshipsService.deleteFrienshipRequest(requestorID, recipientID);
 
+			// console.log(`GATEWAY | friendships | removing friendship requestorID:${requestorID}, recipientID:${recipientID}`);
 			let recipientSocket = this.clients.get(recipientID);
 			if (undefined != recipientSocket) {
+				// console.log(`recipientSocket found...emitting`);
 				this.server
 					.to(`${recipientSocket.id}`)
 					.emit('reject-friendship-request', {
@@ -293,6 +295,7 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 			}
 			let requestorSocket = this.clients.get(requestorID);
 			if (undefined != requestorSocket) {
+				// console.log(`requestorSocket found...emitting`);
 				this.server
 					.to(`${requestorSocket.id}`)
 					.emit('reject-friendship-request', {
@@ -302,6 +305,7 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 			}
 		}
 		catch(err) {
+			// console.log(`GATEWAY | friendships | error`);
 			const msg = `rejectFrienship: ${err.toString()}`;
 
 			this.server

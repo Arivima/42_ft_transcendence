@@ -15,15 +15,9 @@
 				multiple
 			>
 				<template v-slot:selection="{ item, index }">
-				<v-chip v-if="index < 2">
+				<v-chip>
 					<span>{{ item.title }}</span>
 				</v-chip>
-				<span
-					v-if="index === 2"
-					class="text-grey text-caption align-self-center"
-				>
-					(+{{ value.length - 2 }} others)
-				</span>
 				</template>
 			</v-select>
 			<v-card-title>Group privacy</v-card-title>

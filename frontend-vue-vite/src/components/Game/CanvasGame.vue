@@ -256,7 +256,7 @@ export default defineComponent({
 						this.sendFrame();
 					}
 				}
-				requestAnimationFrame(this.gameLoop);				
+				requestAnimationFrame(this.gameLoop);
 		},
 
 		exitGame(){
@@ -482,8 +482,6 @@ export default defineComponent({
 				if (this.isCustomized)
 					this.frame.data.guest.paddle.h *= 1.1
 			}
-			if (this.isCustomized)
-				this.step *= 1.12
 		},
 		collisionWallTopBottom(){
 			if (debug) console.log(`| CanvasGame | methods | collisionWallTopBottom()`)

@@ -257,9 +257,14 @@ export class FrienshipsService {
 
 	async deleteFrienshipRequest(requestorID: number, recipientID: number) {
 
-		if (undefined == requestorID)
-			throw Error('Could not find friendhip');
+		// console.log(`GATEWAY SERVICE | friendships deleteFrienshipRequest | BEGIN`);
 
+		if (undefined == requestorID) {
+			// console.log(`GATEWAY SERVICE | friendships deleteFrienshipRequest | friendship NOT FOUND for requestorID:${requestorID}, recipientID:${recipientID}`);
+			throw Error('Could not find friendhip');
+		}
+
+		// console.log(`GATEWAY SERVICE | friendships deleteFrienshipRequest | looking for friendship in prisma db: requestorID:${requestorID}, recipientID:${recipientID}`);
 		const friendship = await this.prisma.beFriends.findUnique({
 			where: {
 				requestorID_recipientID: {
@@ -268,9 +273,13 @@ export class FrienshipsService {
 				}
 			}
 		});
+		// console.log(`GATEWAY SERVICE | friendships deleteFrienshipRequest | found friendship requestorID:${requestorID}, recipientID:${recipientID}`);
 
 		if (friendship.requestor_blacklisted || friendship.recipient_blacklisted)
+		{
+			// console.log(`cannot delete friendship among blocked users`);
 			throw Error("Cannot delete friendship among blocked users")
+		}
 		
 		await this.prisma.beFriends.delete({
 			where: {
@@ -280,11 +289,15 @@ export class FrienshipsService {
 				}
 			}
 		});
+		// console.log(`friendship successfully deleted`);
+		// console.log(`GATEWAY SERVICE | friendships deleteFrienshipRequest | END`);
 	}
 
 	//Helpers
 
 	async getFriendship(userID: number, friendID: number): Promise<number[]> {
+		// console.log(`GATEWAY SERVICE | friendships getFriendship | BEGIN`);
+
 		if (
 			await this.prisma.beFriends.findUnique({
 				where: {
@@ -295,6 +308,7 @@ export class FrienshipsService {
 				}
 			})
 		) {
+			// console.log(`GATEWAY SERVICE | friendships getFriendship | found friendship requestorID:${userID}, recipientID:${friendID}`);
 			return [userID, friendID];
 		}
 		else if (
@@ -307,9 +321,11 @@ export class FrienshipsService {
 				}
 			})
 		) {
+			// console.log(`GATEWAY SERVICE | friendships getFriendship | found friendship requestorID:${friendID}, recipientID:${userID}`);
 			return [friendID, userID];
 		}
 		else {
+			// console.log(`GATEWAY SERVICE | friendships getFriendship | friendship not found for userID:${userID}, friendID:${friendID}`);
 			return [];
 		}
 	}

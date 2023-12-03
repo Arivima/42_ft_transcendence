@@ -6,7 +6,7 @@
 /*   By: mmarinel <mmarinel@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/10/18 20:18:38 by earendil          #+#    #+#             */
-/*   Updated: 2023/12/02 18:30:26 by mmarinel         ###   ########.fr       */
+/*   Updated: 2023/12/03 16:32:53 by mmarinel         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -453,7 +453,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendFriendshipRequest(recipientID: number) {
-				if (debug) console.log(`/Store/ sendFriendshipRequest: ${recipientID}`);
+				if (debug) console.log(`/Store/ sendFriendshipRequest | recipientID:${recipientID}`);
 				this.user.notificationsSocket?.emit('createFrienshipRequest', {
 					id: this.user.id,
 					recipientID: recipientID
@@ -461,6 +461,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendFriendshipConsent(requestorID: number) {
+				if (debug) console.log(`/Store/ sendFriendshipConsent | requestorID:${requestorID}`);
 				this.user.notificationsSocket?.emit('acceptFriendship', {
 					requestorID: requestorID,
 					recipientID: this.user.id,
@@ -468,7 +469,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 			},
 
 			sendFriendshipRejection(friendID: number) {
-				console.log(`/Store/ sendFriendshipRejection: ${friendID}`);
+				if (debug) console.log(`/Store/ sendFriendshipRejection | friendID:${friendID}`);
 				this.user.notificationsSocket?.emit('rejectFrienship', {
 					userID: this.user.id,
 					friendID
@@ -1040,15 +1041,18 @@ async function handleFriendshipAccept(
 		if (-1 != index)
 			this.notifications.splice(index, 1);
 		
+		// console.log(`I am recipient`);
 		newFriendID = data.requestorID;
 	}
 	else {
+		// console.log(`I am requestor`);
 		newFriendID = data.recipientID;
 	}
 
 	// Adding to friends
 	const newFriend = await fetchPlayer(newFriendID);
-		if (JSON.stringify(emptyUser) != JSON.stringify(newFriend)) {
+	if (JSON.stringify(emptyUser) != JSON.stringify(newFriend)) {
+		// console.log(`Adding ${newFriendID} to list of friends`);
 		this.friends.push(newFriend);
 	}
 
@@ -1057,8 +1061,10 @@ async function handleFriendshipAccept(
 		(usr: Player) => newFriendID == usr.id
 	);
 
-	if (-1 != index)
+	if (-1 != index) {
+		// console.log(`removing ${newFriendID} from list of pending`);
 		this.pendingUsers.splice(index, 1);
+	}
 }
 
 async function handleFriendshipReject(
@@ -1066,10 +1072,12 @@ async function handleFriendshipReject(
 	data: FriendshipRejectAccept
 )
 {
+	// console.log(`PlayerStore | handleFriendshipReject | requestor:${data.requestorID}, recipient:${data.recipientID}`);
 	let	friendID: number;
 
 	if (data.recipientID == this.user.id)
 	{
+		// console.log(`I am recipient`);
 		// remove notification
 		const index = this.notifications.findIndex(
 			(request: (FriendRequest & FriendRequestStatus)) => {
@@ -1085,13 +1093,17 @@ async function handleFriendshipReject(
 		friendID = data.requestorID;
 	}
 	else {
+
+		// console.log(`I am requestor`);
 		// take friendID
 		friendID = data.recipientID;
 	}
+	// console.log(`friendID: ${friendID}`);
 	
 	// add as public user
 	const newPublic = await fetchPlayer(friendID);
 	if (JSON.stringify(emptyUser) != JSON.stringify(newPublic)) {
+		// console.log(`adding ${friendID} to list of public users`);
 		this.publicUsers.push(newPublic);
 	}
 
@@ -1099,21 +1111,25 @@ async function handleFriendshipReject(
 	const asFriend_index = this.friends.findIndex(
 		(friend: Player) => {
 			return (
-				this.user.id === friendID
+				friendID === friend.id
 			);
 		}
 	)
 	
-	if (-1 != asFriend_index)
+	if (-1 != asFriend_index) {
+		// console.log(`removing ${friendID} ad index ${asFriend_index} from friends list`);
 		this.friends.splice(asFriend_index, 1);
+	}
 
 	// removing as pending
 	const asPending_index = this.pendingUsers.findIndex(
 		(usr: Player) => friendID === usr.id
 	);
 
-	if (-1 != asPending_index)
+	if (-1 != asPending_index) {
+		// console.log(`removing ${friendID} ad index ${asPending_index} from pending list`);
 		this.pendingUsers.splice(asPending_index, 1);
+	}
 }
 
 async function handleBlockedUser(
@@ -1129,6 +1145,14 @@ async function handleBlockedUser(
 
 	if (debug) console.log('/Store/ toggle-block-user: emitting from backend');
 
+	// console.log(
+	// 	`requestor_blacklisted:${data.requestor_blacklisted}, recipient_blacklisted:${data.recipient_blacklisted}`
+	// );
+	//TAKE
+	// 1. affected user ID
+	// 2. affected user was Blocked ?
+	// 3. as friend index
+	// 4. as public index
 	// we are recipient: remove notification && get friend info
 	if (data.recipientID == this.user.id) {
 		let notificationsIndex = this.notifications.findIndex(
@@ -1168,6 +1192,7 @@ async function handleBlockedUser(
 		)
 	}
 
+	// PENDING LIST
 	// remove from pending
 	asPending_index = this.pendingUsers.findIndex(
 		(usr: Player) => affectedUserID == usr.id
@@ -1176,10 +1201,12 @@ async function handleBlockedUser(
 	if (-1 != asPending_index)
 		this.pendingUsers.splice(asPending_index, 1);
 
+	// FRIENDS LIST
 	// delete from friends if exists
 	if (-1 != asFriend_index)
 		this.friends.splice(asFriend_index, 1);
 	
+	// PUBLIC LIST
 	// if any user is blocked, remove from public users, otherwise add it
 	if (data.requestor_blacklisted || data.recipient_blacklisted) {
 		if (debug) console.log(`/Store/ some user got blocked`);
@@ -1194,10 +1221,12 @@ async function handleBlockedUser(
 			this.publicUsers.push(affectedUser);
 	}
 
+	// BLOCKED LIST
 	// if blocked, add to blocked users, otherwise remove from it
 	if (userBlocked) {
 		const affectedUser = await fetchPlayer(affectedUserID);
 			if (JSON.stringify(emptyUser) != JSON.stringify(affectedUser)) {
+			// console.log(`adding user to blacklist`);
 			this.blockedUsers.push(affectedUser);
 		}
 	}
@@ -1408,19 +1437,27 @@ async function handleEnd(this: any, endGame : endGameDto) {
 async function handleNewActiveGames(this: any, activeGames: ActiveGameDto[]) {
 	if (debug) console.log(`/ Store / handleNewActiveGames`);
 
+	this.liveStreams = [];
 	for (const game of activeGames)
 	{
 		if (debug) console.log(`next game: roomId: ${game.roomId}; hostID: ${game.hostID}; guestID: ${game.guestID}`);
 
-		const host = await fetchPlayer(game.hostID);
-		const guest = await fetchPlayer(game.guestID);
+		try {
+			const host = await fetchPlayer(game.hostID);
+			const guest = await fetchPlayer(game.guestID);
 
-		game.hostUsername = host.username;
-		game.hostAvatar = host.avatar;
-		game.guestUsername = guest.username;
-		game.guestAvatar = guest.avatar;
+			game.hostUsername = host.username;
+			game.hostAvatar = host.avatar;
+			game.guestUsername = guest.username;
+			game.guestAvatar = guest.avatar;
+
+			this.liveStreams.push(game);
+		}
+		catch {
+			continue ;
+		}
 	}
 
-	this.liveStreams = activeGames;
+	// this.liveStreams = activeGames;
 }
 

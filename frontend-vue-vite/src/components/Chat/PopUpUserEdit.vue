@@ -19,7 +19,6 @@
 			  <!-- use user info to show -->
 			<v-list-item
 			:title="userInfo.name"
-			:prepend-avatar="userInfo.imageUrl"
 			>
 			  
 			</v-list-item>
@@ -59,7 +58,7 @@
 		  <v-card-actions>
 			<v-spacer></v-spacer>
 			<v-btn @click="removeUser(userInfo.id)" color="secondary" class="mr-2" outlined>
-				Remove user
+				Remove user {{ userInfo.id }}
 			</v-btn>
 			<v-btn
 			  variant="text"
@@ -131,6 +130,7 @@
 				});
 			},
 			removeUser(id) {
+				console.log("removing", id);
 				this.$props.socket.emit("removeuserfromgroup", { 
 					"userId": id,
 					"groupId": this.$props.groupId,

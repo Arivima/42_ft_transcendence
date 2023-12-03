@@ -330,6 +330,7 @@ export default {
 	beforeUnmount() {
 		this.activeChat = 0;
 		this.messages = []
+		// this.socket.disconn
 	},
 	beforeRouteLeave() {
 		this.activeChat = 0;
@@ -356,9 +357,6 @@ export default {
 					alert("You can't send message to this Chat")
 				}
 				this.socket.emit("getparents", { userId: user.value.id }, (response) => {
-					// response.sortedData.forEach((parentResponse, index) => {
-					// 	parentResponse.lastMessage = new Date(parentResponse.lastMessage).toLocaleString();
-					// });
 					response.sortedData.every((parentResponse, index) => {
 						if (this.activeChat && this.parents[this.activeChat - 1].id == parentResponse.id) {
 							this.activeChat = index + 1;

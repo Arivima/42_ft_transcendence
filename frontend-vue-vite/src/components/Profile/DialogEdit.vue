@@ -102,17 +102,17 @@ export default defineComponent({
 					if (error.response) {
 						// The request was made and the server responded with a status code
 						// that falls out of the range of 2xx
-						console.error('Logging response error:', error.response.data);
+						console.log('Logging response error:', error.response.data);
 						this.displayErrorUsername(
 							`${error.response.data.message} (status code ${error.response.data.statusCode})`
 							)
 					} else if (error.request) {
 						// The request was made but no response was received
-						console.error('Logging request error:', error.request);
+						console.log('Logging request error:', error.request);
 						this.displayErrorUsername('Error: No response from server.')
 					} else {
 						// Something happened in setting up the request that triggered an Error
-						console.error('Logging general error:', error.message);
+						console.log('Logging general error:', error.message);
 						this.displayErrorUsername('Error: Bad request.')
 					}
 				})

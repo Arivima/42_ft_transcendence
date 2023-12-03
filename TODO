@@ -1,12 +1,37 @@
 TODO-------------------------------------------------------------------------------------------------
 
+---BUGS
+	- Chat: crash when all friends are added to group
+	- Chat: crash when blocking user in view (that does not update) and user send messages
+		- maybe: do a socket to interface chat with profile
+	<!-- - Chat: backend crash on user update (ban, mute)
+		- PrismaClientKnownRequestError: Invalid `this.prisma.subscribed.update()` invocation in
+			backend   | /app/src/chat/chat.service.ts:310:44
+			backend   |   307 });
+			backend   |   308 if (isOwner.length > 0)
+			backend   |   309   return null;
+			backend   | → 310 let res = await this.prisma.subscribed.update(
+			backend   | An operation failed because it depends on one or more records that were required but not found. Record to update not found.
+			backend   |     at ni.handleRequestError (/app/node_modules/@prisma/client/runtime/library.js:124:6817)
+			backend   |     at ni.handleAndLogRequestError (/app/node_modules/@prisma/client/runtime/library.js:124:6206)
+			backend   |     at ni.request (/app/node_modules/@prisma/client/runtime/library.js:124:5926)
+			backend   |     at l (/app/node_modules/@prisma/client/runtime/library.js:129:10023)
+			backend   |     at ChatService.editUserSubscription (/app/src/chat/chat.service.ts:310:15) -->
+
+	- LiveStream table: crash when a blacklisted user is playing DONE
+	- Game: not Playable
+	- Game: bug in score points
+
+	- server side validation
+	
+
 ----MUST-DO
 		-  build test +  Safari 					DONE
 		-  reactivity offline online				DONE
 		-  resolve exit crash cutsomization screen	DONE
 		-  resolve 2fa								DONE
-		-  resolve remove friends
-		-  BLOCK and profile buttons NOT REACTIVE
+		-  resolve remove friends					DONE
+		-  BLOCK and profile buttons NOT REACTIVE	DONE
 
 ----FULL TEST CHECKLIST
 		- check reactivity
@@ -27,6 +52,7 @@ TODO----------------------------------------------------------------------------
 		- clean console.log + comments
 		- find a solution for env files
 		- delete node_modules
+		- remove urls for images and save them locally
 
 ----PROBABLY WON'T HAVE TIME
 		- MM | handle //! //TODO
