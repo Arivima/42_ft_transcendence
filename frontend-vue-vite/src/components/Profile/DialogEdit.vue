@@ -24,8 +24,8 @@ export default defineComponent({
 			errorUsername: false,
 			errorMessageUsername: '',
 			usernameRules: [
-				(value: string) => (value && value.length >= 5) || 'Name must be at least 5 characters',
 				(value: string) => (value && value.length <= 15) || 'Name must be less than 15 characters',
+				(value: string) => (value && value.length >= 5) || 'Name must be at least 5 characters',
 				(value: string) => !/\s/.test(value) || 'Name must not contain whitespace',
 				(value: string) => /^[a-zA-Z0-9]+$/.test(value) || 'Name must only contain letters and numbers',
 			],

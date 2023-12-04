@@ -56,8 +56,7 @@ export class ChatGateway {
       const user = await this.jwtService.verifyAsync(client.handshake.auth.token, {
         secret: process.env.JWT_SECRET
       });
-      if (!this.clients.has(Number(user.sub)))
-        this.clients.set(Number(user.sub), client);
+      this.clients.set(Number(user.sub), client);
     } catch (error) {
       if (debug) console.log(`DEBUG | chat.gateway | handleConnection | error: ${error}`);
       client.emit('redirect', '/login');
@@ -65,7 +64,16 @@ export class ChatGateway {
   }
 
   handleDisconnect(client: any) {
-    this.clients.delete(client.id);
+    let id;
+
+    for (let [userID, csock] of this.clients) {
+			if (client.id == csock.id) {
+        id = userID;
+        break ;
+			}
+
+		}
+    this.clients.delete(id);
   }
 
   @SubscribeMessage('findAllChat')

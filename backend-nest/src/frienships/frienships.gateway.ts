@@ -44,8 +44,9 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 		console.log(`friendships gateway: ${client.id} connected, exist: ${this.clients.has(Number(user.sub))}`);
 		if (!this.clients.has(Number(user.sub)))
 			this.clients.set(Number(user.sub), client);
-		else
-			this.server.to(`${client.id}`).emit('already-connected')
+		else{
+			await new Promise(r => setTimeout(r, 500));
+			this.server.to(`${client.id}`).emit('already-connected')}
 	}
 
 	@Public()

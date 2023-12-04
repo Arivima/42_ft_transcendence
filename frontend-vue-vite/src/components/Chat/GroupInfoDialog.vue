@@ -32,7 +32,7 @@
 							</div>
 							<v-list-item-action class="float-right">
 								<PopUpUserEdit ref="select" :userInfos="member" :socket="socket" :groupId="groupInfo.id" v-if="this.user.isAdmin && member.id !== this.userId && member.name !== groupInfo.founder"/>
-								<v-btn @click="viewProfile(member.id)" color="secondary" class="mr-2" outlined>
+								<v-btn :to="{ name: 'profile', params: { id: (member.id) } }" color="secondary" class="mr-2" outlined>
 									View Profile
 								</v-btn>
 							</v-list-item-action>
@@ -147,9 +147,6 @@ export default {
 		},
 	},
 	methods: {
-		viewProfile(member) {
-			window.open(`http://${location.hostname}:8080/profile/${member}`, '_blank');
-		},
 		editProfile() {
 			this.$refs.select.onClick((e) => {
 				console.log(e);

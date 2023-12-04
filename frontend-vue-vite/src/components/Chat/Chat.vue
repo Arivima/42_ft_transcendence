@@ -172,13 +172,17 @@ export default {
 	},
 
 	created() {
-		this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/chat`, {
-			transports: ['websocket'],
-			auth: {
-				'token': user.value.token
-			}
-		});
+	
 		try {
+			if (!user.value.locked)
+			{
+				this.socket = io(`ws://${location.hostname}:${import.meta.env.VITE_BACKEND_PORT}/chat`, {
+				transports: ['websocket'],
+				auth: {
+					'token': user.value.token
+				}
+			});
+		}
 			this.socket.emit("getparents", { userId: user.value.id }, (response) => {
 				friends.value.forEach((friend) => {
 					response.sortedData.forEach((parentResponse) => {

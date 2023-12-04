@@ -399,8 +399,8 @@ export class GameGateway implements OnGatewayConnection, OnGatewayDisconnect {
 		// if (debug) console.log(`| GATEWAY GAME | 'newFrame'`);
 		
 		const	finished = (
-			this.gameService.getGameInstances().get(frame.hostID).finished ||
-			this.gameService.getGameInstances().get(frame.guestID).finished
+			this.gameService.getGameInstances().get(frame.hostID)?.finished ||
+			this.gameService.getGameInstances().get(frame.guestID)?.finished
 		);
 		const	roomId: string = this.gameService.getGameInstances().get(userID).roomId;
 		const	currentFrame: FrameDto = this.gameService.getFrames().get(roomId);

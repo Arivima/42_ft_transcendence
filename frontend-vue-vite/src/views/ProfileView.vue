@@ -76,7 +76,7 @@ export default {
 					}`)
 				}
 				catch (err) {
-					console.log(`Cannot view selected user profile`);
+					console.error(`Cannot view selected user profile`);
 					this.$router.push({ name: 'profile' });
 				}
 			}
