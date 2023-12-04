@@ -41,12 +41,11 @@ export class FrienshipsGateway implements OnGatewayConnection, OnGatewayDisconne
 		
 		if (debug) console.log(`socket: ${client.id}, userID: ${Number(user.sub)}, connected`)
 		// https://socket.io/docs/v4/client-options/#auth
+		console.log(`friendships gateway: ${client.id} connected, exist: ${this.clients.has(Number(user.sub))}`);
 		if (!this.clients.has(Number(user.sub)))
 			this.clients.set(Number(user.sub), client);
 		else
-			this.server.to(`${client.id}`).emit('frienship-error', {
-				msg: `user already connected`,
-			})
+			this.server.to(`${client.id}`).emit('already-connected')
 	}
 
 	@Public()

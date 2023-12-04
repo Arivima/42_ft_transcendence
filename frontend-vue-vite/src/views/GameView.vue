@@ -15,7 +15,7 @@ import { usePlayerStore} from '@/stores/PlayerStore';
 import LiveStream from '@/components/Game/LiveStream.vue';
 
 const playerStore = usePlayerStore()
-const { currentGame } = storeToRefs(playerStore)
+const { user, currentGame } = storeToRefs(playerStore)
 
 const debug = false
 
@@ -40,6 +40,10 @@ export default {
 			if (debug) console.log('| GameView | computed | status : ' + currentGame.value.status)
 			return currentGame.value.status
 		},
+		user() {
+			if (debug) console.log('| GameView | computed | user')
+			return user.value
+		},
 	},
 	methods: {
 		sendMatchMakingRequest(){
@@ -53,6 +57,7 @@ export default {
 </script>
 
 <template>
+    <div v-if="!user.locked">
 	<NavSideBar />
 	<Notifications/>
 	<!-- <Debug></Debug> -->
@@ -104,6 +109,10 @@ export default {
 
 		</v-card>
 	</v-main>
+	</div>
+	<div v-else>
+		WARNING : You can view one page at a time. Please close the other tabs. and reload this page. Page is locked: {{ user.locked }}
+	</div>
 </template>
 
 <style scoped>

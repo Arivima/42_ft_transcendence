@@ -103,6 +103,7 @@ export class FriendRequestError {
 export class Player {
 	public id: number;
 	public username: string;
+	public locked: boolean;
 	public avatar: string;
 	public firstName: string;
 	public lastName: string;
@@ -118,6 +119,7 @@ export class Player {
 	constructor() {
 		this.id = -1;
 		this.username = 'Nan';
+		this.locked = false;
 		this.avatar = 'Nan';
 		this.firstName = 'Nan';
 		this.lastName = 'Nan';
@@ -135,6 +137,7 @@ export class Player {
 const emptyUser = {
 	id: -1,
 	username: 'Nan',
+	locked: false,
 	avatar: 'Nan',
 	firstName: 'Nan',
 	lastName: 'Nan',
@@ -762,7 +765,7 @@ export const usePlayerStore: StoreDefinition<any> = defineStore('PlayerStore', {
 					this.user.notificationsSocket?.on('accept-friendship', handleFriendshipAccept.bind(this));
 					this.user.notificationsSocket?.on('toggle-block-user', handleBlockedUser.bind(this));
 					this.user.notificationsSocket?.on('frienship-error', handleNotificationsError.bind(this));
-					this.user.notificationsSocket?.on('frienship-error', handleFriendStatusUpdate.bind(this));
+					this.user.notificationsSocket?.on('already-connected', handleAlreadyConnected.bind(this));
 					this.user.notificationsSocket?.emit('findAllFrienshipRequests', {id: this.user.id});
 
 					this.user.gameSocket?.on('friendStatusUpdate', handleFriendStatusUpdate.bind(this));
@@ -1272,6 +1275,11 @@ async function handleNotificationsError(this: any, data: FriendRequestError) {
 			recipientID: ${data.recipientID}\n
 		}`
 	);
+}
+
+async function handleAlreadyConnected(this: any) {
+	console.log('already-connected');
+	this.user.locked = true;
 }
 
 // Received events : Game Sockets

@@ -1,6 +1,4 @@
 <script lang="ts">
-import { usePlayerStore, type Player } from '@/stores/PlayerStore'
-import { storeToRefs } from 'pinia'
 
 import NavSideBar from '../components/NavSideBar.vue'
 import Notifications from '@/components/Notifications.vue'
@@ -13,20 +11,23 @@ import BlockedSent from '@/components/Profile/BlockedSent.vue'
 import DialogWaiting from '@/components/Game/DialogWaiting.vue'
 import DialogInvite from '@/components/Game/DialogInvite.vue'
 import Debug from '@/components/Debug.vue'
+import { storeToRefs } from 'pinia'
+
+import { usePlayerStore, type Player } from '@/stores/PlayerStore'
 
 const playerStore = usePlayerStore()
 const { user, friends, blockedUsers, fetchPlayer } = storeToRefs(playerStore)
 const debug = false
 
 export default {
-	components : {
-    NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
-    Notifications,
-    BlockedSent,
-    DialogWaiting,
-    DialogInvite,
-    Debug
-},
+	components: {
+		NavSideBar, UserCard, MatchHistoryTable, AddFriend, Friends, Achievements,
+		Notifications,
+		BlockedSent,
+		DialogWaiting,
+		DialogInvite,
+		Debug
+	},
 	data() {
 		return {
 			userVisitor: user,
@@ -35,10 +36,9 @@ export default {
 		}
 	},
 	computed: {
-		visibility() : 'Loading' | 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile'  {
+		visibility(): 'Loading' | 'MyProfile' | 'FriendProfile' | 'PublicProfile' | 'BlockedProfile' {
 			if (debug) console.log('| ProfileView | computed | visibility')
-			if (this.userProfile != undefined)
-			{
+			if (this.userProfile != undefined) {
 				if (user.value.id == this.userProfile.id)
 					return 'MyProfile'
 				for (const friend of friends.value) {
@@ -59,7 +59,7 @@ export default {
 	},
 	methods: {
 		async fetchUserProfile() {
-			let profileID : number = Number(this.$route.params.id)
+			let profileID: number = Number(this.$route.params.id)
 			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | ${profileID}`)
 
 			if (!profileID || profileID == this.userVisitor.id) {
@@ -77,20 +77,20 @@ export default {
 				}
 				catch (err) {
 					console.log(`Cannot view selected user profile`);
-					this.$router.push({name: 'profile'});
+					this.$router.push({ name: 'profile' });
 				}
 			}
 			if (debug) console.log(`| ProfileView | methods | fetchUserProfile() | END`)
 		},
 	},
-	watch : {
-		userVisitor(newValue : Player) {
+	watch: {
+		userVisitor(newValue: Player) {
 			if (debug) console.log('| ProfileView | watch | userVisitor : new value : ' + newValue.username)
 		},
-		userVisitorFriends(newValue : Player[]) {
+		userVisitorFriends(newValue: Player[]) {
 			if (debug) console.log('| ProfileView | watch | userVisitorFriends : new length : ' + newValue.length)
 		},
-		userProfile(newValue : Player) {
+		userProfile(newValue: Player) {
 			if (debug) console.log('| ProfileView | watch | userProfile : new value : ' + newValue.username)
 		},
 	},
@@ -105,58 +105,62 @@ export default {
 			await this.fetchUserProfile()
 		}
 		catch (_) {
-			this.$router.push({name: 'profile'});
+			this.$router.push({ name: 'profile' });
 		}
 	},
 }
 </script>
 
 <template>
-<div class="profile">
-	<NavSideBar />
-	<Notifications />
-	<DialogWaiting></DialogWaiting>
-	<DialogInvite></DialogInvite>
-		<v-card class="parent">
-			<v-card class="child1">
-				<v-card class="child2">
-					<UserCard v-if="userProfile != undefined"
-						:userProfile="(userProfile as Player)"
-					></UserCard>
+	<div class="profile">
+		<div v-if="!userVisitor.locked">
+			<NavSideBar />
+			<Notifications />
+			<DialogWaiting></DialogWaiting>
+			<DialogInvite></DialogInvite>
+			<v-card class="parent">
+				<v-card class="child1">
+					<v-card class="child2">
+						page is lock: {{ userVisitor.locked}}
+						<UserCard v-if="userProfile != undefined" :userProfile="(userProfile as Player)"></UserCard>
+					</v-card>
+				</v-card>
+				<v-card class="child1">
+					<v-card class="child2"
+						v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile')">
+						<Achievements :userProfile="(userProfile as Player) || undefined"
+							v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile')">
+						</Achievements>
+						<MatchHistoryTable :userProfile="(userProfile as Player) || undefined"
+							v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile')">
+						</MatchHistoryTable>
+					</v-card>
+					<v-card class="child2" v-if="visibility === 'MyProfile'">
+						<AddFriend />
+						<Friends />
+						<BlockedSent />
+					</v-card>
 				</v-card>
 			</v-card>
-			<v-card class="child1">
-				<v-card class="child2"
-					v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile')"
-				>
-					<Achievements
-						:userProfile="(userProfile as Player) || undefined"
-						v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile')"
-					></Achievements>
-					<MatchHistoryTable
-						:userProfile="(userProfile as Player) || undefined"
-						v-if="(userProfile != undefined) && (visibility === 'MyProfile' || visibility === 'FriendProfile' || visibility === 'PublicProfile')"
-					></MatchHistoryTable>
-				</v-card>
-				<v-card class="child2"
-					v-if="visibility === 'MyProfile'"
-				>
-					<AddFriend/>
-					<Friends/>
-					<BlockedSent/>
-				</v-card>
-			</v-card>
-		</v-card>
-</div>
+		</div>
+		<div v-else>
+			WARNING : You can view one page at a time. Please close the other tabs. and reload this page. Page is locked: {{
+				userVisitor.locked }}
+		</div>
+	</div>
 </template>
 
 <style scoped>
 .parent {
 	display: flex;
-	flex-direction: column; /* x and y axis inverted */
-	align-items: center; /* y axis */
-	justify-content: start; /* x axis */
-	justify-items: start; /* x axis */
+	flex-direction: column;
+	/* x and y axis inverted */
+	align-items: center;
+	/* y axis */
+	justify-content: start;
+	/* x axis */
+	justify-items: start;
+	/* x axis */
 	width: 100%;
 	height: 100%;
 }
@@ -164,22 +168,30 @@ export default {
 .child1 {
 	display: flex;
 	flex-direction: row;
-	align-items: start; /* y axis */
-	align-content: start; /* y axis */
-	justify-content: start; /* x axis */
-	justify-items: start; /* x axis */
+	align-items: start;
+	/* y axis */
+	align-content: start;
+	/* y axis */
+	justify-content: start;
+	/* x axis */
+	justify-items: start;
+	/* x axis */
 	width: 100%;
 	height: 100%;
 }
 
 .child2 {
 	display: flex;
-	flex-direction: column; /* x and y axis inverted */
-	align-items: stretch; /* y axis */
-	align-content: center; /* y axis */
-	justify-content: start; /* x axis */
-	justify-items: center; /* x axis */
+	flex-direction: column;
+	/* x and y axis inverted */
+	align-items: stretch;
+	/* y axis */
+	align-content: center;
+	/* y axis */
+	justify-content: start;
+	/* x axis */
+	justify-items: center;
+	/* x axis */
 	width: 100%;
 	height: 100%;
-}
-</style>
+}</style>
